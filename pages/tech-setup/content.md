@@ -1,13 +1,3 @@
----
-{
-    "title": "Setting Up My Development Environment",
-    "slug": "tech-setup",
-    "date": "2025-01-16",
-    "description": "A detailed look at my development setup and tools.",
-    "categories": ["tech", "tools"]
-}
----
-
 <style>
 body {
     font-family: 'Courier New', monospace;

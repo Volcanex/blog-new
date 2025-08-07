@@ -1,0 +1,37 @@
+Registered API endpoints for page: tech-setup
+Registered API endpoints for page: first-post
+Registered API endpoints for page: travel-memories
+Successfully registered APIs for 3 pages
+Starting Flask server on port 5000
+Static files served from: output
+Pages directory: pages
+API base URL: http://localhost:5000/api/
+Assets URL pattern: http://localhost:5000/assets/<page>/<file>
+ * Serving Flask app 'flask_server'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.76:5000
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 109-632-988
+127.0.0.1 - - [07/Aug/2025 16:36:26] "GET /api/health HTTP/1.1" 200 -
+127.0.0.1 - - [07/Aug/2025 16:36:26] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [07/Aug/2025 16:36:28] "[36mGET / HTTP/1.1[0m" 304 -
+127.0.0.1 - - [07/Aug/2025 16:36:31] "[36mGET / HTTP/1.1[0m" 304 -
+ * Detected change in '/home/gabriel/Desktop/blog-new/compile_v2.py', reloading
+Registered API endpoints for page: tech-setup
+Registered API endpoints for page: first-post
+Registered API endpoints for page: travel-memories
+Successfully registered APIs for 3 pages
+Starting Flask server on port 5000
+Static files served from: output
+Pages directory: pages
+API base URL: http://localhost:5000/api/
+Assets URL pattern: http://localhost:5000/assets/<page>/<file>
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 109-632-988
+127.0.0.1 - - [07/Aug/2025 16:38:00] "GET /travel-memories.html HTTP/1.1" 200 -

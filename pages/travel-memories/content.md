@@ -1,13 +1,3 @@
----
-{
-    "title": "Travel Memories: Japan 2024",
-    "slug": "travel-memories",
-    "date": "2025-01-14",
-    "description": "Reflections on my trip to Japan and the memories I made.",
-    "categories": ["travel", "personal"]
-}
----
-
 <style>
 body {
     font-family: 'Times New Roman', serif;

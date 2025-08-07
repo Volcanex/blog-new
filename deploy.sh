@@ -1,49 +1,153 @@
 #!/bin/bash
-
-# Blog deployment script
-# Compiles the blog and restarts the server
+# Deployment script for GCP e2-micro instance
+# Handles static file deployment and Flask API server management
 
 set -e  # Exit on any error
 
-echo "🔨 Starting blog deployment..."
+echo "🚀 Starting blog deployment..."
+echo "=============================="
 
-# Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
+# Configuration
+STATIC_DIR="output"
+API_PORT="${API_PORT:-5000}"
+LOG_DIR="logs"
+PID_FILE="flask_server.pid"
 
-# Kill any existing server processes
-echo "🛑 Stopping existing server..."
-pkill -f "python.*server.py" || true
-pkill -f "python.*blog.*server" || true
+# Create logs directory
+mkdir -p "$LOG_DIR"
 
-# Wait a moment for processes to stop
-sleep 2
+# Function to check if a port is in use
+check_port() {
+    local port=$1
+    if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
+        return 0  # Port is in use
+    else
+        return 1  # Port is free
+    fi
+}
 
-# Compile the blog
-echo "📝 Compiling blog..."
-python3 compile.py
+# Function to stop existing Flask server
+stop_flask_server() {
+    if [ -f "$PID_FILE" ]; then
+        local pid=$(cat "$PID_FILE")
+        echo "🛑 Stopping existing Flask server (PID: $pid)..."
+        
+        if ps -p $pid > /dev/null 2>&1; then
+            kill $pid
+            sleep 2
+            
+            # Force kill if still running
+            if ps -p $pid > /dev/null 2>&1; then
+                echo "   Force killing server..."
+                kill -9 $pid
+            fi
+        fi
+        
+        rm -f "$PID_FILE"
+        echo "   ✅ Flask server stopped"
+    fi
+}
 
-# Check if compilation was successful
-if [ ! -f "output/index.html" ]; then
-    echo "❌ Error: Compilation failed - no index.html found"
+# Check if output directory exists
+if [ ! -d "$STATIC_DIR" ]; then
+    echo "❌ Error: $STATIC_DIR directory not found!"
+    echo "   Run ./compile.sh first to generate static files"
     exit 1
 fi
 
-# Start the server in the background
-echo "🚀 Starting server..."
-nohup python3 server.py --port 8000 > server.log 2>&1 &
+# Check if required files exist
+if [ ! -f "flask_server.py" ]; then
+    echo "❌ Error: flask_server.py not found"
+    exit 1
+fi
 
-# Wait a moment for server to start
-sleep 2
+# Setup virtual environment and install dependencies
+VENV_DIR="venv"
 
-# Check if server started successfully
-if pgrep -f "python.*server.py" > /dev/null; then
-    echo "✅ Blog deployed successfully!"
-    echo "📖 Blog available at: http://localhost:8000"
-    echo "📋 Server logs: tail -f server.log"
-    echo "🛑 To stop: pkill -f 'python.*server.py'"
+if [ -f "requirements.txt" ]; then
+    echo "📦 Setting up Python environment..."
+    
+    # Create virtual environment if it doesn't exist
+    if [ ! -d "$VENV_DIR" ]; then
+        echo "   Creating virtual environment..."
+        python3 -m venv "$VENV_DIR"
+    fi
+    
+    # Activate virtual environment and install dependencies
+    echo "   Installing dependencies in virtual environment..."
+    source "$VENV_DIR/bin/activate"
+    pip install -r requirements.txt --quiet
+    
+    echo "   ✅ Dependencies ready in virtual environment"
+    
+    # Update Python command to use venv
+    PYTHON_CMD="$VENV_DIR/bin/python"
 else
-    echo "❌ Error: Server failed to start"
-    echo "Check server.log for details"
+    echo "⚠️  No requirements.txt found, using system Python"
+    PYTHON_CMD="python3"
+fi
+
+# Stop any existing Flask server
+stop_flask_server
+
+# Deploy static files (copy to a web-accessible location if needed)
+echo "📁 Deploying static files..."
+echo "   Static files location: $(pwd)/$STATIC_DIR"
+echo "   File count: $(find $STATIC_DIR -type f | wc -l)"
+
+# Start Flask API server in background
+echo "🌐 Starting Flask API server on port $API_PORT..."
+nohup $PYTHON_CMD flask_server.py --port $API_PORT > "$LOG_DIR/flask_server.log" 2>&1 &
+FLASK_PID=$!
+
+# Store the PID for later management
+echo $FLASK_PID > "$PID_FILE"
+
+# Wait a moment and check if the server started successfully
+sleep 3
+
+if ps -p $FLASK_PID > /dev/null 2>&1; then
+    echo "   ✅ Flask API server started successfully (PID: $FLASK_PID)"
+    echo "   📊 API Status: http://localhost:$API_PORT/api/health"
+    echo "   🔍 Logs: tail -f $LOG_DIR/flask_server.log"
+else
+    echo "   ❌ Flask server failed to start"
+    echo "   Check logs: cat $LOG_DIR/flask_server.log"
     exit 1
 fi
+
+# Show deployment summary
+echo ""
+echo "🎉 Deployment completed successfully!"
+echo "=================================="
+echo "📍 URLs available:"
+echo "   🏠 Homepage: http://localhost:$API_PORT/"
+echo "   🔌 API Health: http://localhost:$API_PORT/api/health"
+echo "   📋 Pages List: http://localhost:$API_PORT/api/pages"
+echo ""
+echo "📂 Static files: $STATIC_DIR/"
+echo "📊 API Server PID: $FLASK_PID (saved to $PID_FILE)"
+echo "📝 Server logs: $LOG_DIR/flask_server.log"
+echo ""
+echo "🛠️  Management commands:"
+echo "   View logs: tail -f $LOG_DIR/flask_server.log"
+echo "   Restart: ./deploy.sh"
+
+# Test the deployment
+echo ""
+echo "🧪 Testing deployment..."
+if command -v curl &> /dev/null; then
+    echo "   Testing API health endpoint..."
+    sleep 1  # Give server another moment
+    
+    if curl -s -f "http://localhost:$API_PORT/api/health" > /dev/null; then
+        echo "   ✅ API responding correctly"
+    else
+        echo "   ⚠️  API may not be fully ready yet (check logs)"
+    fi
+else
+    echo "   ⚠️  curl not found, skipping API test"
+fi
+
+echo ""
+echo "✨ Blog is now live and ready!"

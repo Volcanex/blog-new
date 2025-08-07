@@ -1,13 +1,3 @@
----
-{
-    "title": "My First Blog Post",
-    "slug": "first-post",
-    "date": "2025-01-15",
-    "description": "Welcome to my blog! This is my first post.",
-    "categories": ["personal", "intro"]
-}
----
-
 <style>
 body {
     font-family: Georgia, serif;
