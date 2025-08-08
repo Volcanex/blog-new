@@ -2,6 +2,8 @@
 
 A scalable, modular blog system where each page is completely self-contained with its own styling, assets, and API endpoints.
 
+🔗 **Repository:** [github.com/Volcanex/blog-new](https://github.com/Volcanex/blog-new)
+
 ## Architecture
 
 ```

@@ -1,51 +1,543 @@
 <style>
+/* Clean Technical Theme - Tailwind Inspired */
+* {
+    box-sizing: border-box;
+}
+
 body {
-    font-family: Georgia, serif;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
     line-height: 1.6;
+    color: #291f1e;
+    background: #fffbf0; /* floral white */
+    margin: 0;
+    padding: 24px;
+    font-size: 16px;
 }
 
+.container {
+    max-width: 896px; /* max-w-4xl */
+    margin: 0 auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 25px 50px -12px rgba(41, 31, 30, 0.25);
+    overflow: hidden;
+}
+
+.content {
+    padding: 48px;
+}
+
+/* Typography */
 h1 {
-    color: #2c3e50;
-    border-bottom: 2px solid #3498db;
-    padding-bottom: 10px;
+    font-size: 2.25rem; /* text-4xl */
+    font-weight: 800;
+    color: #477998;
+    margin: 0 0 12px 0;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
 }
 
-.meta {
-    color: #7f8c8d;
-    font-style: italic;
-    margin-bottom: 30px;
+h2 {
+    font-size: 1.5rem; /* text-2xl */
+    font-weight: 700;
+    color: #291f1e;
+    margin: 48px 0 16px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+h3 {
+    font-size: 1.125rem; /* text-lg */
+    font-weight: 600;
+    color: #477998;
+    margin: 24px 0 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 p {
     margin-bottom: 20px;
+    color: #291f1e;
+    leading: 1.7;
 }
 
+/* Meta information */
+.meta {
+    background: #f1d2d5; /* auburn-900 */
+    color: #a3333d;
+    padding: 16px 20px;
+    border-radius: 8px;
+    border-left: 4px solid #a3333d;
+    margin-bottom: 32px;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+/* Highlights */
 .highlight {
-    background-color: #f39c12;
-    padding: 2px 4px;
-    border-radius: 3px;
+    background: #e7eedf; /* tea_green-800 equivalent but using floral white tones */
+    color: #291f1e;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+/* Architecture Diagram - Simplified */
+.architecture-diagram {
+    background: #d8e5ed; /* cerulean-900 */
+    border: 2px solid #477998;
+    border-radius: 12px;
+    padding: 32px;
+    margin: 40px 0;
+}
+
+.diagram-title {
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #477998;
+    margin-bottom: 24px;
+}
+
+.diagram-flow {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.diagram-step {
+    background: white;
+    border: 2px solid #477998;
+    border-radius: 8px;
+    padding: 16px 20px;
+    text-align: center;
+    min-width: 120px;
+    transition: all 0.2s ease;
+}
+
+.diagram-step:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(71, 121, 152, 0.15);
+}
+
+.diagram-step-title {
+    font-weight: 700;
+    color: #291f1e;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.diagram-step-desc {
+    color: #6496b6; /* cerulean-600 */
+    font-size: 12px;
+    margin: 4px 0 0 0;
+}
+
+.diagram-arrow {
+    color: #a3333d;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* Feature Grid */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin: 32px 0;
+}
+
+.feature-card {
+    background: white;
+    border: 2px solid #d8e5ed; /* cerulean-900 */
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    border-color: #477998;
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(71, 121, 152, 0.15);
+}
+
+.feature-card h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+.feature-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.feature-card li {
+    padding: 6px 0;
+    color: #291f1e;
+    position: relative;
+    padding-left: 16px;
+}
+
+.feature-card li:before {
+    content: "•";
+    color: #477998;
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+}
+
+/* Code Blocks */
+.code-snippet {
+    background: #291f1e;
+    color: #d8e5ed; /* cerulean-900 */
+    padding: 24px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 24px 0;
+    overflow-x: auto;
+    border: 1px solid #477998;
+}
+
+/* Links */
+a {
+    color: #477998;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+a:hover {
+    color: #a3333d;
+    text-decoration: underline;
+}
+
+/* Repository Link */
+.repo-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #477998, #6496b6);
+    color: white;
+    padding: 16px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(71, 121, 152, 0.3);
+}
+
+.repo-link:hover {
+    background: linear-gradient(135deg, #a3333d, #f64740);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(71, 121, 152, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+/* API Endpoints */
+.api-endpoints {
+    background: #d8e5ed; /* cerulean-900 */
+    border-left: 4px solid #477998;
+    border-radius: 0 8px 8px 0;
+    padding: 24px;
+    margin: 24px 0;
+}
+
+.api-endpoints h4 {
+    color: #477998;
+    margin: 0 0 16px 0;
+    font-weight: 600;
+}
+
+.endpoint-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+}
+
+.endpoint-list li {
+    background: white;
+    border: 1px solid #b1cbda; /* cerulean-800 */
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin: 8px 0;
+    color: #291f1e;
+}
+
+.endpoint-list strong {
+    color: #477998;
+    font-weight: 700;
+}
+
+/* Icons */
+svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+}
+
+h2 svg {
+    width: 24px;
+    height: 24px;
+    color: #477998;
+}
+
+h3 svg {
+    width: 18px;
+    height: 18px;
+    color: #477998;
+}
+
+.repo-link svg {
+    width: 20px;
+    height: 20px;
+    color: white;
+}
+
+/* Lists */
+ul {
+    padding-left: 24px;
+}
+
+ul li {
+    margin-bottom: 8px;
+    color: #291f1e;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    body {
+        padding: 16px;
+    }
+    
+    .content {
+        padding: 32px 24px;
+    }
+    
+    h1 {
+        font-size: 1.875rem; /* text-3xl */
+    }
+    
+    .diagram-flow {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .diagram-arrow {
+        transform: rotate(90deg);
+    }
+    
+    .feature-grid {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
 
 <html>
-<div class="meta">Published on January 15, 2025 | Categories: personal, intro</div>
+<div class="container">
+    <div class="content">
+        <div class="meta">Published on January 15, 2025 | Categories: architecture, web-development, technical</div>
 
-<h1>My First Blog Post</h1>
+        <h1>Modular Blog Architecture: A Self-Contained Approach</h1>
 
-<p>Welcome to my blog! This is my very first post, and I'm excited to share my thoughts and experiences with you.</p>
+        <p>Welcome to an exploration of this blog's innovative architecture. This isn't just another static site generator—it's a <span class="highlight">completely modular system</span> where each page operates as an independent entity with its own styling, assets, and API endpoints.</p>
 
-<p>This blog is built with a custom static site generator that allows each page to be <span class="highlight">completely self-contained</span> with its own styles and content.</p>
+        <h2>
+            <svg viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2"/><path d="M20 10h-2v2h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2"/></svg>
+            Architectural Philosophy
+        </h2>
 
-<p>Some features of this blog system:</p>
-<ul>
-    <li>Each page has its own CSS styling</li>
-    <li>Metadata includes categories for organization</li>
-    <li>Simple Python compiler generates static HTML</li>
-    <li>Clean, minimal design</li>
-</ul>
+        <p>Traditional blogs share CSS, JavaScript, and templates across pages, creating dependencies and potential conflicts. This system takes a radically different approach: <strong>true page isolation</strong>. Each post is essentially its own website, complete with custom styling and functionality.</p>
 
-<p>Thanks for visiting, and stay tuned for more posts!</p>
+        <div class="architecture-diagram">
+            <div class="diagram-title">System Architecture Overview</div>
+            <div class="diagram-flow">
+                <div class="diagram-step">
+                    <div class="diagram-step-title">Pages</div>
+                    <div class="diagram-step-desc">Self-contained directories</div>
+                </div>
+                <div class="diagram-arrow">→</div>
+                <div class="diagram-step">
+                    <div class="diagram-step-title">Compiler</div>
+                    <div class="diagram-step-desc">Static HTML generation</div>
+                </div>
+                <div class="diagram-arrow">→</div>
+                <div class="diagram-step">
+                    <div class="diagram-step-title">Flask API</div>
+                    <div class="diagram-step-desc">Dynamic endpoints</div>
+                </div>
+            </div>
+        </div>
+
+        <h2>
+            <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+            Directory Structure
+        </h2>
+
+        <p>Each page follows a consistent, modular structure:</p>
+
+        <div class="code-snippet">pages/first-post/
+├── config.json      # Page metadata & settings
+├── content.md       # HTML content + CSS styling
+├── api.py          # Custom Flask API endpoints
+└── assets/         # Page-specific resources
+    ├── images/
+    ├── documents/
+    └── data/</div>
+
+        <h2>
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+            Key Features
+        </h2>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h3>
+                    <svg viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="11.5" r=".5"/><circle cx="12.5" cy="16.5" r=".5"/><circle cx="13.5" cy="13.5" r=".5"/><circle cx="10.5" cy="20.5" r=".5"/><circle cx="15.5" cy="19.5" r=".5"/><circle cx="2.5" cy="15.5" r=".5"/><circle cx="8.5" cy="4.5" r=".5"/><path d="M4 6 2 4"/><path d="M2 10v6"/><path d="M6 14H2"/><path d="m18 6 2-2"/><path d="M22 10v6"/><path d="m18 14 4 0"/></svg>
+                    Complete Style Independence
+                </h3>
+                <ul>
+                    <li>Each page has its own CSS</li>
+                    <li>No shared stylesheets</li>
+                    <li>Zero style conflicts</li>
+                    <li>Full design freedom</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h3>
+                    <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+                    Custom API Endpoints
+                </h3>
+                <ul>
+                    <li>Page-specific Flask routes</li>
+                    <li>Automatic blueprint registration</li>
+                    <li>RESTful endpoint patterns</li>
+                    <li>Database integration</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h3>
+                    <svg viewBox="0 0 24 24"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                    Asset Management
+                </h3>
+                <ul>
+                    <li>Per-page asset directories</li>
+                    <li>Automatic compilation</li>
+                    <li>Organized file structure</li>
+                    <li>CDN-ready organization</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h3>
+                    <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M5 12c0 1.66 3.13 3 7 3s7-1.34 7-3"/><path d="M5 5v14c0 1.66 3.13 3 7 3s7-1.34 7-3V5"/></svg>
+                    Scoped Data Storage
+                </h3>
+                <ul>
+                    <li>NoSQL file-based database</li>
+                    <li>Page-isolated collections</li>
+                    <li>Thread-safe operations</li>
+                    <li>Firestore-like API</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2>
+            <svg viewBox="0 0 24 24"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><path d="M11 11h2"/></svg>
+            API Endpoints
+        </h2>
+
+        <p>This page demonstrates the API system with several live endpoints:</p>
+
+        <div class="api-endpoints">
+            <h4>Available Endpoints for this Page:</h4>
+            <ul class="endpoint-list">
+                <li><strong>GET</strong> /api/first-post/hello - Simple greeting endpoint</li>
+                <li><strong>GET/POST</strong> /api/first-post/comments - Comment system</li>
+                <li><strong>GET</strong> /api/first-post/architecture-info - Technical details</li>
+            </ul>
+            
+            <p><em>Try these endpoints to see the API system in action!</em></p>
+        </div>
+
+        <h2>
+            <svg viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>
+            Scalability by Design
+        </h2>
+
+        <p>The modular architecture enables several scaling strategies:</p>
+
+        <ul>
+            <li><strong>Microservices Ready:</strong> Each page's API can be extracted to separate services</li>
+            <li><strong>CDN Optimization:</strong> Static files and assets are perfectly organized for distribution</li>
+            <li><strong>Database Sharding:</strong> Page-scoped data naturally partitions</li>
+            <li><strong>Independent Deployment:</strong> Pages can be updated without affecting others</li>
+        </ul>
+
+        <h2>
+            <svg viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .962L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+            Technical Implementation
+        </h2>
+
+        <p>The system is built with modern web technologies:</p>
+        <ul>
+            <li><strong>Python 3.11+</strong> - Core compilation and API server</li>
+            <li><strong>Flask</strong> - Dynamic API endpoints with auto-registration</li>
+            <li><strong>File-based NoSQL</strong> - Simple yet powerful data storage</li>
+            <li><strong>Modular Compilation</strong> - Custom build system for page isolation</li>
+        </ul>
+
+        <h2>
+            <svg viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+            Performance Benefits
+        </h2>
+
+        <p>This architecture delivers several performance advantages:</p>
+        <ul>
+            <li><strong>Minimal CSS:</strong> Only relevant styles are loaded per page</li>
+            <li><strong>Lazy Loading:</strong> Assets and APIs load only when needed</li>
+            <li><strong>Caching Friendly:</strong> Each page can have independent cache strategies</li>
+            <li><strong>Resource Isolation:</strong> Page failures don't cascade to others</li>
+        </ul>
+
+        <div style="text-align: center; margin: 40px 0;">
+            <a href="https://github.com/Volcanex/blog-new" class="repo-link" target="_blank">
+                <svg viewBox="0 0 24 24"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+                View Source Code on GitHub
+            </a>
+        </div>
+
+        <h2>
+            <svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+            Future Enhancements
+        </h2>
+
+        <p>The modular foundation enables exciting possibilities:</p>
+        <ul>
+            <li><strong>Interactive Components:</strong> Each page can include custom JavaScript widgets</li>
+            <li><strong>Real-time Features:</strong> WebSocket endpoints for live data</li>
+            <li><strong>Plugin System:</strong> Extensible functionality per page</li>
+            <li><strong>Multi-tenant Support:</strong> Different users can have different page access</li>
+        </ul>
+
+        <p>This blog represents a new approach to content management—one that prioritizes modularity, scalability, and independence. Each page you visit is a testament to the power of self-contained web architecture.</p>
+
+        <p><em>Explore other pages to see how different designs, functionalities, and APIs can coexist within the same system, yet remain completely independent.</em></p>
+    </div>
+</div>
 </html>

@@ -1,7 +1,7 @@
 {
-    "title": "My First Blog Post",
+    "title": "Modular Blog Architecture: A Self-Contained Approach",
     "slug": "first-post",
     "date": "2025-01-15",
-    "description": "Welcome to my blog! This is my first post.",
-    "categories": ["personal", "intro"]
+    "description": "An exploration of this blog's innovative modular architecture where each page is completely self-contained.",
+    "categories": ["architecture", "web-development", "technical"]
 }
