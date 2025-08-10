@@ -42,6 +42,13 @@ if [ -f "deploy.sh" ]; then
     
     if [ $? -eq 0 ]; then
         echo "✅ Deployment successful!"
+        
+        # Check for any endpoint collision warnings
+        if [ -f "logs/flask_server.log" ] && grep -q "⚠️.*collision" "logs/flask_server.log" 2>/dev/null; then
+            echo ""
+            echo "⚠️  NOTICE: Endpoint collision warnings detected during deployment."
+            echo "Check the deployment logs above for details."
+        fi
     else
         echo "❌ Deployment failed!"
         exit 1
@@ -70,8 +77,8 @@ fi
 
 echo ""
 echo "🌐 Your blog is now live at:"
-echo "   🏠 Homepage: http://localhost:5000/"
-echo "   🔌 API: http://localhost:5000/api/health"
+echo "   🏠 Homepage: https://gabrielpenman.com/"
+echo "   🔌 API: https://gabrielpenman.com/api/health"
 echo ""
 echo "📝 Management:"
 echo "   📋 View logs: tail -f logs/flask_server.log"

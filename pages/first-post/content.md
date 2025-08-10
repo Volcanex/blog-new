@@ -205,6 +205,16 @@ p {
     margin: 24px 0;
     overflow-x: auto;
     border: 1px solid #477998;
+    white-space: pre-line;
+}
+
+code {
+    background: #f0f0f0;
+    color: #291f1e;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
 }
 
 /* Links */
@@ -351,33 +361,51 @@ ul li {
     <div class="content">
         <div class="meta">Published on January 15, 2025 | Categories: architecture, web-development, technical</div>
 
-        <h1>Modular Blog Architecture: A Self-Contained Approach</h1>
+        <h1>Modular Blog Architecture</h1>
 
-        <p>Welcome to an exploration of this blog's innovative architecture. This isn't just another static site generator—it's a <span class="highlight">completely modular system</span> where each page operates as an independent entity with its own styling, assets, and API endpoints.</p>
+        <p>This blog runs on a modular system where each page is completely self-contained. I built it this way because I wanted the freedom to experiment with different designs and functionality without worrying about breaking other pages.</p>
 
         <h2>
             <svg viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2"/><path d="M20 10h-2v2h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2"/></svg>
-            Architectural Philosophy
+            Why Modular?
         </h2>
 
-        <p>Traditional blogs share CSS, JavaScript, and templates across pages, creating dependencies and potential conflicts. This system takes a radically different approach: <strong>true page isolation</strong>. Each post is essentially its own website, complete with custom styling and functionality.</p>
+        <p>After working with AI for a few years, I've noticed that things designed to help human developers often slow down AI. Reusable components and frameworks create complex coupling. Ask an AI to design a blog and it'll probably direct you towards some bloated CMS like WordPress. Using AI to write code like a human is inefficient - it doesn't know what design patterns actually suit it best since it's trained on human-built data.</p>
+
+        <p>This system runs on an e2-micro instance on GCP. I have Claude Code running in a tmux session that I can easily jump in and out of. It loads up the small amount of information it needs from a system prompt and can essentially draw a new page with full dynamic functionality in less than a minute.</p>
 
         <div class="architecture-diagram">
-            <div class="diagram-title">System Architecture Overview</div>
-            <div class="diagram-flow">
-                <div class="diagram-step">
-                    <div class="diagram-step-title">Pages</div>
-                    <div class="diagram-step-desc">Self-contained directories</div>
+            <div class="diagram-title">Page Architecture</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+                <div style="text-align: center;">
+                    <h4 style="color: #477998; margin: 0 0 10px 0;">Development</h4>
+                    <div class="diagram-step" style="margin: 8px 0;">
+                        <div class="diagram-step-title">HTML Blueprint</div>
+                        <div class="diagram-step-desc">config.json + content.md</div>
+                    </div>
+                    <div class="diagram-step" style="margin: 8px 0;">
+                        <div class="diagram-step-title">API Blueprint</div>
+                        <div class="diagram-step-desc">api.py with Flask routes</div>
+                    </div>
+                    <div class="diagram-step" style="margin: 8px 0;">
+                        <div class="diagram-step-title">Data Namespace</div>
+                        <div class="diagram-step-desc">data/page-name/</div>
+                    </div>
                 </div>
-                <div class="diagram-arrow">→</div>
-                <div class="diagram-step">
-                    <div class="diagram-step-title">Compiler</div>
-                    <div class="diagram-step-desc">Static HTML generation</div>
-                </div>
-                <div class="diagram-arrow">→</div>
-                <div class="diagram-step">
-                    <div class="diagram-step-title">Flask API</div>
-                    <div class="diagram-step-desc">Dynamic endpoints</div>
+                <div style="text-align: center;">
+                    <h4 style="color: #477998; margin: 0 0 10px 0;">Runtime</h4>
+                    <div class="diagram-step" style="margin: 8px 0;">
+                        <div class="diagram-step-title">Static HTML</div>
+                        <div class="diagram-step-desc">Compiled page output</div>
+                    </div>
+                    <div class="diagram-step" style="margin: 8px 0;">
+                        <div class="diagram-step-title">API Endpoints</div>
+                        <div class="diagram-step-desc">/api/page-name/*</div>
+                    </div>
+                    <div class="diagram-step" style="margin: 8px 0;">
+                        <div class="diagram-step-title">JSON Storage</div>
+                        <div class="diagram-step-desc">Thread-safe file ops</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -406,7 +434,7 @@ ul li {
         <div class="feature-grid">
             <div class="feature-card">
                 <h3>
-                    <svg viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="11.5" r=".5"/><circle cx="12.5" cy="16.5" r=".5"/><circle cx="13.5" cy="13.5" r=".5"/><circle cx="10.5" cy="20.5" r=".5"/><circle cx="15.5" cy="19.5" r=".5"/><circle cx="2.5" cy="15.5" r=".5"/><circle cx="8.5" cy="4.5" r=".5"/><path d="M4 6 2 4"/><path d="M2 10v6"/><path d="M6 14H2"/><path d="m18 6 2-2"/><path d="M22 10v6"/><path d="m18 14 4 0"/></svg>
+                    <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
                     Complete Style Independence
                 </h3>
                 <ul>
@@ -459,61 +487,61 @@ ul li {
 
         <h2>
             <svg viewBox="0 0 24 24"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><path d="M11 11h2"/></svg>
-            API Endpoints
+            API Integration
         </h2>
 
-        <p>This page demonstrates the API system with several live endpoints:</p>
+        <p>Each page can have its own API endpoints. The system automatically registers Flask blueprints, so you get dynamic functionality without any setup.</p>
+
+        <p>For example, I recently used this to add a pool ELO system I had running on the server with friends. Claude Code made a complete UI with animations in about 10 minutes. If I have an idea for a post, it can easily clip on interactive elements and give it some life pretty quickly.</p>
 
         <div class="api-endpoints">
-            <h4>Available Endpoints for this Page:</h4>
-            <ul class="endpoint-list">
-                <li><strong>GET</strong> /api/first-post/hello - Simple greeting endpoint</li>
-                <li><strong>GET/POST</strong> /api/first-post/comments - Comment system</li>
-                <li><strong>GET</strong> /api/first-post/architecture-info - Technical details</li>
-            </ul>
-            
-            <p><em>Try these endpoints to see the API system in action!</em></p>
+            <h4>Health Check:</h4>
+            <p>API Status: <a href="/api/health" target="_blank">Test the health endpoint</a></p>
         </div>
 
         <h2>
-            <svg viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>
-            Scalability by Design
+            <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M5 12c0 1.66 3.13 3 7 3s7-1.34 7-3"/><path d="M5 5v14c0 1.66 3.13 3 7 3s7-1.34 7-3V5"/></svg>
+            Database System
         </h2>
 
-        <p>The modular architecture enables several scaling strategies:</p>
+        <p>The database is just JSON files organized by page. Each page gets its own data namespace, so there's no chance of conflicts. It's thread-safe and simple:</p>
+
+        <div class="code-snippet">data/
+├── pool-leaderboard/
+│   ├── players.json
+│   └── game_history.json
+└── shared/
+    └── config.json</div>
+
+        <p>Pages can store data with simple calls like <code>db.get_page_data('pool-leaderboard', 'players', {})</code> or <code>db.append_to_page_collection('pool-leaderboard', 'game_history', new_game)</code>. No schemas, no migrations, just JSON.</p>
+
+        <h2>
+            <svg viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>
+            Simple Benefits
+        </h2>
+
+        <p>The modular approach has some nice benefits:</p>
 
         <ul>
-            <li><strong>Microservices Ready:</strong> Each page's API can be extracted to separate services</li>
-            <li><strong>CDN Optimization:</strong> Static files and assets are perfectly organized for distribution</li>
-            <li><strong>Database Sharding:</strong> Page-scoped data naturally partitions</li>
-            <li><strong>Independent Deployment:</strong> Pages can be updated without affecting others</li>
+            <li>Pages can't break each other</li>
+            <li>Each page loads only what it needs</li>
+            <li>Easy to experiment with different designs</li>
+            <li>AI can work on pages independently</li>
         </ul>
 
         <h2>
             <svg viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .962L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
-            Technical Implementation
+            Technical Stack
         </h2>
 
-        <p>The system is built with modern web technologies:</p>
+        <p>Simple Python setup:</p>
         <ul>
-            <li><strong>Python 3.11+</strong> - Core compilation and API server</li>
-            <li><strong>Flask</strong> - Dynamic API endpoints with auto-registration</li>
-            <li><strong>File-based NoSQL</strong> - Simple yet powerful data storage</li>
-            <li><strong>Modular Compilation</strong> - Custom build system for page isolation</li>
+            <li><strong>Python compiler</strong> - Generates static HTML</li>
+            <li><strong>Flask</strong> - API endpoints with auto-registration</li>
+            <li><strong>File-based storage</strong> - JSON files, no database needed</li>
+            <li><strong>GCP e2-micro</strong> - Cheap and effective</li>
         </ul>
 
-        <h2>
-            <svg viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
-            Performance Benefits
-        </h2>
-
-        <p>This architecture delivers several performance advantages:</p>
-        <ul>
-            <li><strong>Minimal CSS:</strong> Only relevant styles are loaded per page</li>
-            <li><strong>Lazy Loading:</strong> Assets and APIs load only when needed</li>
-            <li><strong>Caching Friendly:</strong> Each page can have independent cache strategies</li>
-            <li><strong>Resource Isolation:</strong> Page failures don't cascade to others</li>
-        </ul>
 
         <div style="text-align: center; margin: 40px 0;">
             <a href="https://github.com/Volcanex/blog-new" class="repo-link" target="_blank">
@@ -522,22 +550,7 @@ ul li {
             </a>
         </div>
 
-        <h2>
-            <svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
-            Future Enhancements
-        </h2>
-
-        <p>The modular foundation enables exciting possibilities:</p>
-        <ul>
-            <li><strong>Interactive Components:</strong> Each page can include custom JavaScript widgets</li>
-            <li><strong>Real-time Features:</strong> WebSocket endpoints for live data</li>
-            <li><strong>Plugin System:</strong> Extensible functionality per page</li>
-            <li><strong>Multi-tenant Support:</strong> Different users can have different page access</li>
-        </ul>
-
-        <p>This blog represents a new approach to content management—one that prioritizes modularity, scalability, and independence. Each page you visit is a testament to the power of self-contained web architecture.</p>
-
-        <p><em>Explore other pages to see how different designs, functionalities, and APIs can coexist within the same system, yet remain completely independent.</em></p>
+        <p>It's a choice that gives me freedom. Each page can have completely different styling and functionality without affecting others. The whole thing is pretty straightforward - just a Python compiler that generates static HTML and a Flask server for APIs when needed.</p>
     </div>
 </div>
 </html>

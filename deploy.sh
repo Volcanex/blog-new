@@ -110,6 +110,17 @@ if ps -p $FLASK_PID > /dev/null 2>&1; then
     echo "   ✅ Flask API server started successfully (PID: $FLASK_PID)"
     echo "   📊 API Status: http://localhost:$API_PORT/api/health"
     echo "   🔍 Logs: tail -f $LOG_DIR/flask_server.log"
+    
+    # Check for endpoint collision warnings in the log
+    if grep -q "⚠️.*collision" "$LOG_DIR/flask_server.log" 2>/dev/null; then
+        echo ""
+        echo "⚠️  ENDPOINT COLLISION WARNINGS DETECTED:"
+        echo "========================================"
+        grep -A 2 "⚠️.*collision" "$LOG_DIR/flask_server.log" | head -20
+        echo ""
+        echo "Please review your API endpoints to avoid conflicts!"
+        echo "Consider using page-specific route prefixes."
+    fi
 else
     echo "   ❌ Flask server failed to start"
     echo "   Check logs: cat $LOG_DIR/flask_server.log"

@@ -1,7 +1,7 @@
 {
-    "title": "Modular Blog Architecture: A Self-Contained Approach",
+    "title": "Modular Blog Architecture",
     "slug": "first-post",
     "date": "2025-01-15",
-    "description": "An exploration of this blog's innovative modular architecture where each page is completely self-contained.",
+    "description": "How this blog works - each page is self-contained with its own styling and functionality.",
     "categories": ["architecture", "web-development", "technical"]
 }

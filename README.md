@@ -37,9 +37,11 @@ shared/
 
 - **Page Isolation**: Each page has its own CSS, HTML, and assets
 - **Modular APIs**: Each page can define custom Flask endpoints
+- **Endpoint Collision Detection**: Automatic detection and warnings for conflicting API routes
 - **Asset Management**: Per-page assets with automatic copying
 - **NoSQL Database**: File-based database with page-scoped data
 - **Scalable**: Ready for microservice extraction
+- **AI-Optimized**: Designed for rapid AI-assisted development
 
 ## Quick Start
 
@@ -50,7 +52,7 @@ shared/
 
 2. **Compile the blog:**
    ```bash
-   python3 compile_v2.py
+   python3 compile.py
    ```
 
 3. **Serve static files only:**
@@ -106,7 +108,7 @@ shared/
 
    bp = Blueprint('my_new_post', __name__, url_prefix='/api/my-new-post')
 
-   @bp.route('/hello')
+   @bp.route('/my-hello')  # Use page-specific route names
    def hello():
        return jsonify({'message': 'Hello from my new post!'})
    ```
@@ -116,7 +118,7 @@ shared/
 
 6. **Compile and serve:**
    ```bash
-   python3 compile_v2.py
+   python3 compile.py
    python3 flask_server.py
    ```
 
@@ -151,8 +153,14 @@ db.set_page_data('my-page', 'comments', comments)
 
 ## Deployment
 
-### Current (Simple)
-- Compile static files with `compile_v2.py`
+### Quick Deployment
+```bash
+./full-deploy.sh  # Complete build and deployment
+./deploy.sh      # Deploy only (after compile)
+```
+
+### Manual Deployment
+- Compile static files with `compile.py`
 - Deploy `output/` directory to any static host
 - Run Flask API on server for dynamic features
 
@@ -164,9 +172,20 @@ db.set_page_data('my-page', 'comments', comments)
 
 ## Files
 
-- `compile_v2.py` - New modular compiler
-- `flask_server.py` - Flask server with auto-registered APIs
+- `compile.py` - Modular compiler with extensionless URL support
+- `flask_server.py` - Flask server with auto-registered APIs and collision detection
 - `shared/database.py` - NoSQL database layer
+- `deploy.sh` - Deployment script with collision warnings
+- `full-deploy.sh` - Complete build and deployment pipeline
 - `test_api.py` - API testing script
-- `server.py` - Original static file server (still works)
-- `compile.py` - Original compiler (legacy)
+- `server.py` - Simple static file server
+- `prompt.md` - Complete development guide for AI assistants
+
+## Endpoint Collision Prevention
+
+The system automatically detects conflicting API routes and displays warnings:
+
+- Routes are checked during Flask server startup
+- Deployment scripts show collision warnings
+- **Best Practice**: Use page-specific route prefixes (e.g., `/my-page-data` instead of `/data`)
+- See `prompt.md` for detailed naming conventions

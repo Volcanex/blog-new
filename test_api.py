@@ -8,7 +8,7 @@ import requests
 import json
 from time import sleep
 
-BASE_URL = "http://localhost:5000"
+BASE_URL = "https://gabrielpenman.com"
 
 def test_api():
     """Test the various API endpoints"""

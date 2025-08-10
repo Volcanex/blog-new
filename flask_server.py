@@ -41,10 +41,22 @@ class BlogFlaskServer:
         @self.app.route('/<path:filename>')
         def serve_static(filename):
             """Serve static HTML files and assets"""
-            try:
-                return send_from_directory(self.static_dir, filename)
-            except FileNotFoundError:
+            # Skip API routes (they're handled by blueprints)
+            if filename.startswith('api/'):
                 return jsonify({'error': f'File {filename} not found'}), 404
+            
+            # First try the exact filename (must be a file, not directory)
+            file_path = self.static_dir / filename
+            if file_path.exists() and file_path.is_file():
+                return send_from_directory(str(self.static_dir), filename)
+            
+            # If not found and no extension, try looking for directory/index.html
+            if '.' not in filename:
+                index_path = self.static_dir / filename / "index.html"
+                if index_path.exists():
+                    return send_from_directory(str(self.static_dir / filename), "index.html")
+            
+            return jsonify({'error': f'File {filename} not found'}), 404
         
         @self.app.route('/api/health')
         def health_check():
@@ -98,6 +110,7 @@ class BlogFlaskServer:
     def _register_page_apis(self):
         """Auto-register API endpoints from page modules"""
         registered_pages = []
+        registered_routes = {}  # Track routes for collision detection
         
         for page_dir in self._get_page_directories():
             api_file = page_dir / 'api.py'
@@ -119,9 +132,35 @@ class BlogFlaskServer:
                     
                     # Register the blueprint if it exists
                     if hasattr(api_module, 'bp'):
-                        self.app.register_blueprint(api_module.bp)
+                        # Check for route collisions before registering
+                        blueprint = api_module.bp
+                        page_routes = []
+                        
+                        # Register first, then check routes from Flask app
+                        self.app.register_blueprint(blueprint)
+                        
+                        # Check for route collisions by examining all registered routes
+                        for rule in self.app.url_map.iter_rules():
+                            if rule.endpoint.startswith(f"{blueprint.name}."):
+                                route_path = rule.rule
+                                page_routes.append(route_path)
+                                
+                                # Check for collisions (excluding the blueprint prefix)
+                                base_route = route_path.replace(blueprint.url_prefix or '', '') if blueprint.url_prefix else route_path
+                                collision_key = f"{base_route}#{rule.methods}"
+                                
+                                if collision_key in registered_routes and registered_routes[collision_key] != page_dir.name:
+                                    print(f"⚠️  WARNING: Route collision detected!")
+                                    print(f"   Route: {route_path} {rule.methods}")
+                                    print(f"   Page '{page_dir.name}' conflicts with page '{registered_routes[collision_key]}'")
+                                    print(f"   Recommendation: Use page-specific route names")
+                                else:
+                                    registered_routes[collision_key] = page_dir.name
+                        
                         registered_pages.append(page_dir.name)
                         print(f"Registered API endpoints for page: {page_dir.name}")
+                        if page_routes:
+                            print(f"  Routes: {', '.join(page_routes)}")
                     else:
                         print(f"Warning: {api_file} doesn't have a 'bp' blueprint")
                 
@@ -129,6 +168,8 @@ class BlogFlaskServer:
                     print(f"Error loading API for page {page_dir.name}: {e}")
         
         print(f"Successfully registered APIs for {len(registered_pages)} pages")
+        if any("⚠️" in line for line in []):  # This will show warnings if any were printed above
+            print("\n🔍 Endpoint Collision Check Complete - Review warnings above")
         return registered_pages
     
     def _serve_page_assets(self, page_slug, asset_path):

@@ -13,9 +13,9 @@ if ! command -v python3 &> /dev/null; then
     exit 1
 fi
 
-# Check if compile_v2.py exists
-if [ ! -f "compile_v2.py" ]; then
-    echo "❌ Error: compile_v2.py not found in current directory"
+# Check if compile.py exists
+if [ ! -f "compile.py" ]; then
+    echo "❌ Error: compile.py not found in current directory"
     exit 1
 fi
 
@@ -30,7 +30,7 @@ fi
 
 # Run the compiler
 echo "📝 Running modular blog compiler..."
-$PYTHON_CMD compile_v2.py
+$PYTHON_CMD compile.py
 
 # Check if compilation was successful
 if [ $? -eq 0 ] && [ -d "output" ]; then
