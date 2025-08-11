@@ -2,6 +2,7 @@
 """
 Flask server that automatically registers API endpoints from page modules.
 Each page can define its own Flask blueprint in api.py.
+Includes WebSocket support for real-time features.
 """
 
 import os
@@ -10,6 +11,7 @@ import importlib.util
 from pathlib import Path
 from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
+from flask_socketio import SocketIO
 
 class BlogFlaskServer:
     def __init__(self, pages_dir="pages", static_dir="output", port=5000):
@@ -21,10 +23,13 @@ class BlogFlaskServer:
         # Enable CORS for API endpoints
         CORS(self.app)
         
+        # Initialize SocketIO with CORS support
+        self.socketio = SocketIO(self.app, cors_allowed_origins="*")
+        
         # Setup basic routes
         self._setup_basic_routes()
         
-        # Auto-register page API endpoints
+        # Auto-register page API endpoints and WebSocket handlers
         self._register_page_apis()
     
     def _setup_basic_routes(self):
@@ -108,7 +113,7 @@ class BlogFlaskServer:
         return page_dirs
     
     def _register_page_apis(self):
-        """Auto-register API endpoints from page modules"""
+        """Auto-register API endpoints and WebSocket handlers from page modules"""
         registered_pages = []
         registered_routes = {}  # Track routes for collision detection
         
@@ -163,6 +168,14 @@ class BlogFlaskServer:
                             print(f"  Routes: {', '.join(page_routes)}")
                     else:
                         print(f"Warning: {api_file} doesn't have a 'bp' blueprint")
+                    
+                    # Register WebSocket handlers if they exist
+                    if hasattr(api_module, 'register_websocket_handlers'):
+                        try:
+                            api_module.register_websocket_handlers(self.socketio)
+                            print(f"Registered WebSocket handlers for page: {page_dir.name}")
+                        except Exception as ws_error:
+                            print(f"Error registering WebSocket handlers for {page_dir.name}: {ws_error}")
                 
                 except Exception as e:
                     print(f"Error loading API for page {page_dir.name}: {e}")
@@ -196,13 +209,16 @@ class BlogFlaskServer:
         # Setup asset routes
         self.setup_asset_routes()
         
-        print(f"Starting Flask server on port {self.port}")
+        print(f"Starting Flask server with WebSocket support on port {self.port}")
         print(f"Static files served from: {self.static_dir}")
         print(f"Pages directory: {self.pages_dir}")
         print(f"API base URL: http://localhost:{self.port}/api/")
+        print(f"WebSocket URL: http://localhost:{self.port}")
         print(f"Assets URL pattern: http://localhost:{self.port}/assets/<page>/<file>")
         
-        self.app.run(
+        # Use socketio.run instead of app.run for WebSocket support
+        self.socketio.run(
+            self.app,
             host='0.0.0.0',
             port=self.port,
             debug=debug

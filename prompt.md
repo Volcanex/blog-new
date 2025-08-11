@@ -49,6 +49,35 @@ collections = db.list_page_collections('my-page')
 all_pages = db.list_pages()
 ```
 
+## Shared Resources Documentation
+
+When creating shared resources in the `shared/` directory, always include corresponding documentation:
+
+### Documentation Standard
+
+For every shared resource file `shared/resource_name.py`, create a companion file `shared/resource_name_instructions.md` that includes:
+
+1. **Purpose & Overview**: What the resource does and when to use it
+2. **Quick Start**: Basic usage examples  
+3. **API Reference**: All available functions/classes with parameters
+4. **Common Patterns**: Typical use cases and examples
+5. **Integration Guide**: How to use it in page APIs
+6. **Best Practices**: Do's and don'ts
+
+### Example Structure
+
+```
+shared/
+├── database.py
+├── database_instructions.md           # Documentation for database.py
+├── websocket_utils.py
+├── websocket_utils_instructions.md    # Documentation for websocket_utils.py
+└── my_utility.py
+├── my_utility_instructions.md         # Documentation for my_utility.py
+```
+
+This ensures every shared resource is self-documenting and easy for AI assistants to understand and use correctly.
+
 ## Step-by-Step Page Creation Guide
 
 ### 1. Create Directory Structure
@@ -607,7 +636,206 @@ document.addEventListener('DOMContentLoaded', loadComments);
 
 ### WebSocket Support
 
-For real-time features, extend the Flask server to support WebSockets in your page's API.
+The blog system includes full WebSocket support via Flask-SocketIO for real-time features, games, and live interactions.
+
+#### How WebSocket Integration Works
+
+The Flask server automatically looks for a `register_websocket_handlers()` function in each page's `api.py` file and calls it during startup, passing the SocketIO instance.
+
+#### Basic WebSocket Setup
+
+Add this function to your page's `api.py`:
+
+```python
+from flask_socketio import emit, join_room, leave_room
+from shared.websocket_utils import WebSocketRoomManager, websocket_success_response
+
+# Initialize room manager for this page
+room_manager = WebSocketRoomManager()
+
+def register_websocket_handlers(socketio):
+    """Register WebSocket event handlers for this page"""
+    
+    @socketio.on('connect', namespace=f'/{page_slug}')
+    def on_connect():
+        emit('connected', websocket_success_response({
+            'message': f'Connected to {page_slug}',
+            'namespace': f'/{page_slug}'
+        }))
+    
+    @socketio.on('disconnect', namespace=f'/{page_slug}')
+    def on_disconnect():
+        # Clean up when user disconnects
+        room_manager.cleanup_empty_rooms()
+    
+    @socketio.on('custom_event', namespace=f'/{page_slug}')
+    def handle_custom_event(data):
+        # Handle your custom WebSocket events
+        emit('response', websocket_success_response(data))
+```
+
+#### WebSocket Utilities
+
+The system includes `shared/websocket_utils.py` with helpful classes:
+
+- **`WebSocketRoomManager`**: Manages game rooms/lobbies
+- **`WebSocketRoom`**: Represents a single room with players
+- **`P2PConnectionHelper`**: Helpers for WebRTC peer-to-peer setup
+- **Helper functions**: Error handling, validation, broadcasting
+
+#### Real-Time Game Example
+
+```python
+from shared.websocket_utils import WebSocketRoomManager, P2PConnectionHelper
+
+room_manager = WebSocketRoomManager()
+
+def register_websocket_handlers(socketio):
+    
+    @socketio.on('find_match', namespace='/my-game')
+    def find_match(data):
+        player_id = data.get('player_id')
+        
+        # Find or create a room
+        room = room_manager.find_available_room(max_players=2)
+        if not room:
+            room = room_manager.create_room(max_players=2)
+        
+        # Add player to room
+        success, message = room.add_player(player_id)
+        if not success:
+            emit('error', {'message': message})
+            return
+        
+        join_room(room.room_id)
+        
+        # Notify all players in room
+        emit('player_joined', {
+            'player_id': player_id,
+            'players_in_room': room.get_player_count(),
+            'room_full': room.is_full()
+        }, room=room.room_id)
+        
+        # Start game if room is full
+        if room.is_full():
+            room.status = 'active'
+            emit('game_start', room.to_dict(), room=room.room_id)
+    
+    # WebRTC P2P connection helpers
+    @socketio.on('webrtc_offer', namespace='/my-game')
+    def handle_offer(data):
+        P2PConnectionHelper.handle_webrtc_offer(
+            room_manager, 
+            data['room_id'], 
+            data['sender_id'], 
+            data['offer']
+        )
+    
+    @socketio.on('webrtc_answer', namespace='/my-game')
+    def handle_answer(data):
+        P2PConnectionHelper.handle_webrtc_answer(
+            room_manager, 
+            data['room_id'], 
+            data['sender_id'], 
+            data['answer']
+        )
+```
+
+#### Frontend WebSocket Usage
+
+In your page's HTML, connect to WebSockets:
+
+```html
+<script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+<script>
+// Connect to your page's WebSocket namespace
+const socket = io('/my-game');
+
+socket.on('connected', (data) => {
+    console.log('Connected to WebSocket:', data);
+});
+
+socket.on('player_joined', (data) => {
+    console.log('Player joined:', data);
+    updatePlayerList(data);
+});
+
+socket.on('game_start', (data) => {
+    console.log('Game starting:', data);
+    startP2PConnection(data);
+});
+
+// Find a match
+function findMatch() {
+    socket.emit('find_match', {
+        player_id: 'player123',
+        player_data: { name: 'John Doe' }
+    });
+}
+
+// WebRTC P2P connection setup
+async function startP2PConnection(roomData) {
+    const peerConnection = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+    });
+    
+    // Set up WebRTC offer/answer exchange via WebSocket
+    // ... WebRTC code here ...
+}
+</script>
+```
+
+#### WebSocket Best Practices
+
+1. **Use page-specific namespaces**: Always use `/page-slug` as your namespace
+2. **Clean up on disconnect**: Remove players from rooms when they disconnect
+3. **Validate input**: Use `validate_websocket_data()` helper for input validation
+4. **Handle errors gracefully**: Use `websocket_error_handler()` for consistent error responses
+5. **Room management**: Use `WebSocketRoomManager` for lobby/room systems
+6. **P2P for games**: Use WebRTC for game data, WebSocket for coordination
+
+#### Common WebSocket Patterns
+
+**Live Chat/Comments:**
+```python
+@socketio.on('send_message', namespace='/my-blog-post')
+def handle_message(data):
+    # Save to database
+    db = get_db()
+    message = {
+        'user': data['user'],
+        'text': data['text'],
+        'timestamp': datetime.now().isoformat()
+    }
+    db.append_to_page_collection('my-blog-post', 'live_comments', message)
+    
+    # Broadcast to all connected users
+    emit('new_message', message, broadcast=True)
+```
+
+**Live Data Updates:**
+```python
+@socketio.on('subscribe_to_updates', namespace='/dashboard')
+def subscribe_updates(data):
+    join_room('live_updates')
+
+# Somewhere in your regular API code:
+def update_data():
+    # Update database
+    # Then notify WebSocket subscribers
+    socketio.emit('data_updated', new_data, room='live_updates', namespace='/dashboard')
+```
+
+**Multiplayer Game Lobby:**
+```python
+@socketio.on('join_lobby', namespace='/my-game')
+def join_lobby(data):
+    join_room('lobby')
+    
+    # Get current lobby state
+    lobby_data = room_manager.get_stats()
+    emit('lobby_update', lobby_data, room='lobby')
+```
 
 ### Form Handling
 
