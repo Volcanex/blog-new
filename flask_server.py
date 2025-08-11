@@ -221,7 +221,8 @@ class BlogFlaskServer:
             self.app,
             host='0.0.0.0',
             port=self.port,
-            debug=debug
+            debug=debug,
+            allow_unsafe_werkzeug=True
         )
 
 def main():

@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conway's Game of Life Versus</title>
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    line-height: 1.4;
+    overflow-x: auto;
+}
+
+.container {
+    max-width: 1400px;
+    padding: 20px;
+    margin: 0 auto;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.title {
+    color: #58a6ff;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 10px rgba(88, 166, 255, 0.3);
+}
+
+.subtitle {
+    color: #7d8590;
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+    font-weight: 400;
+}
+
+.game-container {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 30px;
+    align-items: start;
+}
+
+.canvas-container {
+    background: #161b22;
+    border-radius: 12px;
+    border: 1px solid #30363d;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+#gameCanvas {
+    border: 2px solid #30363d;
+    border-radius: 8px;
+    cursor: crosshair;
+    display: block;
+    margin: 0 auto;
+    background: #0d1117;
+}
+
+.controls {
+    width: 350px;
+    background: #161b22;
+    border-radius: 12px;
+    border: 1px solid #30363d;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.control-section {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #21262d;
+}
+
+.control-section:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.control-label {
+    display: block;
+    color: #f0f6fc;
+    font-weight: 600;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+}
+
+.button-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 10px 16px;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    background: #21262d;
+    color: #c9d1d9;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 80px;
+    justify-content: center;
+}
+
+.btn:hover {
+    background: #30363d;
+    border-color: #58a6ff;
+    transform: translateY(-1px);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn.primary {
+    background: #238636;
+    border-color: #238636;
+    color: white;
+}
+
+.btn.primary:hover {
+    background: #2ea043;
+    border-color: #2ea043;
+}
+
+.btn.danger {
+    background: #da3633;
+    border-color: #da3633;
+    color: white;
+}
+
+.btn.danger:hover {
+    background: #f85149;
+    border-color: #f85149;
+}
+
+.btn.player1 {
+    background: #1f6feb;
+    border-color: #1f6feb;
+    color: white;
+}
+
+.btn.player1:hover {
+    background: #388bfd;
+    border-color: #388bfd;
+}
+
+.btn.player1.active {
+    background: #58a6ff;
+    border-color: #58a6ff;
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.3);
+}
+
+.btn.player2 {
+    background: #da3633;
+    border-color: #da3633;
+    color: white;
+}
+
+.btn.player2:hover {
+    background: #f85149;
+    border-color: #f85149;
+}
+
+.btn.player2.active {
+    background: #ff7b72;
+    border-color: #ff7b72;
+    box-shadow: 0 0 0 2px rgba(255, 123, 114, 0.3);
+}
+
+.btn.eraser.active {
+    background: #6e7681;
+    border-color: #6e7681;
+    box-shadow: 0 0 0 2px rgba(110, 118, 129, 0.3);
+}
+
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    background: #0d1117;
+    color: #c9d1d9;
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+
+select:focus {
+    outline: none;
+    border-color: #58a6ff;
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.3);
+}
+
+.speed-control {
+    width: 100%;
+}
+
+.speed-slider {
+    width: 100%;
+    margin: 10px 0;
+    background: transparent;
+    outline: none;
+    -webkit-appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    background: #30363d;
+}
+
+.speed-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(88, 166, 255, 0.3);
+}
+
+.speed-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 8px rgba(88, 166, 255, 0.3);
+}
+
+.speed-value {
+    text-align: center;
+    color: #7d8590;
+    font-size: 0.8rem;
+    margin-top: 5px;
+}
+
+.stats {
+    background: #0d1117;
+    border-radius: 8px;
+    border: 1px solid #21262d;
+    padding: 15px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.stat-row:last-child {
+    margin-bottom: 0;
+}
+
+.stat-label {
+    color: #7d8590;
+    font-size: 0.85rem;
+}
+
+.stat-value {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.stat-value.player1 {
+    color: #58a6ff;
+}
+
+.stat-value.player2 {
+    color: #ff7b72;
+}
+
+.game-status {
+    text-align: center;
+    margin-top: 15px;
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.status-running {
+    background: rgba(35, 134, 54, 0.2);
+    border: 1px solid #238636;
+    color: #2ea043;
+}
+
+.status-paused {
+    background: rgba(219, 54, 51, 0.2);
+    border: 1px solid #da3633;
+    color: #ff7b72;
+}
+
+.status-stable {
+    background: rgba(88, 166, 255, 0.2);
+    border: 1px solid #58a6ff;
+    color: #58a6ff;
+}
+
+.status-extinct {
+    background: rgba(110, 118, 129, 0.2);
+    border: 1px solid #6e7681;
+    color: #8b949e;
+}
+
+@media (max-width: 1200px) {
+    .game-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .controls {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .control-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+        align-items: start;
+    }
+}
+
+@media (max-width: 768px) {
+    .title {
+        font-size: 2rem;
+    }
+    
+    .container {
+        padding: 15px;
+    }
+    
+    .canvas-container,
+    .controls {
+        padding: 15px;
+    }
+    
+    #gameCanvas {
+        max-width: 100%;
+        height: auto;
+    }
+    
+    .button-group {
+        justify-content: center;
+    }
+    
+    .btn {
+        flex: 1;
+        min-width: 70px;
+    }
+}
+</style>
+</head>
+<body>
+    <html>
+<div class="container">
+    <div class="header">
+        <h1 class="title">🎮 Conway's Game of Life Versus</h1>
+        <p class="subtitle">Two players compete with colored organisms following Conway's rules</p>
+    </div>
+    
+    <div class="game-container">
+        <div class="canvas-container">
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+        </div>
+        
+        <div class="controls">
+            <div class="control-section">
+                <label class="control-label">🎨 Draw Mode</label>
+                <div class="button-group">
+                    <button id="player1Btn" class="btn player1 active">
+                        <i data-lucide="circle"></i>
+                        Player 1
+                    </button>
+                    <button id="player2Btn" class="btn player2">
+                        <i data-lucide="circle"></i>
+                        Player 2
+                    </button>
+                    <button id="eraserBtn" class="btn eraser">
+                        <i data-lucide="eraser"></i>
+                        Erase
+                    </button>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <label class="control-label">⚙️ Game Controls</label>
+                <div class="button-group">
+                    <button id="playBtn" class="btn primary">
+                        <i data-lucide="play"></i>
+                        Play
+                    </button>
+                    <button id="pauseBtn" class="btn">
+                        <i data-lucide="pause"></i>
+                        Pause
+                    </button>
+                    <button id="stepBtn" class="btn">
+                        <i data-lucide="skip-forward"></i>
+                        Step
+                    </button>
+                    <button id="clearBtn" class="btn danger">
+                        <i data-lucide="square"></i>
+                        Clear
+                    </button>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <label class="control-label" for="gridSize">📏 Grid Size</label>
+                <select id="gridSize">
+                    <option value="16">16x16 (Fast)</option>
+                    <option value="32" selected>32x32 (Medium)</option>
+                    <option value="64">64x64 (Large)</option>
+                </select>
+            </div>
+            
+            <div class="control-section">
+                <label class="control-label">⚡ Speed</label>
+                <div class="speed-control">
+                    <input type="range" id="speedSlider" class="speed-slider" min="1" max="10" value="5">
+                    <div class="speed-value" id="speedValue">5 FPS</div>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <label class="control-label">📊 Statistics</label>
+                <div class="stats">
+                    <div class="stat-row">
+                        <span class="stat-label">Player 1 Cells:</span>
+                        <span class="stat-value player1" id="player1Count">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Player 2 Cells:</span>
+                        <span class="stat-value player2" id="player2Count">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Generation:</span>
+                        <span class="stat-value" id="generation">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Total Cells:</span>
+                        <span class="stat-value" id="totalCells">0</span>
+                    </div>
+                    <div class="game-status status-paused" id="gameStatus">
+                        Paused - Draw cells to start!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script>
+// Game state
+let canvas, ctx;
+let gridSize = 32;
+let cellSize = 0;
+let grid = [];
+let isRunning = false;
+let generation = 0;
+let drawMode = 1; // 1 = Player 1, 2 = Player 2, 0 = Eraser
+let gameSpeed = 5;
+let gameLoop = null;
+let isDrawing = false;
+
+// Game constants
+const EMPTY = 0;
+const PLAYER1 = 1;
+const PLAYER2 = 2;
+
+// Colors
+const COLORS = {
+    [EMPTY]: '#0d1117',
+    [PLAYER1]: '#58a6ff', // Blue
+    [PLAYER2]: '#ff7b72'  // Red
+};
+
+// Initialize the game
+function initGame() {
+    canvas = document.getElementById('gameCanvas');
+    ctx = canvas.getContext('2d');
+    
+    setupEventListeners();
+    resizeCanvas();
+    initGrid();
+    render();
+    updateStats();
+    lucide.createIcons();
+}
+
+function setupEventListeners() {
+    // Drawing mode buttons
+    document.getElementById('player1Btn').addEventListener('click', () => setDrawMode(1));
+    document.getElementById('player2Btn').addEventListener('click', () => setDrawMode(2));
+    document.getElementById('eraserBtn').addEventListener('click', () => setDrawMode(0));
+    
+    // Game control buttons
+    document.getElementById('playBtn').addEventListener('click', playGame);
+    document.getElementById('pauseBtn').addEventListener('click', pauseGame);
+    document.getElementById('stepBtn').addEventListener('click', stepGame);
+    document.getElementById('clearBtn').addEventListener('click', clearGrid);
+    
+    // Settings
+    document.getElementById('gridSize').addEventListener('change', handleGridSizeChange);
+    document.getElementById('speedSlider').addEventListener('input', handleSpeedChange);
+    
+    // Canvas drawing events
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseleave', stopDrawing);
+    
+    // Touch events for mobile
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchend', stopDrawing, { passive: false });
+}
+
+function setDrawMode(mode) {
+    drawMode = mode;
+    
+    // Update button states
+    document.querySelectorAll('.btn.player1, .btn.player2, .btn.eraser').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    if (mode === 1) {
+        document.getElementById('player1Btn').classList.add('active');
+    } else if (mode === 2) {
+        document.getElementById('player2Btn').classList.add('active');
+    } else {
+        document.getElementById('eraserBtn').classList.add('active');
+    }
+}
+
+function handleGridSizeChange(e) {
+    const newSize = parseInt(e.target.value);
+    if (newSize !== gridSize) {
+        gridSize = newSize;
+        resizeCanvas();
+        initGrid();
+        render();
+        updateStats();
+    }
+}
+
+function handleSpeedChange(e) {
+    gameSpeed = parseInt(e.target.value);
+    document.getElementById('speedValue').textContent = `${gameSpeed} FPS`;
+    
+    if (isRunning) {
+        clearInterval(gameLoop);
+        startGameLoop();
+    }
+}
+
+function resizeCanvas() {
+    const maxSize = Math.min(800, window.innerWidth - 100);
+    cellSize = Math.floor(maxSize / gridSize);
+    
+    canvas.width = gridSize * cellSize;
+    canvas.height = gridSize * cellSize;
+    
+    // Update canvas style for better mobile display
+    canvas.style.width = canvas.width + 'px';
+    canvas.style.height = canvas.height + 'px';
+}
+
+function initGrid() {
+    grid = Array(gridSize).fill().map(() => Array(gridSize).fill(EMPTY));
+    generation = 0;
+}
+
+function getMousePos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    return {
+        x: Math.floor((e.clientX - rect.left) * scaleX / cellSize),
+        y: Math.floor((e.clientY - rect.top) * scaleY / cellSize)
+    };
+}
+
+function getTouchPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    const touch = e.touches[0];
+    return {
+        x: Math.floor((touch.clientX - rect.left) * scaleX / cellSize),
+        y: Math.floor((touch.clientY - rect.top) * scaleY / cellSize)
+    };
+}
+
+function startDrawing(e) {
+    e.preventDefault();
+    isDrawing = true;
+    const pos = getMousePos(e);
+    drawCell(pos.x, pos.y);
+}
+
+function draw(e) {
+    if (!isDrawing) return;
+    e.preventDefault();
+    
+    const pos = getMousePos(e);
+    drawCell(pos.x, pos.y);
+}
+
+function stopDrawing() {
+    isDrawing = false;
+}
+
+function handleTouchStart(e) {
+    e.preventDefault();
+    isDrawing = true;
+    const pos = getTouchPos(e);
+    drawCell(pos.x, pos.y);
+}
+
+function handleTouchMove(e) {
+    if (!isDrawing) return;
+    e.preventDefault();
+    
+    const pos = getTouchPos(e);
+    drawCell(pos.x, pos.y);
+}
+
+function drawCell(x, y) {
+    if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
+        const oldValue = grid[y][x];
+        grid[y][x] = drawMode;
+        
+        if (oldValue !== drawMode) {
+            renderCell(x, y);
+            updateStats();
+        }
+    }
+}
+
+function renderCell(x, y) {
+    const color = COLORS[grid[y][x]];
+    ctx.fillStyle = color;
+    ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+    
+    // Add border for alive cells
+    if (grid[y][x] !== EMPTY) {
+        ctx.strokeStyle = '#30363d';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
+    }
+}
+
+function render() {
+    // Clear canvas
+    ctx.fillStyle = COLORS[EMPTY];
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw grid lines (subtle)
+    ctx.strokeStyle = '#21262d';
+    ctx.lineWidth = 0.5;
+    
+    for (let i = 0; i <= gridSize; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * cellSize, 0);
+        ctx.lineTo(i * cellSize, canvas.height);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(0, i * cellSize);
+        ctx.lineTo(canvas.width, i * cellSize);
+        ctx.stroke();
+    }
+    
+    // Draw cells
+    for (let y = 0; y < gridSize; y++) {
+        for (let x = 0; x < gridSize; x++) {
+            if (grid[y][x] !== EMPTY) {
+                renderCell(x, y);
+            }
+        }
+    }
+}
+
+function countNeighbors(x, y) {
+    let player1Neighbors = 0;
+    let player2Neighbors = 0;
+    
+    for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+            if (dx === 0 && dy === 0) continue;
+            
+            const nx = x + dx;
+            const ny = y + dy;
+            
+            if (nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize) {
+                if (grid[ny][nx] === PLAYER1) player1Neighbors++;
+                if (grid[ny][nx] === PLAYER2) player2Neighbors++;
+            }
+        }
+    }
+    
+    return { player1: player1Neighbors, player2: player2Neighbors, total: player1Neighbors + player2Neighbors };
+}
+
+function stepGeneration() {
+    const newGrid = Array(gridSize).fill().map(() => Array(gridSize).fill(EMPTY));
+    
+    for (let y = 0; y < gridSize; y++) {
+        for (let x = 0; x < gridSize; x++) {
+            const neighbors = countNeighbors(x, y);
+            const currentCell = grid[y][x];
+            
+            // Conway's rules
+            if (currentCell !== EMPTY) {
+                // Alive cell - survives with 2-3 neighbors
+                if (neighbors.total === 2 || neighbors.total === 3) {
+                    newGrid[y][x] = currentCell;
+                }
+            } else {
+                // Dead cell - becomes alive with exactly 3 neighbors
+                if (neighbors.total === 3) {
+                    // Majority rule: new cell takes color of majority neighbors
+                    if (neighbors.player1 > neighbors.player2) {
+                        newGrid[y][x] = PLAYER1;
+                    } else if (neighbors.player2 > neighbors.player1) {
+                        newGrid[y][x] = PLAYER2;
+                    } else {
+                        // Tie - randomly choose (or could use other rules)
+                        newGrid[y][x] = Math.random() < 0.5 ? PLAYER1 : PLAYER2;
+                    }
+                }
+            }
+        }
+    }
+    
+    grid = newGrid;
+    generation++;
+}
+
+function playGame() {
+    if (!isRunning) {
+        isRunning = true;
+        startGameLoop();
+        updateGameStatus();
+    }
+}
+
+function pauseGame() {
+    if (isRunning) {
+        isRunning = false;
+        clearInterval(gameLoop);
+        updateGameStatus();
+    }
+}
+
+function stepGame() {
+    stepGeneration();
+    render();
+    updateStats();
+    updateGameStatus();
+}
+
+function clearGrid() {
+    pauseGame();
+    initGrid();
+    render();
+    updateStats();
+    updateGameStatus();
+}
+
+function startGameLoop() {
+    gameLoop = setInterval(() => {
+        stepGeneration();
+        render();
+        updateStats();
+        updateGameStatus();
+    }, 1000 / gameSpeed);
+}
+
+function countCells() {
+    let player1Count = 0;
+    let player2Count = 0;
+    
+    for (let y = 0; y < gridSize; y++) {
+        for (let x = 0; x < gridSize; x++) {
+            if (grid[y][x] === PLAYER1) player1Count++;
+            if (grid[y][x] === PLAYER2) player2Count++;
+        }
+    }
+    
+    return { player1: player1Count, player2: player2Count };
+}
+
+function updateStats() {
+    const counts = countCells();
+    
+    document.getElementById('player1Count').textContent = counts.player1;
+    document.getElementById('player2Count').textContent = counts.player2;
+    document.getElementById('generation').textContent = generation;
+    document.getElementById('totalCells').textContent = counts.player1 + counts.player2;
+}
+
+function updateGameStatus() {
+    const statusEl = document.getElementById('gameStatus');
+    const counts = countCells();
+    const totalCells = counts.player1 + counts.player2;
+    
+    if (totalCells === 0) {
+        statusEl.className = 'game-status status-extinct';
+        statusEl.textContent = 'Extinct - All cells died!';
+        pauseGame();
+    } else if (isRunning) {
+        statusEl.className = 'game-status status-running';
+        if (counts.player1 > counts.player2) {
+            statusEl.textContent = `Running - Player 1 leads ${counts.player1}-${counts.player2}`;
+        } else if (counts.player2 > counts.player1) {
+            statusEl.textContent = `Running - Player 2 leads ${counts.player2}-${counts.player1}`;
+        } else {
+            statusEl.textContent = `Running - Tied at ${counts.player1}-${counts.player2}`;
+        }
+    } else {
+        statusEl.className = 'game-status status-paused';
+        if (totalCells === 0) {
+            statusEl.textContent = 'Paused - Draw cells to start!';
+        } else if (counts.player1 > counts.player2) {
+            statusEl.textContent = `Paused - Player 1 leads ${counts.player1}-${counts.player2}`;
+        } else if (counts.player2 > counts.player1) {
+            statusEl.textContent = `Paused - Player 2 leads ${counts.player2}-${counts.player1}`;
+        } else {
+            statusEl.textContent = `Paused - Tied at ${counts.player1}-${counts.player2}`;
+        }
+    }
+}
+
+// Handle window resize
+window.addEventListener('resize', () => {
+    resizeCanvas();
+    render();
+});
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', initGame);
+</script>
+</html>
+</body>
+</html>

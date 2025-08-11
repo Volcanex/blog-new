@@ -1,14 +1,30 @@
+Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
 Registered API endpoints for page: first-post
   Routes: /api/first-post/hello, /api/first-post/architecture-info, /api/first-post/comments, /api/first-post/page-stats
 Registered API endpoints for page: pool-leaderboard
   Routes: /api/pool-leaderboard/players, /api/pool-leaderboard/authenticate, /api/pool-leaderboard/record-game, /api/pool-leaderboard/recent-games, /api/pool-leaderboard/reset-data, /api/pool-leaderboard/init-data, /api/pool-leaderboard/add-player, /api/pool-leaderboard/delete-game, /api/pool-leaderboard/average-rating, /api/pool-leaderboard/remove-player
 Successfully registered APIs for 2 pages
-Starting Flask server on port 5000
+Starting Flask server with WebSocket support on port 5000
 Static files served from: output
 Pages directory: pages
 API base URL: http://localhost:5000/api/
+WebSocket URL: http://localhost:5000
 Assets URL pattern: http://localhost:5000/assets/<page>/<file>
  * Serving Flask app 'flask_server'
  * Debug mode: on
-Address already in use
-Port 5000 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.226.0.2:5000
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+ * Debugger is active!
+ * Debugger PIN: 836-028-560
+127.0.0.1 - - [11/Aug/2025 01:28:37] "GET /api/health HTTP/1.1" 200 -
+127.0.0.1 - - [11/Aug/2025 01:28:57] "GET / HTTP/1.0" 200 -
+127.0.0.1 - - [11/Aug/2025 01:28:57] "[33mGET /favicon.ico HTTP/1.0[0m" 404 -
+127.0.0.1 - - [11/Aug/2025 01:28:58] "GET /conway-versus HTTP/1.0" 200 -
+127.0.0.1 - - [11/Aug/2025 01:32:35] "[33mGET /webui/ HTTP/1.0[0m" 404 -
+127.0.0.1 - - [11/Aug/2025 01:37:19] "GET / HTTP/1.0" 200 -
+127.0.0.1 - - [11/Aug/2025 01:43:00] "[36mGET /conway-versus HTTP/1.0[0m" 304 -
