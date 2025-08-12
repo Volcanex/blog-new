@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Information</title>
+    <style>
+body {
+    font-family: "MS Sans Serif", sans-serif;
+    font-size: 11px;
+    background: #3a6ea5 url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'><rect x='0' y='0' width='2' height='2' fill='%23316AC5'/><rect x='2' y='2' width='2' height='2' fill='%23316AC5'/></svg>");
+    margin: 0;
+    padding: 20px;
+}
+
+.main-window {
+    margin: 0 auto;
+    max-width: 800px;
+    box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px #808080, inset 2px 2px #c0c0c0;
+}
+
+.main-title-bar {
+    background: linear-gradient(90deg, #0997ff, #0053ee);
+    color: white;
+    padding: 4px 8px;
+    font-weight: bold;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.main-window-body {
+    background: #c0c0c0;
+    padding: 20px;
+    min-height: 400px;
+}
+
+.content-title {
+    text-align: center;
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    font-weight: bold;
+    color: #000080;
+}
+
+.content-section {
+    margin-bottom: 20px;
+    background: white;
+    border: 1px inset #c0c0c0;
+    padding: 12px;
+}
+
+.content-section h3 {
+    margin: 0 0 10px 0;
+    font-size: 12px;
+    font-weight: bold;
+    color: #000080;
+}
+
+.content-section p {
+    margin: 8px 0;
+    line-height: 1.4;
+    font-size: 11px;
+}
+
+.links-section {
+    background: #f8f8f8;
+    border: 1px inset #c0c0c0;
+    padding: 12px;
+    margin-bottom: 20px;
+}
+
+.links-section h3 {
+    margin: 0 0 10px 0;
+    font-size: 12px;
+    font-weight: bold;
+    color: #000080;
+}
+
+.link-item {
+    margin: 8px 0;
+    padding: 6px;
+    background: white;
+    border: 1px solid #ccc;
+}
+
+.link-item a {
+    color: #0066cc;
+    text-decoration: none;
+    font-size: 11px;
+}
+
+.link-item a:hover {
+    text-decoration: underline;
+}
+
+.link-item a:visited {
+    color: #551a8b;
+}
+
+.link-description {
+    margin: 4px 0 0 0;
+    font-size: 10px;
+    color: #666;
+}
+
+.nav-menu {
+    background: #c0c0c0;
+    border: 2px groove #c0c0c0;
+    padding: 8px;
+    margin-bottom: 20px;
+}
+
+.nav-menu legend {
+    font-weight: bold;
+    padding: 0 4px;
+}
+
+.nav-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.nav-btn {
+    font-family: "MS Sans Serif", sans-serif;
+    font-size: 11px;
+    min-width: 120px;
+    height: 30px;
+    padding: 1px 12px;
+    background: #c0c0c0;
+    border: 1px outset #c0c0c0;
+    cursor: pointer;
+    text-decoration: none;
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.nav-btn:hover {
+    background: #d4d0c8;
+}
+
+.nav-btn:active {
+    border: 1px inset #c0c0c0;
+}
+
+.nav-btn.current {
+    border: 1px inset #c0c0c0;
+    background: #e0e0e0;
+}
+
+.back-link {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.back-link a {
+    color: #000080;
+    text-decoration: underline;
+    font-size: 11px;
+}
+
+.back-link a:hover {
+    color: #cc0000;
+}
+
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+    
+    .main-window-body {
+        padding: 15px;
+    }
+    
+    .nav-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+</style>
+</head>
+<body>
+    <!-- XP.css CDN -->
+<link rel="stylesheet" href="https://unpkg.com/xp.css">
+
+
+
+<html>
+<div class="window main-window">
+    <div class="title-bar main-title-bar">
+        <div class="title-bar-text">Conway's Immigration Game - Information</div>
+    </div>
+    
+    <div class="window-body main-window-body">
+        <!-- Navigation Menu -->
+        <fieldset class="nav-menu">
+            <legend>📁 Immigration Game Modes</legend>
+            <div class="nav-buttons">
+                <a href="/conway-immigration" class="nav-btn">
+                    📋 Menu
+                </a>
+                <a href="/conway-immigration/sandbox" class="nav-btn">
+                    🧪 Sandbox
+                </a>
+                <a href="/conway-immigration/info" class="nav-btn current">
+                    ℹ️ Information
+                </a>
+            </div>
+        </fieldset>
+        
+        <div class="content-title">About the Immigration Game</div>
+        
+        <div class="content-section">
+            <h3>What is the Immigration Game?</h3>
+            <p>The Immigration Game is a fascinating variant of Conway's Game of Life that explores population dynamics through the interaction of two different colored organisms. Unlike the traditional single-species Game of Life, this variant introduces competition and coexistence between populations.</p>
+            
+            <p>In this version, cells can be one of two colors (representing different populations or species), and new cells inherit their color based on the majority of their neighbors. This creates complex dynamics where populations can invade each other's territory, compete for resources, and create intricate boundary patterns.</p>
+        </div>
+        
+        <div class="content-section">
+            <h3>Rules & Mechanics</h3>
+            <p><strong>Basic Conway Rules Still Apply:</strong> Cells with 2-3 neighbors survive, cells with exactly 3 neighbors are born, and cells with fewer than 2 or more than 3 neighbors die.</p>
+            
+            <p><strong>Color Inheritance:</strong> When a new cell is born, it takes the color of the majority of its living neighbors. If there's a tie, various rules can be applied (such as random assignment or maintaining the previous cell's color if it existed).</p>
+            
+            <p><strong>Population Dynamics:</strong> This creates fascinating dynamics where populations can expand, contract, and compete for territory, making it an excellent model for studying immigration, competition, and coexistence in biological systems.</p>
+        </div>
+        
+        <div class="links-section">
+            <h3>📚 Further Reading</h3>
+            
+            <div class="link-item">
+                <a href="https://cs.stanford.edu/people/eroberts/courses/soco/projects/2008-09/modeling-natural-systems/gameOfLife2.html" target="_blank">
+                    Stanford CS: Modeling Natural Systems with Game of Life
+                </a>
+                <div class="link-description">
+                    Comprehensive overview of how Game of Life can model natural systems, including population dynamics and ecological interactions.
+                </div>
+            </div>
+            
+            <div class="link-item">
+                <a href="https://people.kth.se/~gunnarj/LIFE/WLIF/wlcframes.html" target="_blank">
+                    WinLife32: Multi-Color Game of Life
+                </a>
+                <div class="link-description">
+                    Technical documentation and examples of multi-colored Game of Life variants, including the Immigration Game implementation.
+                </div>
+            </div>
+            
+            <div class="link-item">
+                <a href="https://people.kth.se/~gunnarj/LIFE/WLIF/wdiscrain.html" target="_blank">
+                    WinLife32: Discussion on Immigration Variants
+                </a>
+                <div class="link-description">
+                    Detailed discussion of different rule sets and variations in Immigration Games, with examples and analysis of population behaviors.
+                </div>
+            </div>
+        </div>
+        
+        <div class="content-section">
+            <h3>🧪 Try It Yourself</h3>
+            <p>Use our <a href="/conway-immigration/sandbox" style="color: #0066cc;">Sandbox</a> to experiment with different patterns and observe how populations interact. Try creating separate colonies and watch how they expand, compete, and sometimes coexist in fascinating ways.</p>
+        </div>
+        
+        <div class="back-link">
+            <a href="/conway-immigration">← Back to Menu</a>
+        </div>
+    </div>
+</div>
+</html>
+</body>
+</html>

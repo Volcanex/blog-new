@@ -1,0 +1,7 @@
+{
+    "title": "Conway's Game of Life Immigration",
+    "slug": "conway-immigration",
+    "date": "2025-08-11",
+    "description": "Interactive Immigration Game based on Conway's Game of Life where two populations compete with colored organisms",
+    "categories": ["games", "simulation", "interactive"]
+}
