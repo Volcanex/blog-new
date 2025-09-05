@@ -1,0 +1,1014 @@
+<style>
+/* Mobile-First Design with Dark Theme */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
+    line-height: 1.6;
+    color: #e1e7ef;
+    background: #0f1419;
+    margin: 0;
+    padding: 8px;
+    font-size: 16px;
+}
+
+.container {
+    background: #1a2332;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.content {
+    padding: 16px;
+}
+
+/* Typography - Mobile First */
+h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #64a3d9;
+    margin: 0 0 12px 0;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    text-align: center;
+}
+
+h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #e1e7ef;
+    margin: 32px 0 16px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #64a3d9;
+    margin: 20px 0 12px 0;
+}
+
+p {
+    margin-bottom: 16px;
+    color: #b8c5d1;
+    line-height: 1.6;
+    text-align: center;
+}
+
+.meta {
+    background: #2d4a6b;
+    color: #8db4d8;
+    padding: 12px 16px;
+    border-radius: 6px;
+    border-left: 4px solid #64a3d9;
+    margin-bottom: 24px;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+/* Visualization Container - Mobile First */
+.visualization-container {
+    background: #1a2332;
+    margin: 24px -16px;
+    padding: 16px 0;
+    border-top: 1px solid #2d4a6b;
+    border-bottom: 1px solid #2d4a6b;
+}
+
+.viz-title {
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #64a3d9;
+    margin-bottom: 8px;
+    padding: 0 16px;
+}
+
+.viz-subtitle {
+    text-align: center;
+    color: #8db4d8;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    padding: 0 16px;
+}
+
+/* Controls - Mobile First */
+.controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 16px 0;
+    padding: 0 16px;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.control-group label {
+    min-width: 60px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #b8c5d1;
+}
+
+select, button {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #3d5873;
+    border-radius: 6px;
+    font-size: 14px;
+    background: #233447;
+    color: #e1e7ef;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+button {
+    font-weight: 500;
+}
+
+select:focus, button:focus {
+    outline: none;
+    border-color: #64a3d9;
+}
+
+button:hover {
+    background: #2d4a6b;
+}
+
+button.active {
+    background: #0d7377;
+    border-color: #0d7377;
+    color: white;
+}
+
+/* Legend - Mobile First */
+.legend {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 16px 0;
+    padding: 12px 16px;
+    background: #233447;
+    font-size: 13px;
+    border-radius: 6px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: #b8c5d1;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Chart - Mobile First */
+.chart-container {
+    background: #1a2332;
+    margin: 16px 0;
+    padding: 16px;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 1px solid #2d4a6b;
+}
+
+#scatterChart {
+    width: 100%;
+    height: auto;
+}
+
+.tooltip {
+    position: absolute;
+    background: rgba(26, 35, 50, 0.95);
+    color: #e1e7ef;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 1000;
+    max-width: 200px;
+    line-height: 1.4;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    border: 1px solid #3d5873;
+}
+
+/* Value Cards - Mobile First */
+.value-cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin: 24px 0;
+}
+
+.value-card {
+    background: #233447;
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid #3d5873;
+}
+
+.value-card h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    text-align: center;
+    font-size: 1rem;
+}
+
+.card-content {
+    background: #1a2332;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    border: 1px solid #2d4a6b;
+}
+
+.card-content:last-child {
+    margin-bottom: 0;
+}
+
+.card-title {
+    font-weight: 600;
+    color: #e1e7ef;
+    margin-bottom: 4px;
+}
+
+.card-subtitle {
+    font-size: 12px;
+    color: #8db4d8;
+}
+
+.text-green-400 {
+    color: #4ade80;
+}
+
+.text-blue-400 {
+    color: #60a5fa;
+}
+
+.text-purple-400 {
+    color: #c084fc;
+}
+
+/* Key Insights - Mobile First */
+.insights {
+    background: #0d2818;
+    border-left: 4px solid #4ade80;
+    border-radius: 0 6px 6px 0;
+    padding: 16px;
+    margin: 24px 0;
+}
+
+.insights h3 {
+    color: #4ade80;
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 1rem;
+}
+
+.insights ul {
+    margin: 0;
+    padding-left: 16px;
+}
+
+.insights li {
+    margin-bottom: 6px;
+    color: #b8c5d1;
+    font-size: 14px;
+    list-style-type: disc;
+}
+
+.warning-section {
+    background: #2d1b0e;
+    border-left: 4px solid #f59e0b;
+    border-radius: 0 6px 6px 0;
+    padding: 16px;
+    margin: 16px 0;
+}
+
+.warning-section h4 {
+    color: #f59e0b;
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.warning-section p {
+    color: #d4a574;
+    font-size: 13px;
+    margin: 0;
+    text-align: left;
+}
+
+/* Tablet and Desktop */
+@media (min-width: 768px) {
+    body {
+        padding: 24px;
+    }
+    
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        border-radius: 12px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+    }
+    
+    .content {
+        padding: 48px;
+    }
+    
+    h1 {
+        font-size: 2.25rem;
+    }
+    
+    h2 {
+        font-size: 1.5rem;
+        margin: 48px 0 16px 0;
+    }
+    
+    h3 {
+        font-size: 1.125rem;
+        margin: 24px 0 12px 0;
+    }
+    
+    .meta {
+        font-size: 14px;
+        padding: 16px 20px;
+        margin-bottom: 32px;
+        text-align: center;
+    }
+    
+    .visualization-container {
+        margin: 40px 0;
+        padding: 32px;
+        border-radius: 12px;
+        border: 2px solid #64a3d9;
+        background: #0f1419;
+    }
+    
+    .viz-title {
+        font-size: 1.25rem;
+        margin-bottom: 10px;
+        padding: 0;
+    }
+    
+    .viz-subtitle {
+        font-size: 1rem;
+        margin-bottom: 30px;
+        padding: 0;
+    }
+    
+    .controls {
+        flex-direction: row;
+        justify-content: center;
+        gap: 20px;
+        margin: 20px 0;
+        padding: 0;
+    }
+    
+    .control-group label {
+        min-width: auto;
+    }
+    
+    .legend {
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin: 20px 0;
+        padding: 20px;
+        background: #233447;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+    
+    .legend-color {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .chart-container {
+        padding: 32px;
+        margin: 20px 0;
+    }
+    
+    .value-cards {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 30px;
+        margin: 40px 0;
+    }
+    
+    .value-card {
+        padding: 24px;
+    }
+    
+    .value-card h3 {
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+    }
+    
+    .insights {
+        padding: 24px;
+        margin: 32px 0;
+        border-radius: 0 8px 8px 0;
+    }
+    
+    .insights h3 {
+        font-size: 1.125rem;
+        margin-bottom: 16px;
+    }
+    
+    .insights li {
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+    
+    .warning-section {
+        padding: 20px;
+        margin: 20px 0;
+    }
+    
+    .warning-section h4 {
+        font-size: 1rem;
+        margin-bottom: 10px;
+    }
+    
+    .warning-section p {
+        font-size: 14px;
+    }
+}
+</style>
+
+<html>
+<div class="container">
+    <div class="content">
+        <div class="meta">Published on September 3, 2025 | Valid as of August 2025 | Categories: machine-learning, gpu, data-visualization</div>
+
+        <h1>GPU Value Analysis for Machine Learning</h1>
+        <p>Interactive analysis of GPU price/performance for ML workloads with changeable axes and CUDA support visualization</p>
+
+        <div class="visualization-container">
+            <div class="viz-title">GPU Value Analysis for ML Workloads</div>
+            <div class="viz-subtitle">Interactive scatter plot showing price vs performance/VRAM, colored by CUDA support level</div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label for="chartMode">Chart View:</label>
+                    <select id="chartMode">
+                        <option value="vram-price">VRAM vs Price</option>
+                        <option value="perf-price">Performance vs Price</option>
+                        <option value="perf-value">Performance Value Analysis</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="legend">
+                <div><strong>CUDA Support Levels:</strong></div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #22c55e;"></div>
+                    <span>Bright Green: Latest CUDA (9.0+) - RTX 50/40 Series</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #16a34a;"></div>
+                    <span>Dark Green: CUDA 8.6 - RTX 30/A Series</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #eab308;"></div>
+                    <span>Yellow: Good CUDA (6.0-7.9) - RTX 20/GTX Series</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #f97316;"></div>
+                    <span>Orange: Limited CUDA (3.5-5.9) - Maxwell</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #ef4444;"></div>
+                    <span>Red: Deprecated CUDA (<3.5) - Kepler</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #3b82f6;"></div>
+                    <span>Blue: AMD ROCm Support</span>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h3 id="chart-title">VRAM (GB) vs Used Price ($)</h3>
+                <canvas id="scatterChart" width="800" height="600"></canvas>
+            </div>
+        </div>
+
+        <div class="value-cards">
+            <div class="value-card">
+                <h3 class="text-green-400">💰 Best VRAM Value</h3>
+                <div id="vram-value-cards"></div>
+            </div>
+
+            <div class="value-card">
+                <h3 class="text-blue-400">🚀 Best Performance Value</h3>
+                <div id="perf-value-cards"></div>
+            </div>
+
+            <div class="value-card">
+                <h3 class="text-purple-400">💾 Cheapest High-VRAM (16GB+)</h3>
+                <div id="high-vram-cards"></div>
+            </div>
+        </div>
+
+        <div class="insights">
+            <h3>💡 Key ML Insights</h3>
+            <ul>
+                <li><strong>H100:</strong> Ultimate AI performance king (200) with 80GB VRAM - enterprise-grade</li>
+                <li><strong>Tesla M10:</strong> Amazing 32GB VRAM for $165 (0.194 GB/$) - virtualization focus but usable</li>
+                <li><strong>Tesla K80:</strong> Still unbeatable 24GB VRAM for $100 (0.24 GB/$) - compatibility concerns</li>
+                <li><strong>RTX 5090:</strong> Consumer performance king with 32GB VRAM for large models</li>
+                <li><strong>Professional 48GB Tier:</strong> RTX 6000 Ada, A6000, 5880 Ada offer massive VRAM</li>
+                <li><strong>Data Center vs Workstation:</strong> A100/H100 for training, RTX series for development</li>
+                <li><strong>VRAM Sweet Spot:</strong> 16-24GB covers most models, 48GB+ for cutting-edge research</li>
+                <li><strong>Budget Champions:</strong> Old Tesla cards offer incredible VRAM/$ despite age</li>
+            </ul>
+        </div>
+        
+        <div class="warning-section">
+            <h4>⚠️ Important Compatibility Notes</h4>
+            <p>
+                Red-tier GPUs like Tesla K80 offer exceptional VRAM value but may have compatibility issues with modern ML frameworks. 
+                Yellow and Green tier cards provide the best balance of compatibility and performance for most ML workloads.
+                AMD cards require ROCm setup and have limited framework support compared to CUDA.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+// GPU data with CUDA color coding (filtered to under $1000)
+const gpuData = [
+  // RTX 40 Series (Green - CUDA 8.9)
+  { name: 'RTX 4090', vram: 24, price: 2150, performance: 100, vramPerDollar: 0.011, perfPerDollar: 0.047, cudaColor: '#22c55e', series: 'RTX 40' },
+  { name: 'RTX 4080 Super', vram: 16, price: 840, performance: 77, vramPerDollar: 0.019, perfPerDollar: 0.092, cudaColor: '#22c55e', series: 'RTX 40' },
+  { name: 'RTX 4080', vram: 16, price: 855, performance: 76, vramPerDollar: 0.019, perfPerDollar: 0.089, cudaColor: '#22c55e', series: 'RTX 40' },
+  { name: 'RTX 4070 Ti Super', vram: 16, price: 625, performance: 65, vramPerDollar: 0.026, perfPerDollar: 0.104, cudaColor: '#22c55e', series: 'RTX 40' },
+  { name: 'RTX 4070 Ti', vram: 12, price: 600, performance: 59, vramPerDollar: 0.020, perfPerDollar: 0.098, cudaColor: '#22c55e', series: 'RTX 40' },
+  { name: 'RTX 4070 Super', vram: 12, price: 516, performance: 55, vramPerDollar: 0.023, perfPerDollar: 0.107, cudaColor: '#22c55e', series: 'RTX 40' },
+  { name: 'RTX 4070', vram: 12, price: 479, performance: 53, vramPerDollar: 0.025, perfPerDollar: 0.111, cudaColor: '#22c55e', series: 'RTX 40' },
+  { name: 'RTX 4060 Ti 16GB', vram: 16, price: 435, performance: 40, vramPerDollar: 0.037, perfPerDollar: 0.092, cudaColor: '#22c55e', series: 'RTX 40' },
+  { name: 'RTX 4060 Ti 8GB', vram: 8, price: 415, performance: 40, vramPerDollar: 0.019, perfPerDollar: 0.096, cudaColor: '#22c55e', series: 'RTX 40' },
+  { name: 'RTX 4060', vram: 8, price: 275, performance: 32, vramPerDollar: 0.029, perfPerDollar: 0.116, cudaColor: '#22c55e', series: 'RTX 40' },
+  
+  // RTX 30 Series (Green - CUDA 8.6)
+  { name: 'RTX 3090 Ti', vram: 24, price: 895, performance: 95, vramPerDollar: 0.027, perfPerDollar: 0.106, cudaColor: '#16a34a', series: 'RTX 30' },
+  { name: 'RTX 3090', vram: 24, price: 735, performance: 90, vramPerDollar: 0.033, perfPerDollar: 0.122, cudaColor: '#16a34a', series: 'RTX 30' },
+  { name: 'RTX 3080 Ti', vram: 12, price: 420, performance: 85, vramPerDollar: 0.029, perfPerDollar: 0.202, cudaColor: '#16a34a', series: 'RTX 30' },
+  { name: 'RTX 3080 12GB', vram: 12, price: 400, performance: 82, vramPerDollar: 0.030, perfPerDollar: 0.205, cudaColor: '#16a34a', series: 'RTX 30' },
+  { name: 'RTX 3080 10GB', vram: 10, price: 375, performance: 80, vramPerDollar: 0.027, perfPerDollar: 0.213, cudaColor: '#16a34a', series: 'RTX 30' },
+  { name: 'RTX 3070 Ti', vram: 8, price: 266, performance: 70, vramPerDollar: 0.030, perfPerDollar: 0.263, cudaColor: '#16a34a', series: 'RTX 30' },
+  { name: 'RTX 3070', vram: 8, price: 200, performance: 65, vramPerDollar: 0.040, perfPerDollar: 0.325, cudaColor: '#16a34a', series: 'RTX 30' },
+  { name: 'RTX 3060 Ti', vram: 8, price: 200, performance: 55, vramPerDollar: 0.040, perfPerDollar: 0.275, cudaColor: '#16a34a', series: 'RTX 30' },
+  { name: 'RTX 3060', vram: 12, price: 217, performance: 45, vramPerDollar: 0.055, perfPerDollar: 0.207, cudaColor: '#16a34a', series: 'RTX 30' },
+  
+  // RTX 20/GTX 16 Series (Yellow - CUDA 7.5)
+  { name: 'RTX 2080 Ti', vram: 11, price: 249, performance: 72, vramPerDollar: 0.044, perfPerDollar: 0.289, cudaColor: '#eab308', series: 'RTX 20/GTX 16' },
+  { name: 'RTX 2080 Super', vram: 8, price: 183, performance: 64, vramPerDollar: 0.044, perfPerDollar: 0.350, cudaColor: '#eab308', series: 'RTX 20/GTX 16' },
+  { name: 'RTX 2080', vram: 8, price: 190, performance: 59, vramPerDollar: 0.042, perfPerDollar: 0.311, cudaColor: '#eab308', series: 'RTX 20/GTX 16' },
+  { name: 'RTX 2070', vram: 8, price: 145, performance: 51, vramPerDollar: 0.055, perfPerDollar: 0.352, cudaColor: '#eab308', series: 'RTX 20/GTX 16' },
+  { name: 'RTX 2060 Super', vram: 8, price: 168, performance: 47, vramPerDollar: 0.048, perfPerDollar: 0.280, cudaColor: '#eab308', series: 'RTX 20/GTX 16' },
+  { name: 'RTX 2060', vram: 6, price: 138, performance: 39, vramPerDollar: 0.043, perfPerDollar: 0.283, cudaColor: '#eab308', series: 'RTX 20/GTX 16' },
+  { name: 'GTX 1660 Ti', vram: 6, price: 99, performance: 32, vramPerDollar: 0.061, perfPerDollar: 0.323, cudaColor: '#eab308', series: 'RTX 20/GTX 16' },
+  
+  // GTX 10/Older Series (Yellow/Orange/Red)
+  { name: 'GTX 1080 Ti', vram: 11, price: 175, performance: 48, vramPerDollar: 0.063, perfPerDollar: 0.274, cudaColor: '#eab308', series: 'GTX 10' },
+  { name: 'GTX 1080', vram: 8, price: 79, performance: 35, vramPerDollar: 0.101, perfPerDollar: 0.443, cudaColor: '#eab308', series: 'GTX 10' },
+  { name: 'GTX 1070', vram: 8, price: 65, performance: 27, vramPerDollar: 0.123, perfPerDollar: 0.415, cudaColor: '#eab308', series: 'GTX 10' },
+  { name: 'Tesla K80', vram: 24, price: 100, performance: 15, vramPerDollar: 0.240, perfPerDollar: 0.150, cudaColor: '#ef4444', series: 'Legacy' },
+  { name: 'Tesla M10', vram: 32, price: 165, performance: 12, vramPerDollar: 0.194, perfPerDollar: 0.073, cudaColor: '#f97316', series: 'Legacy' },
+  { name: 'Quadro M6000', vram: 12, price: 200, performance: 25, vramPerDollar: 0.060, perfPerDollar: 0.125, cudaColor: '#f97316', series: 'Legacy' },
+  { name: 'GTX Titan X Maxwell', vram: 12, price: 150, performance: 22, vramPerDollar: 0.080, perfPerDollar: 0.147, cudaColor: '#f97316', series: 'Legacy' },
+  
+  // RTX 50 Series (Green - CUDA 9.0+) - Latest Blackwell Architecture
+  { name: 'RTX 5090', vram: 32, price: 1999, performance: 120, vramPerDollar: 0.016, perfPerDollar: 0.060, cudaColor: '#22c55e', series: 'RTX 50' },
+  { name: 'RTX 5080', vram: 16, price: 999, performance: 95, vramPerDollar: 0.016, perfPerDollar: 0.095, cudaColor: '#22c55e', series: 'RTX 50' },
+  { name: 'RTX 5070 Ti', vram: 16, price: 749, performance: 80, vramPerDollar: 0.021, perfPerDollar: 0.107, cudaColor: '#22c55e', series: 'RTX 50' },
+  { name: 'RTX 5070', vram: 12, price: 549, performance: 72, vramPerDollar: 0.022, perfPerDollar: 0.131, cudaColor: '#22c55e', series: 'RTX 50' },
+  
+  // Professional RTX A Series (Green - CUDA 8.6) - Workstation Cards
+  { name: 'RTX A4000', vram: 16, price: 820, performance: 50, vramPerDollar: 0.020, perfPerDollar: 0.061, cudaColor: '#16a34a', series: 'RTX A-Series' },
+  { name: 'RTX A2000 12GB', vram: 12, price: 650, performance: 30, vramPerDollar: 0.018, perfPerDollar: 0.046, cudaColor: '#16a34a', series: 'RTX A-Series' },
+  { name: 'RTX A2000 6GB', vram: 6, price: 450, performance: 28, vramPerDollar: 0.013, perfPerDollar: 0.062, cudaColor: '#16a34a', series: 'RTX A-Series' },
+  
+  // High-End Professional Cards (48GB+ VRAM)
+  { name: 'RTX A6000', vram: 48, price: 4500, performance: 70, vramPerDollar: 0.011, perfPerDollar: 0.016, cudaColor: '#16a34a', series: 'Professional 48GB+' },
+  { name: 'RTX 6000 Ada', vram: 48, price: 6800, performance: 105, vramPerDollar: 0.007, perfPerDollar: 0.015, cudaColor: '#22c55e', series: 'Professional 48GB+' },
+  { name: 'RTX 5880 Ada', vram: 48, price: 5400, performance: 85, vramPerDollar: 0.009, perfPerDollar: 0.016, cudaColor: '#22c55e', series: 'Professional 48GB+' },
+  { name: 'Quadro RTX 8000', vram: 48, price: 5350, performance: 65, vramPerDollar: 0.009, perfPerDollar: 0.012, cudaColor: '#eab308', series: 'Professional 48GB+' },
+  
+  // Data Center AI Cards (High VRAM)
+  { name: 'A40', vram: 48, price: 7000, performance: 75, vramPerDollar: 0.007, perfPerDollar: 0.011, cudaColor: '#16a34a', series: 'Data Center' },
+  { name: 'A100 40GB', vram: 40, price: 15000, performance: 140, vramPerDollar: 0.003, perfPerDollar: 0.009, cudaColor: '#16a34a', series: 'Data Center' },
+  { name: 'A100 80GB', vram: 80, price: 25000, performance: 145, vramPerDollar: 0.003, perfPerDollar: 0.006, cudaColor: '#16a34a', series: 'Data Center' },
+  { name: 'H100', vram: 80, price: 30000, performance: 200, vramPerDollar: 0.003, perfPerDollar: 0.007, cudaColor: '#22c55e', series: 'Data Center' },
+  { name: 'L40', vram: 48, price: 8000, performance: 90, vramPerDollar: 0.006, perfPerDollar: 0.011, cudaColor: '#22c55e', series: 'Data Center' },
+  { name: 'L40S', vram: 48, price: 10000, performance: 110, vramPerDollar: 0.005, perfPerDollar: 0.011, cudaColor: '#22c55e', series: 'Data Center' },
+  
+  // AMD Cards (No CUDA color - use blue)
+  { name: 'RX 7900 XTX', vram: 24, price: 750, performance: 74, vramPerDollar: 0.032, perfPerDollar: 0.099, cudaColor: '#3b82f6', series: 'AMD RDNA' },
+  { name: 'RX 7900 XT', vram: 20, price: 565, performance: 59, vramPerDollar: 0.035, perfPerDollar: 0.104, cudaColor: '#3b82f6', series: 'AMD RDNA' },
+  { name: 'RX 7800 XT', vram: 16, price: 475, performance: 53, vramPerDollar: 0.034, perfPerDollar: 0.112, cudaColor: '#3b82f6', series: 'AMD RDNA' },
+  { name: 'RX 6800 XT', vram: 16, price: 325, performance: 60, vramPerDollar: 0.049, perfPerDollar: 0.185, cudaColor: '#3b82f6', series: 'AMD RDNA' },
+  { name: 'RX 6700 XT', vram: 12, price: 225, performance: 47, vramPerDollar: 0.053, perfPerDollar: 0.209, cudaColor: '#3b82f6', series: 'AMD RDNA' },
+  { name: 'RX 6600 XT', vram: 8, price: 175, performance: 40, vramPerDollar: 0.046, perfPerDollar: 0.229, cudaColor: '#3b82f6', series: 'AMD RDNA' }
+];
+
+let currentViewMode = 'vram-price';
+let chart;
+
+// Chart configuration
+const chartConfig = {
+  'vram-price': { xKey: 'price', yKey: 'vram', xLabel: 'Used Price ($)', yLabel: 'VRAM (GB)' },
+  'perf-price': { xKey: 'price', yKey: 'performance', xLabel: 'Used Price ($)', yLabel: 'Performance (Relative)' },
+  'perf-value': { xKey: 'perfPerDollar', yKey: 'performance', xLabel: 'Performance per Dollar', yLabel: 'Performance (Relative)' }
+};
+
+// Initialize chart
+function initChart() {
+  const canvas = document.getElementById('scatterChart');
+  const ctx = canvas.getContext('2d');
+  
+  // Set actual display size
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width - 32; // Account for padding
+  canvas.height = 600;
+  
+  drawChart(ctx);
+}
+
+function drawChart(ctx) {
+  const config = chartConfig[currentViewMode];
+  const canvas = ctx.canvas;
+  const width = canvas.width;
+  const height = canvas.height;
+  const padding = 60;
+  
+  // Clear canvas
+  ctx.clearRect(0, 0, width, height);
+  
+  // Filter data to show only GPUs under $1000 for price-based charts
+  const filteredData = config.xKey === 'price' ? gpuData.filter(gpu => gpu.price <= 1000) : gpuData;
+  
+  // Get data ranges
+  const xValues = filteredData.map(d => d[config.xKey]);
+  const yValues = filteredData.map(d => d[config.yKey]);
+  const yMin = Math.min(...yValues);
+  const yMax = Math.max(...yValues);
+  
+  // Use improved logarithmic scale for price-based X axis
+  let xScale, xMin, xMax, xTicks;
+  if (config.xKey === 'price') {
+    // Improved logarithmic scale for price with better visual distribution
+    xMin = Math.max(50, Math.min(...xValues)); // Avoid log(0)
+    xMax = Math.max(...xValues);
+    
+    // Use a smoother log scale that looks more natural
+    const logMin = Math.log(xMin);
+    const logMax = Math.log(xMax);
+    xScale = (x) => {
+      const logX = Math.log(Math.max(x, xMin));
+      return padding + ((logX - logMin) / (logMax - logMin)) * (width - 2 * padding);
+    };
+    
+    // Create cleaner tick marks at sensible price points
+    const baseTicks = [50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 750, 1000];
+    xTicks = baseTicks.filter(val => val >= xMin && val <= xMax);
+    
+    // Add intermediate ticks for better distribution if needed
+    if (xTicks.length < 6) {
+      const additionalTicks = [125, 175, 225, 275, 350, 450, 550, 650, 800, 900];
+      additionalTicks.forEach(val => {
+        if (val >= xMin && val <= xMax && !xTicks.includes(val)) {
+          xTicks.push(val);
+        }
+      });
+      xTicks.sort((a, b) => a - b);
+    }
+  } else {
+    // Linear scale for other metrics
+    xMin = Math.min(...xValues);
+    xMax = Math.max(...xValues);
+    xScale = (x) => padding + ((x - xMin) / (xMax - xMin)) * (width - 2 * padding);
+    xTicks = [];
+    for (let i = 0; i <= 5; i++) {
+      xTicks.push(xMin + (i / 5) * (xMax - xMin));
+    }
+  }
+  
+  // Linear scale for Y axis
+  const yScale = (y) => height - padding - ((y - yMin) / (yMax - yMin)) * (height - 2 * padding);
+  
+  // Draw grid
+  ctx.strokeStyle = '#2d4a6b';
+  ctx.lineWidth = 0.5;
+  
+  // Vertical grid lines (based on xTicks)
+  xTicks.forEach(tick => {
+    const x = xScale(tick);
+    ctx.beginPath();
+    ctx.moveTo(x, padding);
+    ctx.lineTo(x, height - padding);
+    ctx.stroke();
+  });
+  
+  // Horizontal grid lines
+  for (let i = 0; i <= 8; i++) {
+    const y = padding + (i / 8) * (height - 2 * padding);
+    ctx.beginPath();
+    ctx.moveTo(padding, y);
+    ctx.lineTo(width - padding, y);
+    ctx.stroke();
+  }
+  
+  // Draw axes
+  ctx.strokeStyle = '#374151';
+  ctx.lineWidth = 2;
+  
+  // X axis
+  ctx.beginPath();
+  ctx.moveTo(padding, height - padding);
+  ctx.lineTo(width - padding, height - padding);
+  ctx.stroke();
+  
+  // Y axis
+  ctx.beginPath();
+  ctx.moveTo(padding, padding);
+  ctx.lineTo(padding, height - padding);
+  ctx.stroke();
+  
+  // Draw axis labels
+  ctx.fillStyle = '#374151';
+  ctx.font = '14px -apple-system, BlinkMacSystemFont, Inter, sans-serif';
+  ctx.textAlign = 'center';
+  
+  // X axis label
+  ctx.fillText(config.xLabel, width / 2, height - 10);
+  
+  // Y axis label
+  ctx.save();
+  ctx.translate(20, height / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText(config.yLabel, 0, 0);
+  ctx.restore();
+  
+  // Draw axis ticks and values
+  ctx.font = '10px -apple-system, BlinkMacSystemFont, Inter, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#8db4d8';
+  
+  // X axis ticks
+  xTicks.forEach(tick => {
+    const x = xScale(tick);
+    let label;
+    if (config.xKey === 'price') {
+      // Format price labels
+      if (tick >= 1000) {
+        label = tick >= 10000 ? `${Math.round(tick/1000)}K` : `${(tick/1000).toFixed(1)}K`;
+      } else {
+        label = Math.round(tick).toString();
+      }
+    } else {
+      label = tick.toFixed(2);
+    }
+    ctx.fillText(label, x, height - padding + 15);
+  });
+  
+  // Y axis ticks
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 5; i++) {
+    const value = yMin + (i / 5) * (yMax - yMin);
+    const y = yScale(value);
+    ctx.fillText(Math.round(value), padding - 10, y + 4);
+  }
+  
+  // Draw value trend lines for price-based charts
+  if (config.xKey === 'price') {
+    drawValueTrendLines(ctx, config, xScale, yScale, width, height, padding);
+  }
+  
+  // Draw data points (only filtered data)
+  filteredData.forEach(gpu => {
+    const x = xScale(gpu[config.xKey]);
+    const y = yScale(gpu[config.yKey]);
+    
+    ctx.fillStyle = gpu.cudaColor;
+    ctx.beginPath();
+    ctx.arc(x, y, 6, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    // Add stroke for visibility
+    ctx.strokeStyle = '#1a2332';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+  
+  // Add hover functionality
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mouseX = (e.clientX - rect.left) * scaleX;
+    const mouseY = (e.clientY - rect.top) * scaleY;
+    
+    // Find closest point
+    let closestGpu = null;
+    let minDistance = Infinity;
+    
+    filteredData.forEach(gpu => {
+      const x = xScale(gpu[config.xKey]);
+      const y = yScale(gpu[config.yKey]);
+      const distance = Math.sqrt((mouseX - x) ** 2 + (mouseY - y) ** 2);
+      
+      if (distance < 30 && distance < minDistance) {
+        minDistance = distance;
+        closestGpu = gpu;
+      }
+    });
+    
+    if (closestGpu) {
+      canvas.style.cursor = 'pointer';
+      tooltip.style.display = 'block';
+      tooltip.innerHTML = `
+        <strong>${closestGpu.name}</strong><br/>
+        Series: ${closestGpu.series}<br/>
+        VRAM: ${closestGpu.vram}GB<br/>
+        Price: $${closestGpu.price}<br/>
+        Performance: ${closestGpu.performance}<br/>
+        VRAM/$ : ${closestGpu.vramPerDollar.toFixed(3)}<br/>
+        Perf/$ : ${closestGpu.perfPerDollar.toFixed(3)}
+      `;
+      tooltip.style.left = (e.pageX + 15) + 'px';
+      tooltip.style.top = (e.pageY - 10) + 'px';
+    } else {
+      canvas.style.cursor = 'default';
+      tooltip.style.display = 'none';
+    }
+  });
+  
+  canvas.addEventListener('mouseleave', () => {
+    tooltip.style.display = 'none';
+    canvas.style.cursor = 'default';
+  });
+}
+
+function drawValueTrendLines(ctx, config, xScale, yScale, width, height, padding) {
+  // Define value trend lines based on chart type
+  const lines = [];
+  
+  if (config.yKey === 'vram') {
+    // VRAM vs Price - show good value lines
+    lines.push(
+      { ratio: 0.05, label: 'Good Value (0.05 GB/$)', color: '#fbbf24', opacity: 0.6 },
+      { ratio: 0.02, label: 'Average Value (0.02 GB/$)', color: '#f87171', opacity: 0.4 }
+    );
+  } else if (config.yKey === 'performance') {
+    // Performance vs Price - show performance/dollar lines
+    lines.push(
+      { ratio: 0.2, label: 'Great Performance/$ (0.2)', color: '#4ade80', opacity: 0.8 },
+      { ratio: 0.1, label: 'Good Performance/$ (0.1)', color: '#fbbf24', opacity: 0.6 },
+      { ratio: 0.05, label: 'Average Performance/$ (0.05)', color: '#f87171', opacity: 0.4 }
+    );
+  }
+  
+  // Draw the trend lines
+  lines.forEach(line => {
+    ctx.strokeStyle = line.color;
+    ctx.globalAlpha = line.opacity;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+    
+    ctx.beginPath();
+    
+    // Calculate line points (y = ratio * x for log scale)
+    const startPrice = Math.max(50, Math.min(...filteredData.map(d => d.price)));
+    const endPrice = Math.min(1000, Math.max(...filteredData.map(d => d.price))); // Cap at 1K to match filter
+    
+    const startX = xScale(startPrice);
+    const startY = yScale(line.ratio * startPrice);
+    const endX = xScale(endPrice);
+    const endY = yScale(line.ratio * endPrice);
+    
+    // Only draw if line is visible in chart area
+    if (startY >= padding && startY <= height - padding && 
+        endY >= padding && endY <= height - padding) {
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, endY);
+    }
+    
+    ctx.stroke();
+    
+    // Add line label
+    const labelX = startX + 20;
+    const labelY = startY - 10;
+    
+    if (labelY >= padding && labelY <= height - padding) {
+      ctx.font = '9px -apple-system, BlinkMacSystemFont, Inter, sans-serif';
+      ctx.fillStyle = line.color;
+      ctx.globalAlpha = 0.9;
+      ctx.fillText(line.label, labelX, labelY);
+    }
+  });
+  
+  // Reset line style
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 1.0;
+}
+
+function updateChart(viewMode) {
+  currentViewMode = viewMode;
+  
+  // Update chart title
+  const config = chartConfig[viewMode];
+  document.getElementById('chart-title').textContent = `${config.yLabel} vs ${config.xLabel}`;
+  
+  // Redraw chart
+  const canvas = document.getElementById('scatterChart');
+  const ctx = canvas.getContext('2d');
+  drawChart(ctx);
+}
+
+function updateValueCards() {
+  // Top VRAM value
+  const topVramValue = [...gpuData].sort((a, b) => b.vramPerDollar - a.vramPerDollar).slice(0, 3);
+  document.getElementById('vram-value-cards').innerHTML = topVramValue.map(gpu => `
+    <div class="card-content">
+      <div class="card-title">${gpu.name}</div>
+      <div class="card-subtitle">
+        ${gpu.vram}GB / $${gpu.price} = ${gpu.vramPerDollar.toFixed(3)} GB/$
+      </div>
+    </div>
+  `).join('');
+  
+  // Top performance value
+  const topPerfValue = [...gpuData].sort((a, b) => b.perfPerDollar - a.perfPerDollar).slice(0, 3);
+  document.getElementById('perf-value-cards').innerHTML = topPerfValue.map(gpu => `
+    <div class="card-content">
+      <div class="card-title">${gpu.name}</div>
+      <div class="card-subtitle">
+        ${gpu.performance} perf / $${gpu.price} = ${gpu.perfPerDollar.toFixed(3)}
+      </div>
+    </div>
+  `).join('');
+  
+  // Cheapest high-VRAM
+  const highVramGpus = gpuData.filter(gpu => gpu.vram >= 16).sort((a, b) => a.price - b.price).slice(0, 3);
+  document.getElementById('high-vram-cards').innerHTML = highVramGpus.map(gpu => `
+    <div class="card-content">
+      <div class="card-title">${gpu.name}</div>
+      <div class="card-subtitle">
+        ${gpu.vram}GB VRAM for $${gpu.price}
+      </div>
+    </div>
+  `).join('');
+}
+
+// Create tooltip element
+const tooltip = document.createElement('div');
+tooltip.className = 'tooltip';
+tooltip.style.display = 'none';
+document.body.appendChild(tooltip);
+
+// Event listeners
+document.getElementById('chartMode').addEventListener('change', (e) => {
+  updateChart(e.target.value);
+});
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOM loaded, initializing...');
+  initChart();
+  updateValueCards();
+});
+
+// Fallback initialization
+window.addEventListener('load', () => {
+  // Only run if cards are still empty
+  if (document.getElementById('vram-value-cards').innerHTML === '') {
+    console.log('Fallback initialization...');
+    updateValueCards();
+  }
+});
+
+// Handle resize
+window.addEventListener('resize', () => {
+  setTimeout(initChart, 100);
+});
+</script>
+</html>
