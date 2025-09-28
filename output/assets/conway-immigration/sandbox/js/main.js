@@ -13,7 +13,7 @@ class ConwayVersusGame {
     
     init() {
         // Initialize all modules
-        this.gameEngine = new ConwayGameEngine(32);
+        this.gameEngine = new ConwayGameEngine(16);
         this.renderer = new ConwayRenderer('gameCanvas');
         this.stateDetector = new GameStateDetector();
         this.uiControls = new ConwayUIControls(this.gameEngine, this.renderer, this.stateDetector);

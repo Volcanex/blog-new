@@ -156,6 +156,21 @@ if command -v curl &> /dev/null; then
     else
         echo "   ⚠️  API may not be fully ready yet (check logs)"
     fi
+    
+    # Validate nginx configuration for asset serving
+    echo ""
+    echo "📋 Validating nginx asset configuration..."
+    if command -v nginx &> /dev/null; then
+        if nginx -T 2>/dev/null | grep -q "location /assets/"; then
+            echo "   ✅ nginx configured to serve assets directly"
+        else
+            echo "   ⚠️  WARNING: nginx not configured for /assets/ directory"
+            echo "   Add this to your nginx server block:"
+            echo "   location /assets/ { alias $(pwd)/output/assets/; expires 1h; }"
+        fi
+    else
+        echo "   ℹ️  nginx not found - if using production, ensure /assets/ is configured"
+    fi
 else
     echo "   ⚠️  curl not found, skipping API test"
 fi

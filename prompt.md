@@ -270,6 +270,201 @@ pages/my-new-page/assets/
 - From HTML: `/assets/my-new-page/images/hero-banner.jpg`
 - From API: Use Flask's `send_from_directory` if needed
 
+## Subpages (Nested Pages)
+
+The system supports creating subpages by nesting directories within existing pages. This allows you to organize related content hierarchically.
+
+### Subpage Structure
+
+```
+pages/
+├── main-page/                    # Main page
+│   ├── config.json
+│   ├── content.md
+│   ├── assets/
+│   ├── subpage-1/               # Subpage 1
+│   │   ├── config.json
+│   │   ├── content.md
+│   │   └── assets/
+│   └── subpage-2/               # Subpage 2
+│       ├── config.json
+│       └── content.md
+└── other-page/
+```
+
+### Creating Subpages
+
+1. **Create the directory structure:**
+
+```bash
+mkdir -p pages/main-page/sandbox
+```
+
+2. **Create subpage config.json:**
+
+```json
+{
+    "title": "Sandbox",
+    "slug": "main-page/sandbox",
+    "date": "2025-08-11",
+    "description": "A sandbox environment for experimentation",
+    "categories": ["experimental", "sandbox"]
+}
+```
+
+**Important:** The `slug` field should reflect the nested path: `"parent-page/subpage-name"`
+
+3. **Create subpage content.md:**
+
+```html
+<style>
+/* Subpage-specific styling */
+.back-link {
+    display: inline-block;
+    background: #007cba;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+</style>
+
+<html>
+<div class="container">
+    <a href="/main-page" class="back-link">← Back to Main Page</a>
+    
+    <h1>Sandbox</h1>
+    <p>This is a subpage of the main page.</p>
+</div>
+</html>
+```
+
+### Subpage URLs
+
+The compiler generates multiple URL formats for subpages:
+
+- **Primary URL**: `/main-page/sandbox` (clean nested URL)
+- **Flat URL**: `/main-page-sandbox.html` (backward compatibility)
+
+### Asset Organization for Subpages
+
+Subpages can have their own assets:
+
+```
+pages/
+├── main-page/
+│   ├── assets/              # Main page assets
+│   │   └── images/
+│   └── sandbox/
+│       ├── config.json
+│       ├── content.md
+│       └── assets/          # Subpage assets
+│           └── data/
+```
+
+**Asset URLs:**
+- Main page assets: `/assets/main-page/images/hero.jpg`
+- Subpage assets: `/assets/main-page/sandbox/data/sample.json`
+
+### Subpage APIs
+
+Subpages can have their own API endpoints by including an `api.py` file:
+
+```python
+"""
+API endpoints for main-page/sandbox
+"""
+
+from flask import Blueprint, jsonify
+
+# Use the full nested path as the URL prefix
+bp = Blueprint('main_page_sandbox', __name__, url_prefix='/api/main-page/sandbox')
+
+@bp.route('/hello')
+def hello():
+    return jsonify({
+        'message': 'Hello from sandbox!',
+        'parent': 'main-page',
+        'subpage': 'sandbox'
+    })
+```
+
+**API URL:** `/api/main-page/sandbox/hello`
+
+### Navigation Between Pages
+
+Create intuitive navigation between parent and subpages:
+
+```html
+<!-- In main page -->
+<nav>
+    <a href="/main-page/sandbox">Sandbox</a>
+    <a href="/main-page/tools">Tools</a>
+</nav>
+
+<!-- In subpage -->
+<nav>
+    <a href="/main-page">← Back to Main</a>
+    <a href="/main-page/tools">Tools</a>
+</nav>
+```
+
+### Subpage Best Practices
+
+1. **Use descriptive slugs:** `"parent-page/descriptive-name"`
+2. **Include parent context:** Reference parent page for navigation
+3. **Independent styling:** Each subpage can have completely different styling
+4. **Asset organization:** Use subpage-specific asset directories when needed
+5. **API naming:** Use descriptive blueprint names to avoid conflicts
+
+### Subpage Examples
+
+**Documentation site:**
+```
+pages/
+├── api-docs/
+│   ├── config.json
+│   ├── content.md          # API overview
+│   ├── authentication/
+│   │   └── ...            # /api-docs/authentication
+│   └── endpoints/
+│       └── ...            # /api-docs/endpoints
+```
+
+**Project showcase:**
+```
+pages/
+├── projects/
+│   ├── config.json
+│   ├── content.md          # Projects overview
+│   ├── web-app/
+│   │   └── ...            # /projects/web-app
+│   └── mobile-app/
+│       └── ...            # /projects/mobile-app
+```
+
+**Game with variations:**
+```
+pages/
+├── conway-versus/
+│   ├── config.json
+│   ├── content.md          # Main Conway's Game
+│   ├── sandbox/
+│   │   └── ...            # /conway-versus/sandbox
+│   └── tournament/
+│       └── ...            # /conway-versus/tournament
+```
+
+### Compilation Notes
+
+- The compiler recursively searches up to 3 levels deep for config.json files
+- Each subpage compiles independently with its own styling and assets
+- **Homepage Display**: Subpages appear as nested links under their parent pages, NOT as separate blog entries
+- Parent pages show on homepage with their subpages listed underneath with arrow indicators (→)
+- If a parent has more than 5 subpages, they are collapsed by default with a toggle button
+- Both nested and flat URLs are generated for maximum compatibility
+
 ## Build and Deploy Process
 
 ### 1. Compile the Blog
@@ -345,10 +540,36 @@ The system automatically detects and warns about conflicting API routes:
 
 Each page with an `api.py` file gets its own endpoints at `/api/{page-slug}/...`
 
-### Asset Endpoints
+### Asset Serving Architecture
 
-- Static assets: `/assets/{page-slug}/{asset-path}`
+### Strategy: nginx Direct Asset Serving
+
+This blog uses **nginx to serve all static assets directly** for optimal performance. Flask only handles dynamic content and APIs.
+
+**Asset URLs:** `/assets/{page-slug}/{asset-path}`
 - Example: `/assets/my-new-page/images/hero-banner.jpg`
+- Example: `/assets/conway-immigration/sandbox/js/game-engine.js`
+
+### nginx Configuration Required
+
+For production deployment, nginx must be configured to serve the assets directory:
+
+```nginx
+# Assets directory (required for all page assets)
+location /assets/ {
+    alias /path/to/blog/output/assets/;
+    expires 1h;
+    add_header Cache-Control "public, immutable";
+}
+```
+
+**Important:** Flask does NOT serve assets in production. All `/assets/` requests are handled directly by nginx for performance.
+
+### Development vs Production
+
+- **Development:** Flask can serve assets for convenience during development
+- **Production:** nginx must handle all asset serving - Flask asset routes are disabled
+- **Deploy scripts:** Automatically validate nginx config includes asset serving
 
 ## Design Guidelines
 
@@ -591,6 +812,7 @@ Verify assets are accessible:
 3. **API not working**: Check blueprint registration and import statements
 4. **Database errors**: Ensure proper error handling and page-scoped data access
 5. **CSS not applying**: Verify `<style>` tags are properly closed
+6. **Assets returning 404 on live site**: Ensure nginx config includes the required `/assets/` location block (see Asset Serving Architecture section above). Flask does not serve assets in production.
 
 ### Debug Steps
 

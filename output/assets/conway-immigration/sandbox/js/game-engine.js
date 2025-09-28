@@ -14,12 +14,39 @@ class ConwayGameEngine {
         this.PLAYER1 = 1;
         this.PLAYER2 = 2;
         
+        // History for reset functionality
+        this.history = [];
+        this.initialGrid = null;
+        
         this.initGrid();
     }
     
     initGrid() {
         this.grid = Array(this.gridSize).fill().map(() => Array(this.gridSize).fill(this.EMPTY));
         this.generation = 0;
+        this.history = [];
+        this.initialGrid = null;
+    }
+    
+    saveCurrentAsInitial() {
+        // Save the current grid state as generation 0
+        this.initialGrid = this.deepCopyGrid(this.grid);
+        console.log('Saved initial state with', this.countCells().total, 'total cells');
+    }
+    
+    deepCopyGrid(grid) {
+        return grid.map(row => [...row]);
+    }
+    
+    resetToInitialState() {
+        if (this.initialGrid) {
+            this.grid = this.deepCopyGrid(this.initialGrid);
+            this.generation = 0;
+            console.log('Reset to initial state with', this.countCells().total, 'total cells');
+            return true;
+        }
+        console.log('No initial state saved yet');
+        return false;
     }
     
     

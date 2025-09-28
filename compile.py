@@ -25,20 +25,42 @@ class ModularBlogCompiler:
         (self.output_dir / "assets").mkdir(exist_ok=True)
     
     def get_page_directories(self):
-        """Get all valid page directories"""
+        """Get all valid page directories (including nested subpages)"""
         if not self.pages_dir.exists():
             return []
         
         page_dirs = []
+        
+        def find_pages_recursive(directory, depth=0):
+            """Recursively find all page directories"""
+            # Limit depth to prevent infinite recursion
+            if depth > 3:  # Allow up to 3 levels deep: pages/main/sub1/sub2
+                return
+                
+            for item in directory.iterdir():
+                if item.is_dir():
+                    config_file = item / 'config.json'
+                    content_file = item / 'content.md'
+                    
+                    if config_file.exists() and content_file.exists():
+                        page_dirs.append(item)
+                    
+                    # Always check subdirectories regardless of whether this directory is a page
+                    find_pages_recursive(item, depth + 1)
+        
+        find_pages_recursive(self.pages_dir)
+        
+        # Warn about skipped directories only for top-level directories
         for item in self.pages_dir.iterdir():
             if item.is_dir():
                 config_file = item / 'config.json'
                 content_file = item / 'content.md'
                 
-                if config_file.exists() and content_file.exists():
-                    page_dirs.append(item)
-                else:
-                    print(f"Warning: Skipping {item.name} - missing config.json or content.md")
+                if not config_file.exists() or not content_file.exists():
+                    # Check if this directory contains any valid subpages
+                    has_subpages = any(p for p in page_dirs if str(p).startswith(str(item)))
+                    if not has_subpages:
+                        print(f"Warning: Skipping {item.name} - missing config.json or content.md")
         
         return page_dirs
     
@@ -119,10 +141,17 @@ class ModularBlogCompiler:
         config = self.parse_page_config(page_dir)
         html_content, css_content = self.parse_page_content(page_dir)
         
+        # Calculate the page's URL path based on its location relative to pages_dir
+        relative_path = page_dir.relative_to(self.pages_dir)
+        url_path = str(relative_path).replace('\\', '/')  # Ensure forward slashes for URLs
+        
+        # Use slug from config, or fall back to the full relative path
+        slug = config.get('slug', url_path)
+        
         # Copy page assets
-        assets = self.copy_page_assets(page_dir, config.get('slug', page_dir.name))
+        assets = self.copy_page_assets(page_dir, slug)
         if assets:
-            print(f"  Copied {len(assets)} assets for {page_dir.name}")
+            print(f"  Copied {len(assets)} assets for {slug}")
         
         # Create full HTML document
         full_html = f"""<!DOCTYPE html>
@@ -138,33 +167,50 @@ class ModularBlogCompiler:
 </body>
 </html>"""
         
-        # Determine output filename
-        slug = config.get('slug', page_dir.name)
-        output_file = self.output_dir / f"{slug}.html"
+        # Create nested directory structure for subpages
+        if '/' in slug:
+            # This is a subpage - create nested directory structure
+            output_dir = self.output_dir / slug
+            output_dir.mkdir(parents=True, exist_ok=True)
+            output_file = output_dir / "index.html"
+            
+            # Also create the flat .html file for backward compatibility
+            flat_slug = slug.replace('/', '-')
+            flat_output_file = self.output_dir / f"{flat_slug}.html"
+            with open(flat_output_file, 'w', encoding='utf-8') as f:
+                f.write(full_html)
+        else:
+            # This is a top-level page - use existing logic
+            output_file = self.output_dir / f"{slug}.html"
+            
+            # Create extensionless version for URL-friendly access
+            extensionless_dir = self.output_dir / slug
+            extensionless_dir.mkdir(exist_ok=True)
+            extensionless_file = extensionless_dir / "index.html"
+            with open(extensionless_file, 'w', encoding='utf-8') as f:
+                f.write(full_html)
+            
+            output_file = extensionless_file  # Use the extensionless version as primary
         
-        # Write compiled page
+        # Write the compiled page
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(full_html)
         
-        # Create extensionless version for URL-friendly access
-        extensionless_dir = self.output_dir / slug
-        extensionless_dir.mkdir(exist_ok=True)
-        extensionless_file = extensionless_dir / "index.html"
-        with open(extensionless_file, 'w', encoding='utf-8') as f:
-            f.write(full_html)
-        
-        # Track categories
-        categories = config.get('categories', [])
-        for category in categories:
-            if category not in self.categories:
-                self.categories[category] = []
-            self.categories[category].append({
-                'title': config.get('title', 'Untitled'),
-                'slug': slug,
-                'date': config.get('date', ''),
-                'description': config.get('description', ''),
-                'assets': assets
-            })
+        # Track categories - but exclude subpages from homepage listing
+        # Only include top-level pages (no '/' in slug) in the homepage
+        is_top_level = '/' not in slug
+        if is_top_level:
+            categories = config.get('categories', [])
+            for category in categories:
+                if category not in self.categories:
+                    self.categories[category] = []
+                self.categories[category].append({
+                    'title': config.get('title', 'Untitled'),
+                    'slug': slug,
+                    'date': config.get('date', ''),
+                    'description': config.get('description', ''),
+                    'assets': assets
+                })
         
         return config, slug, assets
     
@@ -188,10 +234,30 @@ class ModularBlogCompiler:
             except Exception as e:
                 print(f"Error compiling {page_dir.name}: {e}")
         
-        # Sort by date (newest first)
-        pages_list.sort(key=lambda x: x['date'], reverse=True)
+        # Organize pages hierarchically
+        top_level_pages = []
+        subpages_map = {}
         
-        # Generate homepage HTML (same as before, with asset info)
+        for page in pages_list:
+            if '/' not in page['slug']:
+                # Top-level page
+                top_level_pages.append(page)
+                subpages_map[page['slug']] = []
+            else:
+                # Subpage - find its parent
+                parent_slug = page['slug'].split('/')[0]
+                if parent_slug not in subpages_map:
+                    subpages_map[parent_slug] = []
+                subpages_map[parent_slug].append(page)
+        
+        # Sort top-level pages by date (newest first)
+        top_level_pages.sort(key=lambda x: x['date'], reverse=True)
+        
+        # Sort subpages by title
+        for parent in subpages_map:
+            subpages_map[parent].sort(key=lambda x: x['title'])
+        
+        # Generate homepage HTML with nested structure
         homepage_html = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -203,25 +269,160 @@ class ModularBlogCompiler:
         max-width: 1000px;
         margin: 0 auto;
         padding: 20px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    .subpages {
+        margin-left: 20px;
+        margin-top: 10px;
+        border-left: 2px solid #e1e8ed;
+        padding-left: 15px;
+    }
+    
+    .subpage-item {
+        margin: 8px 0;
+        font-size: 0.9em;
+    }
+    
+    .subpage-item a {
+        color: #0066cc;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .subpage-item a:hover {
+        text-decoration: underline;
+    }
+    
+    .subpage-item a:visited {
+        color: #551a8b;
+    }
+    
+    .subpage-toggle {
+        cursor: pointer;
+        background: none;
+        border: none;
+        color: #666;
+        font-size: 0.9em;
+        margin-top: 8px;
+        padding: 4px 8px;
+        border-radius: 3px;
+        background: #f8f9fa;
+    }
+    
+    .subpage-toggle:hover {
+        background: #e9ecef;
+    }
+    
+    .subpages.collapsed {
+        display: none;
+    }
+    
+    article {
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    article:last-child {
+        border-bottom: none;
+    }
+    
+    .date {
+        color: #666;
+        font-size: 0.9em;
+        margin: 5px 0;
+    }
+    
+    .description {
+        margin: 8px 0;
+        color: #333;
+    }
+    
+    .categories {
+        font-size: 0.85em;
+        color: #888;
+    }
+    
+    .assets-info {
+        font-size: 0.8em;
+        color: #999;
+        margin-top: 5px;
     }
     </style>
+    <script>
+    function toggleSubpages(parentSlug) {
+        const subpages = document.getElementById('subpages-' + parentSlug);
+        const button = document.getElementById('toggle-' + parentSlug);
+        
+        if (subpages.classList.contains('collapsed')) {
+            subpages.classList.remove('collapsed');
+            button.textContent = 'Hide subpages ▲';
+        } else {
+            subpages.classList.add('collapsed');
+            button.textContent = 'Show subpages ▼';
+        }
+    }
+    </script>
 </head>
 <body>
     <h1>Gabrielpenman.com</h1>
     <div class="posts">
 """
         
-        for page in pages_list:
+        for page in top_level_pages:
             asset_info = ""
             if page['assets']:
                 asset_info = f"<div class=\"assets-info\">{len(page['assets'])} assets included</div>"
+            
+            subpages = subpages_map.get(page['slug'], [])
             
             homepage_html += f"""        <article>
             <h2><a href="{page['slug']}">{page['title']}</a></h2>
             <div class="date">{page['date']}</div>
             <div class="description">{page['description']}</div>
             <div class="categories">Categories: {', '.join(page['categories'])}</div>
-            {asset_info}
+            {asset_info}"""
+            
+            if subpages:
+                # Show subpages, with collapse if more than 5
+                should_collapse = len(subpages) > 5
+                collapse_class = " collapsed" if should_collapse else ""
+                
+                if should_collapse:
+                    homepage_html += f"""
+            <button class="subpage-toggle" id="toggle-{page['slug']}" onclick="toggleSubpages('{page['slug']}')">Show subpages ▼</button>"""
+                
+                homepage_html += f"""
+            <div class="subpages{collapse_class}" id="subpages-{page['slug']}">"""
+                
+                for subpage in subpages:
+                    # Create a clean subpage title
+                    subpage_title = subpage['title']
+                    
+                    # Remove parent title prefix if it exists
+                    if page['title'] in subpage_title:
+                        subpage_title = subpage_title.replace(page['title'], '').strip(' -')
+                    
+                    # If title is empty or too similar, use the path name
+                    if not subpage_title or subpage_title.lower() == page['title'].lower():
+                        path_name = subpage['slug'].split('/')[-1]
+                        subpage_title = path_name.replace('-', ' ').title()
+                    
+                    homepage_html += f"""
+                <div class="subpage-item">
+                    <a href="{subpage['slug']}">
+                        <span>→</span>
+                        <span>{subpage_title}</span>
+                    </a>
+                </div>"""
+                
+                homepage_html += """
+            </div>"""
+            
+            homepage_html += """
         </article>
 """
         

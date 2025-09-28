@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborative Canvas</title>
+    <style>
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f0f2f5;
+    color: #333;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+
+.header h1 {
+    color: #2c3e50;
+    font-size: 2.5rem;
+    margin: 0 0 15px 0;
+    font-weight: 700;
+}
+
+.header p {
+    color: #666;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.canvas-section {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    margin-bottom: 25px;
+}
+
+.controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.top-status {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.bottom-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.canvas-section {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    margin-bottom: 25px;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.status-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.player-count {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.connection-status {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ccc;
+}
+
+.status-dot.connected {
+    background: #4caf50;
+}
+
+.status-dot.connecting {
+    background: #ff9800;
+    animation: pulse 1s infinite;
+}
+
+.color-selector {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.color-button {
+    width: 40px;
+    height: 40px;
+    border: 3px solid transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.color-button.black {
+    background: #000;
+}
+
+.color-button.white {
+    background: #fff;
+    border-color: #ddd;
+}
+
+.color-button.red {
+    background: #f44336;
+}
+
+.color-button.blue {
+    background: #2196F3;
+}
+
+.color-button.green {
+    background: #4CAF50;
+}
+
+.color-button.yellow {
+    background: #FFEB3B;
+    border-color: #ddd;
+}
+
+.color-button.orange {
+    background: #FF9800;
+}
+
+.color-button.active {
+    border-color: #2196F3;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.btn-primary {
+    background: #2196F3;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #1976D2;
+}
+
+.btn-secondary {
+    background: #e0e0e0;
+    color: #333;
+}
+
+.btn-secondary:hover {
+    background: #d0d0d0;
+}
+
+.btn-danger {
+    background: #f44336;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #d32f2f;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.canvas-container {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+    position: relative;
+    margin: 0 auto;
+    display: block;
+}
+
+#drawingCanvas {
+    display: block;
+    cursor: crosshair;
+    background: white;
+}
+
+.waiting-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 10;
+}
+
+.waiting-screen h3 {
+    color: #666;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+}
+
+.waiting-screen p {
+    color: #888;
+    max-width: 300px;
+    line-height: 1.5;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #2196F3;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 20px 0;
+}
+
+.info-section {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+
+.info-section h2 {
+    color: #2c3e50;
+    font-size: 1.4rem;
+    margin-bottom: 15px;
+}
+
+.info-section ul {
+    color: #666;
+    line-height: 1.8;
+    padding-left: 20px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .header {
+        padding: 20px 15px;
+    }
+    
+    .header h1 {
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+    }
+    
+    .header p {
+        font-size: 1rem;
+    }
+    
+    .canvas-section {
+        padding: 15px;
+    }
+    
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .top-status {
+        margin-bottom: 10px;
+    }
+    
+    .bottom-controls {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    
+    .status-info {
+        justify-content: center;
+        order: 1;
+    }
+    
+    .control-group {
+        justify-content: center;
+        order: 2;
+    }
+    
+    .action-buttons {
+        justify-content: center;
+        order: 2;
+    }
+    
+    
+    .btn {
+        padding: 12px 24px;
+        font-size: 1rem;
+        min-height: 48px;
+        min-width: 120px;
+    }
+    
+    .canvas-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 400px !important;
+        margin: 0 !important;
+    }
+    
+    #drawingCanvas {
+        width: 100% !important;
+        height: 100% !important;
+        touch-action: none;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+    
+    .info-section {
+        padding: 20px 15px;
+    }
+    
+    .info-section h2 {
+        font-size: 1.2rem;
+    }
+    
+    .info-section ul {
+        font-size: 0.9rem;
+        padding-left: 15px;
+    }
+    
+    .waiting-screen h3 {
+        font-size: 1.1rem;
+    }
+    
+    .waiting-screen p {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 5px;
+    }
+    
+    .header {
+        padding: 15px 10px;
+    }
+    
+    .header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .canvas-section {
+        padding: 10px;
+    }
+    
+    .canvas-container {
+        height: 300px !important;
+    }
+    
+    .color-button {
+        width: 32px;
+        height: 32px;
+        border-width: 2px;
+    }
+    
+    
+    .btn {
+        padding: 10px 20px;
+        min-width: 100px;
+        font-size: 0.9rem;
+    }
+}
+</style>
+</head>
+<body>
+    <html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+</head>
+<div class="container">
+    <div class="header">
+        <h1>Collaborative Canvas</h1>
+        <p>Draw together in real-time! Up to 8 people can draw simultaneously on this shared colorful canvas. This is a permanent communal canvas - your art is saved forever!</p>
+    </div>
+
+    <div class="canvas-section">
+        <div class="top-status">
+            <div class="status-info">
+                <div class="connection-status">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="connectionStatus">Connecting...</span>
+                </div>
+                <div class="player-count" id="playerCount">0/8 players</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <div class="color-selector">
+                    <div class="color-button black active" data-color="black" title="Black"></div>
+                    <div class="color-button white" data-color="white" title="White"></div>
+                    <div class="color-button red" data-color="red" title="Red"></div>
+                    <div class="color-button blue" data-color="blue" title="Blue"></div>
+                    <div class="color-button green" data-color="green" title="Green"></div>
+                    <div class="color-button yellow" data-color="yellow" title="Yellow"></div>
+                    <div class="color-button orange" data-color="orange" title="Orange"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-container" style="width: 800px; height: 600px;">
+            <canvas id="drawingCanvas" width="800" height="600"></canvas>
+            <div class="waiting-screen" id="waitingScreen">
+                <h3>Canvas Full!</h3>
+                <div class="spinner"></div>
+                <p>The canvas has reached its maximum of 8 players. We'll automatically connect you when someone leaves.</p>
+            </div>
+        </div>
+        
+        <div class="bottom-controls">
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="joinBtn">Join Canvas</button>
+                <button class="btn btn-secondary hidden" id="leaveBtn">Leave Canvas</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-section">
+        <h2>How to Use</h2>
+        <ul>
+            <li><strong>Join:</strong> Click "Join Canvas" to start drawing with others</li>
+            <li><strong>Draw:</strong> Click and drag on the canvas to draw lines</li>
+            <li><strong>Switch Colors:</strong> Click any color button to change your drawing color</li>
+            <li><strong>Collaborate:</strong> See others drawing in real-time as you draw together</li>
+            <li><strong>Host System:</strong> The first person to join becomes the host, but this is a communal permanent canvas</li>
+            <li><strong>Permanent Art:</strong> Your collaborative artwork is permanently saved and grows over time</li>
+        </ul>
+    </div>
+</div>
+
+<script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+<script>
+class CollaborativeCanvas {
+    constructor() {
+        this.socket = null;
+        this.canvas = document.getElementById('drawingCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.isDrawing = false;
+        this.currentColor = 'black';
+        this.playerId = this.generatePlayerId();
+        this.isConnected = false;
+        this.isInCanvas = false;
+        this.isHost = false;
+        this.currentStroke = null;
+        
+        this.setupCanvas();
+        this.setupEventListeners();
+        this.connectWebSocket();
+        
+        // Try to join automatically after a short delay
+        setTimeout(() => {
+            if (this.isConnected && !this.isInCanvas) {
+                this.joinCanvas();
+            }
+        }, 1000);
+        
+        // Initially hide waiting screen
+        this.showWaitingScreen(false);
+        
+        // Prevent mobile scrolling during drawing
+        this.setupMobileScrollPrevention();
+    }
+    
+    generatePlayerId() {
+        return 'player_' + Math.random().toString(36).substr(2, 9);
+    }
+    
+    setupCanvas() {
+        // Set up canvas for drawing
+        this.ctx.lineCap = 'round';
+        this.ctx.lineJoin = 'round';
+        this.ctx.lineWidth = this.isMobile() ? 5 : 4; // Thicker lines
+        this.ctx.fillStyle = 'white';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Set canvas size based on container
+        this.resizeCanvas();
+        
+        // Add resize listener
+        window.addEventListener('resize', () => this.resizeCanvas());
+    }
+    
+    isMobile() {
+        return window.innerWidth <= 768;
+    }
+    
+    resizeCanvas() {
+        const container = this.canvas.parentElement;
+        const rect = container.getBoundingClientRect();
+        
+        // Store current canvas data
+        const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Resize canvas
+        if (this.isMobile()) {
+            this.canvas.width = Math.min(800, rect.width - 4); // Account for border
+            this.canvas.height = this.isMobile() && window.innerWidth <= 480 ? 300 : 400;
+        } else {
+            this.canvas.width = 800;
+            this.canvas.height = 600;
+        }
+        
+        // Restore canvas setup
+        this.ctx.lineCap = 'round';
+        this.ctx.lineJoin = 'round';
+        this.ctx.lineWidth = this.isMobile() ? 5 : 4;
+        
+        // Fill with white background
+        this.ctx.fillStyle = 'white';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Restore the image (scaled if necessary)
+        if (imageData.width > 0 && imageData.height > 0) {
+            this.ctx.putImageData(imageData, 0, 0);
+        }
+    }
+    
+    setupMobileScrollPrevention() {
+        if (this.isMobile()) {
+            // Prevent scrolling when touching the canvas area
+            document.body.addEventListener('touchstart', (e) => {
+                if (e.target.closest('.canvas-container') || e.target.closest('#drawingCanvas')) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            
+            document.body.addEventListener('touchmove', (e) => {
+                if (this.isDrawing || e.target.closest('.canvas-container') || e.target.closest('#drawingCanvas')) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+        }
+    }
+    
+    setupEventListeners() {
+        // Color selector
+        document.querySelectorAll('.color-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelector('.color-button.active').classList.remove('active');
+                button.classList.add('active');
+                this.currentColor = button.dataset.color;
+            });
+        });
+        
+        // Action buttons
+        document.getElementById('joinBtn').addEventListener('click', () => this.joinCanvas());
+        document.getElementById('leaveBtn').addEventListener('click', () => this.leaveCanvas());
+        
+        // Canvas drawing events
+        this.canvas.addEventListener('mousedown', (e) => this.startDrawing(e));
+        this.canvas.addEventListener('mousemove', (e) => this.draw(e));
+        this.canvas.addEventListener('mouseup', () => this.stopDrawing());
+        this.canvas.addEventListener('mouseout', () => this.stopDrawing());
+        
+        // Improved touch events for mobile
+        this.canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!this.isInCanvas) return;
+            
+            const touch = e.touches[0];
+            const rect = this.canvas.getBoundingClientRect();
+            const x = (touch.clientX - rect.left) * (this.canvas.width / rect.width);
+            const y = (touch.clientY - rect.top) * (this.canvas.height / rect.height);
+            
+            this.startDrawingTouch(x, y);
+        }, { passive: false });
+        
+        this.canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!this.isInCanvas || !this.isDrawing) return;
+            
+            const touch = e.touches[0];
+            const rect = this.canvas.getBoundingClientRect();
+            const x = (touch.clientX - rect.left) * (this.canvas.width / rect.width);
+            const y = (touch.clientY - rect.top) * (this.canvas.height / rect.height);
+            
+            this.drawTouch(x, y);
+        }, { passive: false });
+        
+        this.canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.stopDrawing();
+        }, { passive: false });
+        
+        this.canvas.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            this.stopDrawing();
+        }, { passive: false });
+    }
+    
+    connectWebSocket() {
+        this.socket = io('/collaborative-canvas');
+        
+        this.socket.on('connect', () => {
+            this.isConnected = true;
+            this.updateConnectionStatus('connected', 'Connected');
+        });
+        
+        this.socket.on('disconnect', () => {
+            this.isConnected = false;
+            this.updateConnectionStatus('connecting', 'Disconnected');
+        });
+        
+        this.socket.on('connected', (data) => {
+            console.log('WebSocket connected:', data);
+        });
+        
+        this.socket.on('canvas_joined', (response) => {
+            if (response.success) {
+                this.isInCanvas = true;
+                this.isHost = response.data.is_host;
+                this.updateUI();
+                
+                // Load existing canvas state
+                if (response.data.canvas_state && response.data.canvas_state.strokes) {
+                    this.loadCanvasState(response.data.canvas_state.strokes);
+                }
+                
+                console.log('Joined canvas:', response.data);
+            }
+        });
+        
+        this.socket.on('canvas_full', (error) => {
+            console.log('Canvas full, showing waiting screen');
+            this.showWaitingScreen(true);
+            // Poll for availability
+            this.pollForAvailability();
+        });
+        
+        this.socket.on('player_joined', (data) => {
+            this.updatePlayerCount(data.player_count, data.max_players);
+            console.log(`${data.player_name} joined the canvas`);
+        });
+        
+        this.socket.on('player_left', (data) => {
+            this.updatePlayerCount(data.player_count, data.max_players);
+            this.showWaitingScreen(false);
+            console.log(`Player left the canvas`);
+        });
+        
+        this.socket.on('player_kicked', (data) => {
+            this.updatePlayerCount(data.player_count, 8);
+            console.log(`Player ${data.kicked_player_id} was kicked: ${data.reason}`);
+        });
+        
+        this.socket.on('stroke_received', (data) => {
+            this.drawStroke(data.stroke);
+        });
+        
+        // Canvas cleared event removed - permanent communal canvas
+        
+        this.socket.on('new_host_assigned', (data) => {
+            if (data.new_host === this.playerId) {
+                this.isHost = true;
+                this.updateUI();
+                console.log('You are now the host!');
+            }
+        });
+        
+        this.socket.on('error', (error) => {
+            console.error('Socket error:', error);
+        });
+    }
+    
+    joinCanvas() {
+        if (this.socket && this.isConnected) {
+            this.socket.emit('join_canvas', {
+                player_id: this.playerId,
+                name: `Player ${this.playerId.substr(-4)}`
+            });
+        }
+    }
+    
+    leaveCanvas() {
+        if (this.socket && this.isInCanvas) {
+            // Send current canvas state if host
+            const canvasState = this.isHost ? {
+                strokes: this.getCanvasStrokes()
+            } : {};
+            
+            this.socket.emit('leave_canvas', {
+                player_id: this.playerId,
+                canvas_state: canvasState
+            });
+            
+            this.isInCanvas = false;
+            this.isHost = false;
+            this.updateUI();
+        }
+    }
+    
+    // Clear canvas functionality removed for permanent communal canvas
+    
+    pollForAvailability() {
+        if (!this.isInCanvas && this.isConnected) {
+            setTimeout(() => {
+                console.log('Polling for canvas availability...');
+                this.joinCanvas();
+            }, 5000);
+        }
+    }
+    
+    startDrawing(e) {
+        if (!this.isInCanvas) return;
+        
+        this.isDrawing = true;
+        const rect = this.canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        this.currentStroke = {
+            id: Date.now() + '_' + Math.random(),
+            x: [x],
+            y: [y],
+            color: this.currentColor
+        };
+        
+        // Start drawing locally
+        this.ctx.globalCompositeOperation = this.currentColor === 'white' ? 'destination-out' : 'source-over';
+        if (this.currentColor === 'white') {
+            this.ctx.strokeStyle = 'rgba(255,255,255,1)';
+        } else {
+            // Map color names to hex values
+            const colorMap = {
+                'black': '#000000',
+                'red': '#f44336',
+                'blue': '#2196F3',
+                'green': '#4CAF50',
+                'yellow': '#FFEB3B',
+                'orange': '#FF9800'
+            };
+            this.ctx.strokeStyle = colorMap[this.currentColor] || '#000000';
+        }
+        this.ctx.beginPath();
+        this.ctx.moveTo(x, y);
+    }
+    
+    draw(e) {
+        if (!this.isDrawing || !this.isInCanvas) return;
+        
+        const rect = this.canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        // Add point to current stroke
+        this.currentStroke.x.push(x);
+        this.currentStroke.y.push(y);
+        
+        // Draw locally
+        this.ctx.lineTo(x, y);
+        this.ctx.stroke();
+    }
+    
+    stopDrawing() {
+        if (!this.isDrawing || !this.isInCanvas) return;
+        
+        this.isDrawing = false;
+        
+        // Send stroke to other players
+        if (this.currentStroke && this.socket) {
+            this.socket.emit('draw_stroke', {
+                player_id: this.playerId,
+                stroke: this.currentStroke
+            });
+        }
+        
+        this.currentStroke = null;
+    }
+    
+    startDrawingTouch(x, y) {
+        this.isDrawing = true;
+        
+        this.currentStroke = {
+            id: Date.now() + '_' + Math.random(),
+            x: [x],
+            y: [y],
+            color: this.currentColor
+        };
+        
+        // Start drawing locally
+        this.ctx.globalCompositeOperation = this.currentColor === 'white' ? 'destination-out' : 'source-over';
+        if (this.currentColor === 'white') {
+            this.ctx.strokeStyle = 'rgba(255,255,255,1)';
+        } else {
+            // Map color names to hex values
+            const colorMap = {
+                'black': '#000000',
+                'red': '#f44336',
+                'blue': '#2196F3',
+                'green': '#4CAF50',
+                'yellow': '#FFEB3B',
+                'orange': '#FF9800'
+            };
+            this.ctx.strokeStyle = colorMap[this.currentColor] || '#000000';
+        }
+        this.ctx.lineWidth = this.isMobile() ? 5 : 4;
+        this.ctx.beginPath();
+        this.ctx.moveTo(x, y);
+    }
+    
+    drawTouch(x, y) {
+        // Add point to current stroke
+        this.currentStroke.x.push(x);
+        this.currentStroke.y.push(y);
+        
+        // Draw locally
+        this.ctx.lineTo(x, y);
+        this.ctx.stroke();
+    }
+    
+    drawStroke(stroke) {
+        const ctx = this.ctx;
+        
+        // Set up drawing style
+        if (stroke.color === 'white') {
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.strokeStyle = 'rgba(255,255,255,1)';
+        } else {
+            ctx.globalCompositeOperation = 'source-over';
+            // Map color names to hex values
+            const colorMap = {
+                'black': '#000000',
+                'red': '#f44336',
+                'blue': '#2196F3',
+                'green': '#4CAF50',
+                'yellow': '#FFEB3B',
+                'orange': '#FF9800'
+            };
+            ctx.strokeStyle = colorMap[stroke.color] || '#000000';
+        }
+        
+        // Use appropriate line width
+        ctx.lineWidth = this.isMobile() ? 5 : 4;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        ctx.beginPath();
+        
+        // Draw the stroke
+        for (let i = 0; i < stroke.x.length; i++) {
+            if (i === 0) {
+                ctx.moveTo(stroke.x[i], stroke.y[i]);
+            } else {
+                ctx.lineTo(stroke.x[i], stroke.y[i]);
+            }
+        }
+        
+        ctx.stroke();
+    }
+    
+    loadCanvasState(strokes) {
+        this.clearCanvasLocal();
+        strokes.forEach(stroke => this.drawStroke(stroke));
+    }
+    
+    clearCanvasLocal() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.fillStyle = 'white';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+    
+    getCanvasStrokes() {
+        // This is a simplified version - in a real implementation,
+        // you'd need to track all strokes for state persistence
+        return [];
+    }
+    
+    updateConnectionStatus(status, text) {
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('connectionStatus');
+        
+        statusDot.className = `status-dot ${status}`;
+        statusText.textContent = text;
+    }
+    
+    updatePlayerCount(count, max) {
+        document.getElementById('playerCount').textContent = `${count}/${max} players`;
+    }
+    
+    updateUI() {
+        const joinBtn = document.getElementById('joinBtn');
+        const leaveBtn = document.getElementById('leaveBtn');
+        
+        if (this.isInCanvas) {
+            joinBtn.classList.add('hidden');
+            leaveBtn.classList.remove('hidden');
+        } else {
+            joinBtn.classList.remove('hidden');
+            leaveBtn.classList.add('hidden');
+        }
+    }
+    
+    showWaitingScreen(show) {
+        const waitingScreen = document.getElementById('waitingScreen');
+        if (show) {
+            waitingScreen.classList.remove('hidden');
+        } else {
+            waitingScreen.classList.add('hidden');
+        }
+    }
+}
+
+// Initialize the collaborative canvas when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    // Show mobile tip on mobile devices
+    if (window.innerWidth <= 768) {
+        const mobileTip = document.querySelector('.mobile-tip');
+        if (mobileTip) {
+            mobileTip.style.display = 'block';
+        }
+    }
+    
+    new CollaborativeCanvas();
+});
+</script>
+</html>
+</body>
+</html>

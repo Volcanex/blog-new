@@ -643,13 +643,22 @@ const chartConfig = {
 // Initialize chart
 function initChart() {
   const canvas = document.getElementById('scatterChart');
+  if (!canvas) {
+    console.error('Canvas element not found');
+    return;
+  }
+  
   const ctx = canvas.getContext('2d');
   
-  // Set actual display size
-  const rect = canvas.parentElement.getBoundingClientRect();
-  canvas.width = rect.width - 32; // Account for padding
+  // Set fixed size for reliability
+  canvas.width = 800;
   canvas.height = 600;
   
+  // Set CSS size for responsive display
+  canvas.style.width = '100%';
+  canvas.style.height = 'auto';
+  
+  console.log('Canvas initialized:', canvas.width, canvas.height);
   drawChart(ctx);
 }
 
@@ -660,11 +669,14 @@ function drawChart(ctx) {
   const height = canvas.height;
   const padding = 60;
   
+  console.log('Drawing chart:', currentViewMode, width, height);
+  
   // Clear canvas
   ctx.clearRect(0, 0, width, height);
   
   // Filter data to show only GPUs under $1000 for price-based charts
   const filteredData = config.xKey === 'price' ? gpuData.filter(gpu => gpu.price <= 1000) : gpuData;
+  console.log('Filtered data count:', filteredData.length);
   
   // Get data ranges
   const xValues = filteredData.map(d => d[config.xKey]);
@@ -672,44 +684,15 @@ function drawChart(ctx) {
   const yMin = Math.min(...yValues);
   const yMax = Math.max(...yValues);
   
-  // Use improved logarithmic scale for price-based X axis
-  let xScale, xMin, xMax, xTicks;
-  if (config.xKey === 'price') {
-    // Improved logarithmic scale for price with better visual distribution
-    xMin = Math.max(50, Math.min(...xValues)); // Avoid log(0)
-    xMax = Math.max(...xValues);
-    
-    // Use a smoother log scale that looks more natural
-    const logMin = Math.log(xMin);
-    const logMax = Math.log(xMax);
-    xScale = (x) => {
-      const logX = Math.log(Math.max(x, xMin));
-      return padding + ((logX - logMin) / (logMax - logMin)) * (width - 2 * padding);
-    };
-    
-    // Create cleaner tick marks at sensible price points
-    const baseTicks = [50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 750, 1000];
-    xTicks = baseTicks.filter(val => val >= xMin && val <= xMax);
-    
-    // Add intermediate ticks for better distribution if needed
-    if (xTicks.length < 6) {
-      const additionalTicks = [125, 175, 225, 275, 350, 450, 550, 650, 800, 900];
-      additionalTicks.forEach(val => {
-        if (val >= xMin && val <= xMax && !xTicks.includes(val)) {
-          xTicks.push(val);
-        }
-      });
-      xTicks.sort((a, b) => a - b);
-    }
-  } else {
-    // Linear scale for other metrics
-    xMin = Math.min(...xValues);
-    xMax = Math.max(...xValues);
-    xScale = (x) => padding + ((x - xMin) / (xMax - xMin)) * (width - 2 * padding);
-    xTicks = [];
-    for (let i = 0; i <= 5; i++) {
-      xTicks.push(xMin + (i / 5) * (xMax - xMin));
-    }
+  // Use linear scale for all axes
+  const xMin = Math.min(...xValues);
+  const xMax = Math.max(...xValues);
+  const xScale = (x) => padding + ((x - xMin) / (xMax - xMin)) * (width - 2 * padding);
+  
+  // Create tick marks
+  const xTicks = [];
+  for (let i = 0; i <= 8; i++) {
+    xTicks.push(xMin + (i / 8) * (xMax - xMin));
   }
   
   // Linear scale for Y axis
@@ -780,7 +763,7 @@ function drawChart(ctx) {
     if (config.xKey === 'price') {
       // Format price labels
       if (tick >= 1000) {
-        label = tick >= 10000 ? `${Math.round(tick/1000)}K` : `${(tick/1000).toFixed(1)}K`;
+        label = `${Math.round(tick/1000)}K`;
       } else {
         label = Math.round(tick).toString();
       }
@@ -800,22 +783,27 @@ function drawChart(ctx) {
   
   // Draw value trend lines for price-based charts
   if (config.xKey === 'price') {
-    drawValueTrendLines(ctx, config, xScale, yScale, width, height, padding);
+    drawValueTrendLines(ctx, config, xScale, yScale, width, height, padding, filteredData);
   }
   
   // Draw data points (only filtered data)
-  filteredData.forEach(gpu => {
+  console.log('Drawing', filteredData.length, 'data points');
+  filteredData.forEach((gpu, index) => {
     const x = xScale(gpu[config.xKey]);
     const y = yScale(gpu[config.yKey]);
     
+    if (index < 3) { // Log first 3 points for debugging
+      console.log(`Point ${index}: ${gpu.name} at (${x}, ${y})`);
+    }
+    
     ctx.fillStyle = gpu.cudaColor;
     ctx.beginPath();
-    ctx.arc(x, y, 6, 0, 2 * Math.PI);
+    ctx.arc(x, y, 8, 0, 2 * Math.PI); // Made slightly bigger
     ctx.fill();
     
     // Add stroke for visibility
-    ctx.strokeStyle = '#1a2332';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1;
     ctx.stroke();
   });
   
@@ -868,7 +856,7 @@ function drawChart(ctx) {
   });
 }
 
-function drawValueTrendLines(ctx, config, xScale, yScale, width, height, padding) {
+function drawValueTrendLines(ctx, config, xScale, yScale, width, height, padding, filteredData) {
   // Define value trend lines based on chart type
   const lines = [];
   
@@ -993,17 +981,19 @@ document.getElementById('chartMode').addEventListener('change', (e) => {
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
   console.log('DOM loaded, initializing...');
-  initChart();
-  updateValueCards();
+  setTimeout(() => {
+    initChart();
+    updateValueCards();
+  }, 100); // Small delay to ensure layout is ready
 });
 
 // Fallback initialization
 window.addEventListener('load', () => {
-  // Only run if cards are still empty
-  if (document.getElementById('vram-value-cards').innerHTML === '') {
-    console.log('Fallback initialization...');
+  console.log('Window loaded, ensuring initialization...');
+  setTimeout(() => {
+    initChart();
     updateValueCards();
-  }
+  }, 200);
 });
 
 // Handle resize

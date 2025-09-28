@@ -9,7 +9,7 @@ import os
 import sys
 import importlib.util
 from pathlib import Path
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, send_from_directory, request
 from flask_cors import CORS
 from flask_socketio import SocketIO
 
@@ -45,10 +45,19 @@ class BlogFlaskServer:
         
         @self.app.route('/<path:filename>')
         def serve_static(filename):
-            """Serve static HTML files and assets"""
+            """Serve static HTML files (assets handled by nginx in production)"""
             # Skip API routes (they're handled by blueprints)
             if filename.startswith('api/'):
                 return jsonify({'error': f'File {filename} not found'}), 404
+            
+            # In production, assets are served by nginx directly
+            # Only allow Flask to serve assets in development (when nginx not present)
+            if filename.startswith('assets/'):
+                # Check if we're in production by looking for nginx headers
+                is_production = 'X-Real-IP' in request.headers or 'X-Forwarded-For' in request.headers
+                if is_production:
+                    return jsonify({'error': 'Assets should be served by nginx in production'}), 404
+                # Development mode - allow Flask to serve assets for convenience
             
             # First try the exact filename (must be a file, not directory)
             file_path = self.static_dir / filename
@@ -63,6 +72,11 @@ class BlogFlaskServer:
             
             return jsonify({'error': f'File {filename} not found'}), 404
         
+        @self.app.route('/test-asset')
+        def test_asset():
+            """Test route to check if routing works"""
+            return jsonify({'message': 'Asset routing test successful'})
+            
         @self.app.route('/api/health')
         def health_check():
             """Health check endpoint"""

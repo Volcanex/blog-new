@@ -15,6 +15,7 @@ class ConwayUIControls {
         this.gameSpeed = 2.5;
         this.isRunning = false;
         this.gameLoop = null;
+        this.hasUserDrawn = false;
         
         // Speed values mapping
         this.SPEED_VALUES = [0.1, 0.25, 0.5, 1, 2.5, 5, 10, 20];
@@ -143,7 +144,14 @@ class ConwayUIControls {
     drawCell(x, y) {
         const oldValue = this.gameEngine.getCell(x, y);
         if (this.gameEngine.setCell(x, y, this.drawMode)) {
-            // Re-render the entire grid to ensure proper display in both modes
+            // Always save the current state when we're at generation 0
+            if (this.gameEngine.generation === 0) {
+                console.log('Drawing at gen 0 - saving current state');
+                this.gameEngine.saveCurrentAsInitial();
+                this.hasUserDrawn = true;
+            }
+            
+            // Re-render the entire grid to ensure proper display
             this.renderer.render(this.gameEngine.grid);
             this.updateStats();
             // Reset game state detection when user draws
@@ -179,6 +187,9 @@ class ConwayUIControls {
     clearGrid() {
         this.pauseGame();
         this.gameEngine.clear();
+        // Save the cleared (empty) state as generation 0
+        this.gameEngine.saveCurrentAsInitial();
+        this.hasUserDrawn = true;
         this.stateDetector.reset();
         this.renderer.render(this.gameEngine.grid);
         this.updateStats();
@@ -188,24 +199,60 @@ class ConwayUIControls {
     
     resetToGenZero() {
         this.pauseGame();
-        this.gameEngine.generation = 0;
-        this.stateDetector.reset();
-        this.updateStats();
-        this.updateGameState();
-        this.updateGameStatus();
+        console.log('Reset requested - current gen:', this.gameEngine.generation);
+        if (this.gameEngine.resetToInitialState()) {
+            this.renderer.render(this.gameEngine.grid);
+            this.stateDetector.reset();
+            this.updateStats();
+            this.updateGameState();
+            this.updateGameStatus();
+        } else {
+            console.log('No initial state to reset to - draw something first!');
+        }
     }
     
     downloadFrame() {
-        // Create download link for canvas as PNG
-        const canvas = this.renderer.getCanvas();
-        const link = document.createElement('a');
-        link.download = `immigration-game-gen-${this.gameEngine.generation}.png`;
-        link.href = canvas.toDataURL('image/png');
-        
-        // Trigger download
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        try {
+            // Create game state data
+            const gameState = {
+                version: "1.0",
+                timestamp: new Date().toISOString(),
+                generation: this.gameEngine.generation,
+                gridSize: this.gameEngine.gridSize,
+                grid: this.gameEngine.grid,
+                cellCounts: this.gameEngine.countCells(),
+                gameStatus: this.stateDetector.getState(),
+                playerColors: {
+                    player1: document.getElementById('player1Color').value,
+                    player2: document.getElementById('player2Color').value
+                }
+            };
+            
+            // Convert to JSON
+            const jsonData = JSON.stringify(gameState, null, 2);
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.download = `immigration-game-gen-${this.gameEngine.generation}.json`;
+            link.href = url;
+            link.style.display = 'none';
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            
+            // Clean up
+            setTimeout(() => {
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }, 100);
+            
+            console.log('Game state downloaded successfully!');
+        } catch (error) {
+            console.error('Failed to download game state:', error);
+            alert('Failed to download game state. Please try again.');
+        }
     }
     
     startGameLoop() {
@@ -277,6 +324,9 @@ class ConwayUIControls {
         } else if (winner.includes('Player 2')) {
             currentWinnerEl.classList.add('player2');
         }
+        
+        // Update colors to match selected player colors
+        this.updateButtonColors();
     }
     
     updateGameStatus() {
@@ -335,11 +385,19 @@ class ConwayUIControls {
         player1Btn.style.setProperty('--player-color', player1Color);
         player2Btn.style.setProperty('--player-color', player2Color);
         
-        // Update statistics text colors too
-        const player1Counts = document.querySelectorAll('.stat-value.player1');
-        const player2Counts = document.querySelectorAll('.stat-value.player2');
+        // Update all statistics text colors including winner text
+        const player1Elements = document.querySelectorAll('.stat-value.player1');
+        const player2Elements = document.querySelectorAll('.stat-value.player2');
         
-        player1Counts.forEach(el => el.style.color = player1Color);
-        player2Counts.forEach(el => el.style.color = player2Color);
+        player1Elements.forEach(el => el.style.color = player1Color);
+        player2Elements.forEach(el => el.style.color = player2Color);
+        
+        // Also update the current winner element specifically if it has player classes
+        const winnerEl = document.getElementById('currentWinner');
+        if (winnerEl.classList.contains('player1')) {
+            winnerEl.style.color = player1Color;
+        } else if (winnerEl.classList.contains('player2')) {
+            winnerEl.style.color = player2Color;
+        }
     }
 }

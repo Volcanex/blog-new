@@ -8,7 +8,7 @@ class ConwayRenderer {
         this.canvas = document.getElementById(canvasId);
         this.ctx = this.canvas.getContext('2d');
         this.cellSize = 0;
-        this.gridSize = 32;
+        this.gridSize = 16;
         
         // Colors for Immigration mode
         this.COLORS = {

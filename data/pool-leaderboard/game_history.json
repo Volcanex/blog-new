@@ -1,1 +1,15 @@
-[]
+[
+  {
+    "id": 1756696860.021413,
+    "winner": "sam",
+    "loser": "gabriel",
+    "margin": "decisive",
+    "winner_rating_before": 1268,
+    "loser_rating_before": 1392,
+    "winner_rating_after": 1352,
+    "loser_rating_after": 1363,
+    "winner_change": 84,
+    "loser_change": -29,
+    "timestamp": "2025-09-01T03:21:00.022422"
+  }
+]

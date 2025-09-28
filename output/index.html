@@ -9,18 +9,155 @@
         max-width: 1000px;
         margin: 0 auto;
         padding: 20px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    .subpages {
+        margin-left: 20px;
+        margin-top: 10px;
+        border-left: 2px solid #e1e8ed;
+        padding-left: 15px;
+    }
+    
+    .subpage-item {
+        margin: 8px 0;
+        font-size: 0.9em;
+    }
+    
+    .subpage-item a {
+        color: #0066cc;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .subpage-item a:hover {
+        text-decoration: underline;
+    }
+    
+    .subpage-item a:visited {
+        color: #551a8b;
+    }
+    
+    .subpage-toggle {
+        cursor: pointer;
+        background: none;
+        border: none;
+        color: #666;
+        font-size: 0.9em;
+        margin-top: 8px;
+        padding: 4px 8px;
+        border-radius: 3px;
+        background: #f8f9fa;
+    }
+    
+    .subpage-toggle:hover {
+        background: #e9ecef;
+    }
+    
+    .subpages.collapsed {
+        display: none;
+    }
+    
+    article {
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    article:last-child {
+        border-bottom: none;
+    }
+    
+    .date {
+        color: #666;
+        font-size: 0.9em;
+        margin: 5px 0;
+    }
+    
+    .description {
+        margin: 8px 0;
+        color: #333;
+    }
+    
+    .categories {
+        font-size: 0.85em;
+        color: #888;
+    }
+    
+    .assets-info {
+        font-size: 0.8em;
+        color: #999;
+        margin-top: 5px;
     }
     </style>
+    <script>
+    function toggleSubpages(parentSlug) {
+        const subpages = document.getElementById('subpages-' + parentSlug);
+        const button = document.getElementById('toggle-' + parentSlug);
+        
+        if (subpages.classList.contains('collapsed')) {
+            subpages.classList.remove('collapsed');
+            button.textContent = 'Hide subpages ▲';
+        } else {
+            subpages.classList.add('collapsed');
+            button.textContent = 'Show subpages ▼';
+        }
+    }
+    </script>
 </head>
 <body>
     <h1>Gabrielpenman.com</h1>
     <div class="posts">
         <article>
-            <h2><a href="conway-versus">Conway's Game of Life Versus</a></h2>
-            <div class="date">2025-08-11</div>
-            <div class="description">Interactive versus version of Conway's Game of Life where two players compete with colored organisms</div>
-            <div class="categories">Categories: games, simulation, interactive</div>
+            <h2><a href="collaborative-canvas">Collaborative Canvas</a></h2>
+            <div class="date">2025-09-05</div>
+            <div class="description">Real-time collaborative black and white drawing canvas for up to 8 players</div>
+            <div class="categories">Categories: games, interactive, collaborative, websockets</div>
             
+        </article>
+        <article>
+            <h2><a href="gpu-value-analysis">GPU Value Analysis for Machine Learning</a></h2>
+            <div class="date">2025-09-03</div>
+            <div class="description">Interactive analysis of GPU price/performance for ML workloads with changeable axes and CUDA support visualization</div>
+            <div class="categories">Categories: machine learning, gpu, visualization, analysis</div>
+            
+        </article>
+        <article>
+            <h2><a href="llm-compression-gap">The LLM Compression Gap</a></h2>
+            <div class="date">2025-08-20</div>
+            <div class="description">Exploring why LLM-based compression achieves superior results but can't compete in the Hutter Prize due to computational constraints</div>
+            <div class="categories">Categories: compression, llm, algorithms, hutter-prize, research</div>
+            
+        </article>
+        <article>
+            <h2><a href="ideal-carry-on-bag-size">What's the Ideal Carry-On Bag Size?</a></h2>
+            <div class="date">2025-08-14</div>
+            <div class="description">Interactive visualization of airline carry-on bag size restrictions worldwide to find the perfect bag dimensions</div>
+            <div class="categories">Categories: travel, data-visualization, airlines</div>
+            
+        </article>
+        <article>
+            <h2><a href="conway-immigration">Conway's Game of Life Immigration</a></h2>
+            <div class="date">2025-08-11</div>
+            <div class="description">Interactive Immigration Game based on Conway's Game of Life where two populations compete with colored organisms</div>
+            <div class="categories">Categories: games, simulation, interactive</div>
+            <div class="assets-info">5 assets included</div>
+            <div class="subpages" id="subpages-conway-immigration">
+                <div class="subpage-item">
+                    <a href="conway-immigration/info">
+                        <span>→</span>
+                        <span>Information</span>
+                    </a>
+                </div>
+                <div class="subpage-item">
+                    <a href="conway-immigration/sandbox">
+                        <span>→</span>
+                        <span>Sandbox</span>
+                    </a>
+                </div>
+            </div>
         </article>
         <article>
             <h2><a href="first-post">Modular Blog Architecture</a></h2>

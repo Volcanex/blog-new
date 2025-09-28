@@ -1,42 +1,50 @@
 {
   "oli": {
-    "rating": 1000,
-    "games_played": 0,
-    "wins": 0,
-    "losses": 0,
+    "rating": 1229,
+    "games_played": 19,
+    "wins": 8,
+    "losses": 11,
     "created": "2025-07-13T05:33:04.790098",
-    "last_played": null
+    "last_played": "2025-07-23T07:37:18.789035"
   },
   "jack": {
-    "rating": 1000,
-    "games_played": 0,
-    "wins": 0,
-    "losses": 0,
+    "rating": 1343,
+    "games_played": 21,
+    "wins": 11,
+    "losses": 10,
     "created": "2025-07-13T05:33:19.788895",
-    "last_played": null
+    "last_played": "2025-07-26T15:25:19.038975"
   },
   "gabriel": {
-    "rating": 1000,
-    "games_played": 0,
-    "wins": 0,
-    "losses": 0,
+    "rating": 1363,
+    "games_played": 20,
+    "wins": 12,
+    "losses": 8,
     "created": "2025-07-13T05:33:30.567499",
-    "last_played": null
+    "last_played": "2025-09-01T03:21:00.021015"
+  },
+  "jen": {
+    "rating": 1166,
+    "games_played": 7,
+    "wins": 2,
+    "losses": 5,
+    "created": "2025-07-13T05:33:41.539030",
+    "last_played": "2025-07-19T11:01:45.289063"
   },
   "jess": {
-    "rating": 1000,
-    "games_played": 0,
-    "wins": 0,
-    "losses": 0,
-    "created": "2025-08-10T10:16:39.271485",
-    "last_played": null
+    "rating": 1212,
+    "games_played": 2,
+    "wins": 1,
+    "losses": 1,
+    "created": "2025-07-13T05:34:58.288934",
+    "last_played": "2025-07-13T07:43:38.289190"
   },
-  "tianna": {
-    "rating": 1000,
-    "games_played": 0,
-    "wins": 0,
+  "sam": {
+    "rating": 1352,
+    "games_played": 1,
+    "wins": 1,
     "losses": 0,
-    "created": "2025-08-10T10:16:50.341626",
-    "last_played": null
+    "created": "2025-09-01T03:20:46.716130",
+    "last_played": "2025-09-01T03:21:00.021003"
   }
 }

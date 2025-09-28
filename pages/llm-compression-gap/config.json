@@ -1,0 +1,7 @@
+{
+    "title": "The LLM Compression Gap",
+    "slug": "llm-compression-gap",
+    "date": "2025-08-20",
+    "description": "Exploring why LLM-based compression achieves superior results but can't compete in the Hutter Prize due to computational constraints",
+    "categories": ["compression", "llm", "algorithms", "hutter-prize", "research"]
+}

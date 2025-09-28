@@ -1,0 +1,7 @@
+{
+    "title": "GPU Value Analysis for Machine Learning",
+    "slug": "gpu-value-analysis",
+    "date": "2025-09-03",
+    "description": "Interactive analysis of GPU price/performance for ML workloads with changeable axes and CUDA support visualization",
+    "categories": ["machine learning", "gpu", "visualization", "analysis"]
+}
