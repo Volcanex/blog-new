@@ -91,12 +91,94 @@
         color: #999;
         margin-top: 5px;
     }
+
+    .status-section {
+        margin-top: 50px;
+        padding: 20px;
+    }
+
+    .status-section h3 {
+        margin-top: 0;
+        color: #333;
+    }
+
+    .status-item {
+        margin: 12px 0;
+        font-size: 0.95em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .status-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 2px;
+        background: #22c55e;
+        flex-shrink: 0;
+    }
+
+    .status-label {
+        font-weight: 500;
+        color: #555;
+        min-width: 100px;
+    }
+
+    .cpu-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0;
+        width: 310px;
+    }
+
+    .cpu-row {
+        display: flex;
+        gap: 2px;
+        margin-bottom: 10px;
+    }
+
+    .cpu-core-pair {
+        display: flex;
+        gap: 2px;
+    }
+
+    .cpu-core {
+        display: flex;
+        gap: 2px;
+    }
+
+    .cpu-square {
+        width: 16px;
+        height: 16px;
+        border-radius: 1px;
+        background: #e5e7eb;
+    }
+
+    .cpu-square.active {
+        background: #22c55e;
+    }
+
+    .ram-bar {
+        display: flex;
+        width: 200px;
+        height: 16px;
+        border-radius: 2px;
+        overflow: hidden;
+        background: #e5e7eb;
+    }
+
+    .ram-used {
+        background: #22c55e;
+        height: 100%;
+        transition: width 0.3s ease;
+    }
     </style>
     <script>
     function toggleSubpages(parentSlug) {
         const subpages = document.getElementById('subpages-' + parentSlug);
         const button = document.getElementById('toggle-' + parentSlug);
-        
+
         if (subpages.classList.contains('collapsed')) {
             subpages.classList.remove('collapsed');
             button.textContent = 'Hide subpages ▲';
@@ -105,11 +187,113 @@
             button.textContent = 'Show subpages ▼';
         }
     }
+
+    function refreshStatus() {
+        fetch('/api/server-details')
+            .then(response => response.json())
+            .then(data => {
+                // CPU cores grid - 8 cores x 8 squares = 64 squares total
+                const cpuGrid = document.getElementById('cpu-grid');
+                cpuGrid.innerHTML = '';
+
+                // Get first 8 cores and create 8 squares per core
+                const cores = data.cpu.per_core.slice(0, 8);
+
+                // Create 4 rows of 2 cores each
+                for (let row = 0; row < 4; row++) {
+                    const rowDiv = document.createElement('div');
+                    rowDiv.className = 'cpu-row';
+
+                    for (let coreInRow = 0; coreInRow < 2; coreInRow++) {
+                        const coreIndex = row * 2 + coreInRow;
+                        const coreUsage = cores[coreIndex] || 0;
+
+                        const coreDiv = document.createElement('div');
+                        coreDiv.className = 'cpu-core';
+
+                        // Create 8 squares per core
+                        for (let j = 0; j < 8; j++) {
+                            const square = document.createElement('div');
+                            square.className = 'cpu-square';
+                            // Light up square if usage percentage is high enough for this square
+                            const squareThreshold = (j / 8) * 100;
+                            if (coreUsage > squareThreshold) {
+                                square.classList.add('active');
+                            }
+                            coreDiv.appendChild(square);
+                        }
+
+                        rowDiv.appendChild(coreDiv);
+
+                        // Add spacer between cores in the same row
+                        if (coreInRow === 0) {
+                            const spacer = document.createElement('div');
+                            spacer.style.width = '12px';
+                            rowDiv.appendChild(spacer);
+                        }
+                    }
+
+                    cpuGrid.appendChild(rowDiv);
+                }
+
+                document.getElementById('cpu-name').textContent = data.cpu.cores + ' - ' + data.cpu.usage_percent.toFixed(1) + '%';
+
+                // RAM bar
+                const ramPercent = data.ram.usage_percent;
+                const ramUsedGb = (ramPercent * data.ram.total_gb / 100).toFixed(1);
+                document.getElementById('ram-bar-used').style.width = ramPercent + '%';
+                document.getElementById('ram-usage').textContent = ramPercent.toFixed(1) + '% (' + ramUsedGb + 'GB / ' + data.ram.total_gb.toFixed(1) + 'GB)';
+
+                // GPU
+                const gpuText = data.gpu.available ? data.gpu.usage_percent.toFixed(1) + '% (' + data.gpu.model + ')' : 'Not available';
+                document.getElementById('gpu-status').textContent = gpuText;
+
+                // Services
+                document.getElementById('minecraft-status').textContent = data.minecraft_healthy ? 'Running' : 'Offline';
+                document.getElementById('api-status').textContent = 'Online';
+
+                // BlueMap check
+                fetch('/proxy/dynmap/', { method: 'GET' })
+                    .then(r => {
+                        document.getElementById('bluemap-status').textContent = r.ok ? 'Active' : 'Inactive';
+                    })
+                    .catch(() => {
+                        document.getElementById('bluemap-status').textContent = 'Inactive';
+                    });
+            })
+            .catch(error => {
+                console.error('Failed to fetch status:', error);
+            });
+    }
+
+    // Load status on page load
+    document.addEventListener('DOMContentLoaded', refreshStatus);
     </script>
 </head>
 <body>
     <h1>Gabrielpenman.com</h1>
     <div class="posts">
+        <article>
+            <h2><a href="dev-proxy">Dev Proxy Ports</a></h2>
+            <div class="date">2025-11-27</div>
+            <div class="description">Quick access to all local development services</div>
+            <div class="categories">Categories: development, devtools, local-services</div>
+            
+        </article>
+        <article>
+            <h2><a href="proxy-pattern">Nginx Proxy Pattern for Local Services</a></h2>
+            <div class="date">2025-11-17</div>
+            <div class="description">Standard pattern for proxying local services (dynmap, etc.) through Nginx for modular, sustainable integrations</div>
+            <div class="categories">Categories: architecture, web-development, nginx, deployment</div>
+            
+        </article>
+        <article>
+            <h2><a href="dynmap-plugin">Live Map</a></h2>
+            <div class="date">2025-11-17</div>
+            <div class="description">Interactive Minecraft world map powered by BlueMap</div>
+            <div class="categories">Categories: minecraft, server-administration</div>
+            
+        </article>
         <article>
             <h2><a href="collaborative-canvas">Collaborative Canvas</a></h2>
             <div class="date">2025-09-05</div>
@@ -173,7 +357,109 @@
             <div class="categories">Categories: games, leaderboard, pool</div>
             
         </article>
+        <article>
+            <h2><a href="9099">Auth Emulator</a></h2>
+            <div class="date"></div>
+            <div class="description">Firebase Authentication emulator</div>
+            <div class="categories">Categories: </div>
+            
+        </article>
+        <article>
+            <h2><a href="5001">Cloud Functions</a></h2>
+            <div class="date"></div>
+            <div class="description">Firebase Cloud Functions emulator</div>
+            <div class="categories">Categories: </div>
+            
+        </article>
+        <article>
+            <h2><a href="8085">Pub/Sub Emulator</a></h2>
+            <div class="date"></div>
+            <div class="description">Google Cloud Pub/Sub emulator</div>
+            <div class="categories">Categories: </div>
+            
+        </article>
+        <article>
+            <h2><a href="3001">Next.js (Alt 1)</a></h2>
+            <div class="date"></div>
+            <div class="description">Alternative Next.js instance</div>
+            <div class="categories">Categories: </div>
+            
+        </article>
+        <article>
+            <h2><a href="3000">Next.js Dev Server</a></h2>
+            <div class="date"></div>
+            <div class="description">Main Next.js development server</div>
+            <div class="categories">Categories: </div>
+            
+        </article>
+        <article>
+            <h2><a href="4000">Firebase Emulator UI</a></h2>
+            <div class="date"></div>
+            <div class="description">Firebase emulator dashboard</div>
+            <div class="categories">Categories: </div>
+            
+        </article>
+        <article>
+            <h2><a href="3002">Next.js (Alt 2)</a></h2>
+            <div class="date"></div>
+            <div class="description">Alternative Next.js instance 2</div>
+            <div class="categories">Categories: </div>
+            
+        </article>
+        <article>
+            <h2><a href="8081">Firestore Emulator</a></h2>
+            <div class="date"></div>
+            <div class="description">Firestore database emulator</div>
+            <div class="categories">Categories: </div>
+            
+        </article>
     </div>
+
+    <div class="status-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;">System Status</h3>
+            <button onclick="refreshStatus()" style="padding: 6px 12px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9em;">Refresh</button>
+        </div>
+        <div class="status-item">
+            <span class="status-dot"></span>
+            <span class="status-label">Minecraft:</span>
+            <span id="minecraft-status">Loading...</span>
+        </div>
+        <div class="status-item">
+            <span class="status-dot"></span>
+            <span class="status-label">API:</span>
+            <span id="api-status">Loading...</span>
+        </div>
+        <div class="status-item">
+            <span class="status-dot"></span>
+            <span class="status-label">BlueMap:</span>
+            <span id="bluemap-status">Loading...</span>
+        </div>
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+        <div class="status-item">
+            <span class="status-label">CPU:</span>
+            <span id="cpu-name">Loading...</span>
+        </div>
+        <div style="margin: 12px 0 12px 108px;">
+            <div class="cpu-grid" id="cpu-grid">
+                <!-- 8 cores x 8 squares = 64 squares total -->
+            </div>
+        </div>
+        <div class="status-item">
+            <span class="status-label">RAM:</span>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <div class="ram-bar">
+                    <div class="ram-used" id="ram-bar-used" style="width: 0%;"></div>
+                </div>
+                <span id="ram-usage">Loading...</span>
+            </div>
+        </div>
+        <div class="status-item">
+            <span class="status-label">GPU:</span>
+            <span id="gpu-status">Loading...</span>
+        </div>
+    </div>
+
     <footer style="margin-top: 50px; text-align: center; color: #7f8c8d; font-size: 0.9em;">
         <p>Email me at gabrielpenman@gmail.com • <a href="/api/health">API Status</a></p>
     </footer>
