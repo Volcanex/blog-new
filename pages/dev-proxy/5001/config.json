@@ -2,5 +2,6 @@
     "title": "Cloud Functions",
     "slug": "5001",
     "parent": "dev-proxy",
-    "description": "Firebase Cloud Functions emulator"
+    "description": "Firebase Cloud Functions emulator",
+    "hidden": true
 }
