@@ -1,0 +1,6 @@
+{
+    "title": "Next.js Dev Server",
+    "slug": "3000",
+    "parent": "dev-proxy",
+    "description": "Main Next.js development server"
+}
