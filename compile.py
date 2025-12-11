@@ -242,7 +242,8 @@ class ModularBlogCompiler:
                     'date': config.get('date', ''),
                     'description': config.get('description', ''),
                     'categories': config.get('categories', []),
-                    'assets': assets
+                    'assets': assets,
+                    'hidden': config.get('hidden', False)
                 })
                 print(f"Compiled page: {page_dir.name}")
             except Exception as e:
@@ -253,6 +254,10 @@ class ModularBlogCompiler:
         subpages_map = {}
         
         for page in pages_list:
+            # Skip hidden pages (pages with "hidden": true in config.json)
+            if page.get('hidden', False):
+                continue
+
             if '/' not in page['slug']:
                 # Top-level page
                 top_level_pages.append(page)

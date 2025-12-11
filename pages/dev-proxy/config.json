@@ -3,5 +3,6 @@
     "slug": "dev-proxy",
     "date": "2025-11-27",
     "description": "Quick access to all local development services",
-    "categories": ["development", "devtools", "local-services"]
+    "categories": ["development", "devtools", "local-services"],
+    "hidden": true
 }
