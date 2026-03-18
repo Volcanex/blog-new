@@ -1,0 +1,826 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #e0e0e0;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    line-height: 1.5;
+    user-select: none;
+}
+
+.container {
+    max-width: 600px;
+    padding: 20px;
+    margin: 0 auto;
+}
+
+h1 {
+    color: #ff6b6b;
+    font-size: 2.5rem;
+    font-weight: 800;
+    text-align: center;
+    margin: 2rem 0 1rem;
+    text-shadow: 0 2px 10px rgba(255, 107, 107, 0.3);
+}
+
+.subtitle {
+    text-align: center;
+    color: #a0a0a0;
+    margin-bottom: 2rem;
+    font-size: 1rem;
+}
+
+/* Screens */
+.screen {
+    display: none;
+}
+
+.screen.active {
+    display: block;
+}
+
+/* Setup Screen */
+.setup-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    backdrop-filter: blur(10px);
+}
+
+.input-group {
+    margin-bottom: 1.5rem;
+}
+
+.input-group label {
+    display: block;
+    color: #e0e0e0;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.input-group input[type="number"] {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.input-group input[type="number"]:focus {
+    outline: none;
+    border-color: #ff6b6b;
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
+}
+
+.role-config {
+    margin-top: 1rem;
+}
+
+.role-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.role-item:last-child {
+    border-bottom: none;
+}
+
+.role-info {
+    flex: 1;
+}
+
+.role-name {
+    font-weight: 600;
+    color: #fff;
+    font-size: 0.95rem;
+}
+
+.role-team {
+    font-size: 0.8rem;
+    color: #a0a0a0;
+    margin-top: 2px;
+}
+
+.role-team.town { color: #4ecdc4; }
+.role-team.mafia { color: #ff6b6b; }
+.role-team.neutral { color: #ffd93d; }
+
+.role-count {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.role-count button {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.role-count button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.role-count button:active {
+    transform: scale(0.95);
+}
+
+.role-count span {
+    min-width: 24px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.total-display {
+    background: rgba(255, 107, 107, 0.1);
+    border: 1px solid rgba(255, 107, 107, 0.3);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    margin-top: 1.5rem;
+}
+
+.total-display.valid {
+    background: rgba(78, 205, 196, 0.1);
+    border-color: rgba(78, 205, 196, 0.3);
+}
+
+.total-text {
+    font-size: 0.9rem;
+    color: #a0a0a0;
+    margin-bottom: 4px;
+}
+
+.total-number {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #ff6b6b;
+}
+
+.total-number.valid {
+    color: #4ecdc4;
+}
+
+.btn {
+    width: 100%;
+    padding: 16px 24px;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Reveal Screen */
+.reveal-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 3rem 2rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.player-number {
+    font-size: 1.2rem;
+    color: #a0a0a0;
+    margin-bottom: 1rem;
+}
+
+.tap-instruction {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 2rem;
+}
+
+.reveal-button {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    border: none;
+    color: white;
+    font-size: 1.3rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 8px 30px rgba(255, 107, 107, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.reveal-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 40px rgba(255, 107, 107, 0.5);
+}
+
+.reveal-button:active {
+    transform: scale(0.98);
+}
+
+.role-display {
+    text-align: center;
+}
+
+.role-display-title {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    text-shadow: 0 2px 20px currentColor;
+}
+
+.role-display-team {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
+.role-display-ability {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.role-display-ability h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: #ffd93d;
+}
+
+.role-display-ability p {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #e0e0e0;
+    margin: 0;
+}
+
+.next-button {
+    padding: 16px 48px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+
+.next-button:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+}
+
+.next-button:active {
+    transform: translateY(0);
+}
+
+.progress-bar {
+    background: rgba(255, 255, 255, 0.1);
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.progress-fill {
+    background: linear-gradient(90deg, #ff6b6b 0%, #4ecdc4 100%);
+    height: 100%;
+    transition: width 0.3s;
+    border-radius: 4px;
+}
+
+/* Complete Screen */
+.complete-card {
+    background: rgba(78, 205, 196, 0.1);
+    border: 1px solid rgba(78, 205, 196, 0.3);
+    border-radius: 16px;
+    padding: 3rem 2rem;
+    text-align: center;
+    backdrop-filter: blur(10px);
+}
+
+.complete-icon {
+    font-size: 5rem;
+    margin-bottom: 1rem;
+}
+
+.complete-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #4ecdc4;
+    margin-bottom: 1rem;
+}
+
+.complete-text {
+    color: #a0a0a0;
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+}
+
+@media (max-width: 640px) {
+    h1 {
+        font-size: 2rem;
+    }
+
+    .reveal-button {
+        width: 160px;
+        height: 160px;
+        font-size: 1.1rem;
+    }
+
+    .role-display-title {
+        font-size: 2.5rem;
+    }
+}
+</style>
+
+<html>
+<div class="container">
+    <h1>🎭 Mafia Game</h1>
+    <p class="subtitle">Role assignment for pub night games</p>
+
+    <!-- Setup Screen -->
+    <div id="setupScreen" class="screen active">
+        <div class="setup-card">
+            <div class="input-group">
+                <label for="playerCount">Number of Players</label>
+                <input type="number" id="playerCount" min="3" max="30" value="8" />
+            </div>
+
+            <div class="input-group">
+                <label>Role Distribution</label>
+                <div class="role-config" id="roleConfig"></div>
+            </div>
+
+            <div class="total-display" id="totalDisplay">
+                <div class="total-text">Total Roles Assigned</div>
+                <div class="total-number" id="totalNumber">0 / 8</div>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" id="startButton" disabled>Start Game</button>
+        <button class="btn btn-secondary" style="margin-top: 1rem;" id="autoAssignButton">Auto-Assign Roles</button>
+    </div>
+
+    <!-- Reveal Screen -->
+    <div id="revealScreen" class="screen">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="reveal-card" id="revealCard">
+            <!-- Content will be dynamically inserted -->
+        </div>
+    </div>
+
+    <!-- Complete Screen -->
+    <div id="completeScreen" class="screen">
+        <div class="complete-card">
+            <div class="complete-icon">✅</div>
+            <h2 class="complete-title">All Roles Assigned!</h2>
+            <p class="complete-text">The game can now begin. Good luck!</p>
+            <button class="btn btn-primary" id="restartButton">Start New Game</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Role definitions
+const ROLES = {
+    villager: {
+        name: 'Villager',
+        team: 'Town',
+        color: '#4ecdc4',
+        ability: 'No special ability. Use your voice and vote to find the Mafia!'
+    },
+    doctor: {
+        name: 'Doctor',
+        team: 'Town',
+        color: '#4ecdc4',
+        ability: 'Each night, choose one player to protect from death. You cannot save the same person two nights in a row.'
+    },
+    sheriff: {
+        name: 'Sheriff',
+        team: 'Town',
+        color: '#4ecdc4',
+        ability: 'Each night, investigate one player to learn if they are aligned with the Mafia or not. The Godfather will appear as Town.'
+    },
+    escort: {
+        name: 'Escort',
+        team: 'Town',
+        color: '#4ecdc4',
+        ability: 'Each night, roleblock one player, preventing them from using their night ability.'
+    },
+    lookout: {
+        name: 'Lookout',
+        team: 'Town',
+        color: '#4ecdc4',
+        ability: 'Each night, watch one player and see who visits them that night.'
+    },
+    investigator: {
+        name: 'Investigator',
+        team: 'Town',
+        color: '#4ecdc4',
+        ability: 'Each night, investigate one player to learn their possible roles (receives 2-3 possible roles).'
+    },
+    bodyguard: {
+        name: 'Bodyguard',
+        team: 'Town',
+        color: '#4ecdc4',
+        ability: 'Each night, protect one player. If they are attacked, you will die instead and kill one attacker.'
+    },
+    vigilante: {
+        name: 'Vigilante',
+        team: 'Town',
+        color: '#4ecdc4',
+        ability: 'You have 3 bullets. At night, you may choose to shoot a player. If you kill a Townie, you die from guilt.'
+    },
+    mayor: {
+        name: 'Mayor',
+        team: 'Town',
+        color: '#4ecdc4',
+        ability: 'You may reveal yourself as Mayor during the day. Your vote will then count as 3 votes.'
+    },
+    mafioso: {
+        name: 'Mafioso',
+        team: 'Mafia',
+        color: '#ff6b6b',
+        ability: 'Work with the Mafia to eliminate Town members. If the Godfather dies, you become the new killer.'
+    },
+    godfather: {
+        name: 'Godfather',
+        team: 'Mafia',
+        color: '#ff6b6b',
+        ability: 'Lead the Mafia. Choose who to kill each night. You appear as "Town" to Sheriff investigations.'
+    },
+    consigliere: {
+        name: 'Consigliere',
+        team: 'Mafia',
+        color: '#ff6b6b',
+        ability: 'Mafia investigator. Each night, learn the exact role of one player.'
+    },
+    framer: {
+        name: 'Framer',
+        team: 'Mafia',
+        color: '#ff6b6b',
+        ability: 'Each night, frame one player. If investigated by Sheriff, they will appear as Mafia.'
+    },
+    consort: {
+        name: 'Consort',
+        team: 'Mafia',
+        color: '#ff6b6b',
+        ability: 'Mafia escort. Each night, roleblock one player, preventing their night ability.'
+    },
+    jester: {
+        name: 'Jester',
+        team: 'Neutral',
+        color: '#ffd93d',
+        ability: 'Your goal is to get lynched during the day. If voted out, you win and may choose one guilty voter to kill.'
+    },
+    serialKiller: {
+        name: 'Serial Killer',
+        team: 'Neutral',
+        color: '#ffd93d',
+        ability: 'Each night, choose one player to kill. You win when you are the last player alive. You cannot be roleblocked.'
+    },
+    executioner: {
+        name: 'Executioner',
+        team: 'Neutral',
+        color: '#ffd93d',
+        ability: 'You have a target (Town member). Your goal is to get them lynched. If they die at night, you become a Jester.'
+    },
+    survivor: {
+        name: 'Survivor',
+        team: 'Neutral',
+        color: '#ffd93d',
+        ability: 'Your only goal is to survive. You have 4 vests that protect you at night. You win with any faction.'
+    },
+    witch: {
+        name: 'Witch',
+        team: 'Neutral',
+        color: '#ffd93d',
+        ability: 'Each night, control one player and force them to target another player of your choice.'
+    }
+};
+
+// Game state
+let gameState = {
+    playerCount: 8,
+    roleDistribution: {},
+    assignedRoles: [],
+    currentPlayer: 0,
+    isRevealing: false
+};
+
+// DOM elements
+const playerCountInput = document.getElementById('playerCount');
+const roleConfigDiv = document.getElementById('roleConfig');
+const totalDisplay = document.getElementById('totalDisplay');
+const totalNumber = document.getElementById('totalNumber');
+const startButton = document.getElementById('startButton');
+const autoAssignButton = document.getElementById('autoAssignButton');
+const setupScreen = document.getElementById('setupScreen');
+const revealScreen = document.getElementById('revealScreen');
+const completeScreen = document.getElementById('completeScreen');
+const revealCard = document.getElementById('revealCard');
+const progressFill = document.getElementById('progressFill');
+const restartButton = document.getElementById('restartButton');
+
+// Initialize
+function init() {
+    renderRoleConfig();
+    autoAssignRoles();
+
+    playerCountInput.addEventListener('input', () => {
+        gameState.playerCount = parseInt(playerCountInput.value) || 3;
+        updateTotalDisplay();
+    });
+
+    autoAssignButton.addEventListener('click', autoAssignRoles);
+    startButton.addEventListener('click', startGame);
+    restartButton.addEventListener('click', resetGame);
+}
+
+function renderRoleConfig() {
+    roleConfigDiv.innerHTML = '';
+
+    Object.entries(ROLES).forEach(([key, role]) => {
+        const roleItem = document.createElement('div');
+        roleItem.className = 'role-item';
+
+        roleItem.innerHTML = `
+            <div class="role-info">
+                <div class="role-name">${role.name}</div>
+                <div class="role-team ${role.team.toLowerCase()}">${role.team}</div>
+            </div>
+            <div class="role-count">
+                <button onclick="changeRoleCount('${key}', -1)">−</button>
+                <span id="count-${key}">0</span>
+                <button onclick="changeRoleCount('${key}', 1)">+</button>
+            </div>
+        `;
+
+        roleConfigDiv.appendChild(roleItem);
+    });
+
+    updateTotalDisplay();
+}
+
+function changeRoleCount(roleKey, delta) {
+    const current = gameState.roleDistribution[roleKey] || 0;
+    const newValue = Math.max(0, current + delta);
+    gameState.roleDistribution[roleKey] = newValue;
+    document.getElementById(`count-${roleKey}`).textContent = newValue;
+    updateTotalDisplay();
+}
+
+function updateTotalDisplay() {
+    const total = Object.values(gameState.roleDistribution).reduce((sum, count) => sum + count, 0);
+    const target = gameState.playerCount;
+
+    totalNumber.textContent = `${total} / ${target}`;
+
+    if (total === target) {
+        totalDisplay.classList.add('valid');
+        totalNumber.classList.add('valid');
+        startButton.disabled = false;
+    } else {
+        totalDisplay.classList.remove('valid');
+        totalNumber.classList.remove('valid');
+        startButton.disabled = true;
+    }
+}
+
+function autoAssignRoles() {
+    // Clear current distribution
+    gameState.roleDistribution = {};
+
+    const count = gameState.playerCount;
+
+    // Smart role distribution based on player count
+    if (count <= 5) {
+        // Small game: 1 Mafia, rest Town
+        gameState.roleDistribution.mafioso = 1;
+        gameState.roleDistribution.doctor = 1;
+        gameState.roleDistribution.sheriff = 1;
+        gameState.roleDistribution.villager = count - 3;
+    } else if (count <= 8) {
+        // Medium game
+        const mafiaCount = 2;
+        gameState.roleDistribution.godfather = 1;
+        gameState.roleDistribution.mafioso = 1;
+        gameState.roleDistribution.doctor = 1;
+        gameState.roleDistribution.sheriff = 1;
+        gameState.roleDistribution.escort = 1;
+        gameState.roleDistribution.villager = count - 5;
+    } else if (count <= 12) {
+        // Large game
+        const mafiaCount = Math.floor(count / 3);
+        gameState.roleDistribution.godfather = 1;
+        gameState.roleDistribution.mafioso = mafiaCount - 1;
+        gameState.roleDistribution.doctor = 1;
+        gameState.roleDistribution.sheriff = 1;
+        gameState.roleDistribution.escort = 1;
+        gameState.roleDistribution.lookout = 1;
+        gameState.roleDistribution.jester = 1;
+        gameState.roleDistribution.villager = count - mafiaCount - 5;
+    } else {
+        // Very large game
+        const mafiaCount = Math.floor(count / 3);
+        gameState.roleDistribution.godfather = 1;
+        gameState.roleDistribution.mafioso = Math.max(1, mafiaCount - 2);
+        gameState.roleDistribution.consigliere = 1;
+        gameState.roleDistribution.doctor = 1;
+        gameState.roleDistribution.sheriff = 1;
+        gameState.roleDistribution.escort = 1;
+        gameState.roleDistribution.lookout = 1;
+        gameState.roleDistribution.investigator = 1;
+        gameState.roleDistribution.vigilante = 1;
+        gameState.roleDistribution.jester = 1;
+        gameState.roleDistribution.serialKiller = 1;
+        const assigned = Object.values(gameState.roleDistribution).reduce((s, c) => s + c, 0);
+        gameState.roleDistribution.villager = count - assigned;
+    }
+
+    // Update UI
+    Object.entries(ROLES).forEach(([key]) => {
+        const countSpan = document.getElementById(`count-${key}`);
+        if (countSpan) {
+            countSpan.textContent = gameState.roleDistribution[key] || 0;
+        }
+    });
+
+    updateTotalDisplay();
+}
+
+function startGame() {
+    // Create array of assigned roles
+    gameState.assignedRoles = [];
+
+    Object.entries(gameState.roleDistribution).forEach(([roleKey, count]) => {
+        for (let i = 0; i < count; i++) {
+            gameState.assignedRoles.push(roleKey);
+        }
+    });
+
+    // Shuffle roles
+    for (let i = gameState.assignedRoles.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [gameState.assignedRoles[i], gameState.assignedRoles[j]] =
+            [gameState.assignedRoles[j], gameState.assignedRoles[i]];
+    }
+
+    gameState.currentPlayer = 0;
+    gameState.isRevealing = false;
+
+    setupScreen.classList.remove('active');
+    revealScreen.classList.add('active');
+
+    showPlayerPrompt();
+}
+
+function showPlayerPrompt() {
+    const playerNum = gameState.currentPlayer + 1;
+    const progress = (gameState.currentPlayer / gameState.playerCount) * 100;
+    progressFill.style.width = `${progress}%`;
+
+    revealCard.innerHTML = `
+        <div class="player-number">Player ${playerNum} of ${gameState.playerCount}</div>
+        <div class="tap-instruction">Pass the device to Player ${playerNum}</div>
+        <button class="reveal-button" onclick="revealRole()">Tap to<br/>Reveal Role</button>
+    `;
+}
+
+function revealRole() {
+    if (gameState.isRevealing) return;
+
+    gameState.isRevealing = true;
+    const roleKey = gameState.assignedRoles[gameState.currentPlayer];
+    const role = ROLES[roleKey];
+
+    revealCard.innerHTML = `
+        <div class="role-display">
+            <div class="role-display-title" style="color: ${role.color};">
+                ${role.name}
+            </div>
+            <div class="role-display-team" style="color: ${role.color};">
+                ${role.team}
+            </div>
+            <div class="role-display-ability">
+                <h3>Your Ability</h3>
+                <p>${role.ability}</p>
+            </div>
+            <button class="next-button" onclick="nextPlayer()">Next Player</button>
+        </div>
+    `;
+}
+
+function nextPlayer() {
+    gameState.currentPlayer++;
+    gameState.isRevealing = false;
+
+    if (gameState.currentPlayer >= gameState.playerCount) {
+        // Game complete
+        revealScreen.classList.remove('active');
+        completeScreen.classList.add('active');
+    } else {
+        showPlayerPrompt();
+    }
+}
+
+function resetGame() {
+    gameState = {
+        playerCount: 8,
+        roleDistribution: {},
+        assignedRoles: [],
+        currentPlayer: 0,
+        isRevealing: false
+    };
+
+    playerCountInput.value = 8;
+    completeScreen.classList.remove('active');
+    setupScreen.classList.add('active');
+
+    renderRoleConfig();
+    autoAssignRoles();
+}
+
+// Initialize on load
+init();
+</script>
+</html>

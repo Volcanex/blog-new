@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Why Coffee Makes You Tired</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(170deg, #0f0c08 0%, #1a1510 40%, #0d0b07 100%);
+            color: #e8dcc8;
+            font-family: 'DM Sans', sans-serif;
+            padding: 28px 18px;
+        }
+
+        .container {
+            max-width: 820px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(24px, 5vw, 36px);
+            font-weight: 700;
+            margin: 0 0 2px;
+            line-height: 1.15;
+            background: linear-gradient(135deg, #e8a849 0%, #f0d9a8 50%, #c8824a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            color: rgba(232,220,200,0.4);
+            font-size: 14px;
+            margin: 0 0 24px;
+        }
+
+        .control-box {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 14px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+        }
+
+        .control-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .control-icon {
+            font-size: 22px;
+        }
+
+        .control-label {
+            font-size: 10px;
+            color: rgba(232,220,200,0.35);
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        .control-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: #e8dcc8;
+        }
+
+        .coffee-value {
+            font-size: 26px;
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-left: auto;
+        }
+
+        .preset-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1.5px solid rgba(255,255,255,0.07);
+            border-radius: 8px;
+            padding: 6px 11px;
+            color: rgba(232,220,200,0.35);
+            font-family: 'DM Sans';
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .preset-btn.active {
+            background: rgba(232,220,200,0.12);
+            border-color: rgba(232,220,200,0.35);
+            color: #e8dcc8;
+        }
+
+        .slider-container {
+            margin-top: 12px;
+        }
+
+        .range-slider {
+            width: 100%;
+            height: 28px;
+            -webkit-appearance: none;
+            background: transparent;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .range-slider::-webkit-slider-track {
+            height: 5px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #e8dcc8;
+            border: 3px solid #1a1510;
+            box-shadow: 0 0 10px rgba(232,220,200,0.4);
+            margin-top: -8px;
+            cursor: pointer;
+        }
+
+        .range-slider::-moz-range-track {
+            height: 5px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .range-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #e8dcc8;
+            border: 3px solid #1a1510;
+            box-shadow: 0 0 10px rgba(232,220,200,0.4);
+            cursor: pointer;
+        }
+
+        .coffee-slider::-webkit-slider-thumb {
+            background: #e8a849;
+            box-shadow: 0 0 10px rgba(232,168,73,0.4);
+        }
+
+        .coffee-slider::-moz-range-thumb {
+            background: #e8a849;
+            box-shadow: 0 0 10px rgba(232,168,73,0.4);
+        }
+
+        .tick-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: rgba(232,220,200,0.22);
+            margin-top: 2px;
+        }
+
+        .badge {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .toggle-btn {
+            background: rgba(255,255,255,0.04);
+            border: 1.5px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            padding: 6px 12px;
+            color: rgba(232,220,200,0.35);
+            font-family: 'DM Sans';
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .toggle-btn.active {
+            background: rgba(232,168,73,0.15);
+            border-color: rgba(232,168,73,0.4);
+            color: #e8a849;
+        }
+
+        .zone-bar {
+            height: 5px;
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+            background: rgba(255,255,255,0.04);
+            margin-bottom: 4px;
+        }
+
+        .zone-optimal {
+            position: absolute;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(78,205,196,0.2), rgba(78,205,196,0.45), rgba(78,205,196,0.2));
+        }
+
+        .zone-danger {
+            position: absolute;
+            right: 0;
+            width: 25%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,60,60,0.3));
+        }
+
+        .chart-container {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 10px;
+            height: 350px;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 18px;
+        }
+
+        .legend-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 7px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .legend-btn.active {
+            background: rgba(255,255,255,0.05);
+            opacity: 1;
+        }
+
+        .legend-btn.inactive {
+            opacity: 0.3;
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .legend-label {
+            color: rgba(232,220,200,0.65);
+            font-size: 11.5px;
+            font-weight: 500;
+        }
+
+        .explanation-box {
+            border-radius: 14px;
+            padding: 16px 20px;
+            margin-bottom: 18px;
+        }
+
+        .explanation-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 17px;
+            color: #e8a849;
+            margin: 0 0 6px;
+            font-weight: 700;
+        }
+
+        .explanation-body {
+            color: rgba(232,220,200,0.7);
+            font-size: 13.5px;
+            line-height: 1.7;
+            margin: 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+            gap: 8px;
+            margin-bottom: 22px;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 9px;
+            padding: 11px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 19px;
+            font-weight: 700;
+        }
+
+        .stat-unit {
+            font-size: 9.5px;
+            color: rgba(232,220,200,0.38);
+            margin-top: 1px;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: rgba(232,220,200,0.28);
+            margin-top: 3px;
+        }
+
+        .ref-toggle {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 9px;
+            padding: 9px 16px;
+            color: rgba(232,220,200,0.45);
+            font-family: 'DM Sans';
+            font-size: 12.5px;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        .ref-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ref-item {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 9px;
+            padding: 12px 14px;
+        }
+
+        .ref-text {
+            font-size: 12.5px;
+            color: rgba(232,220,200,0.65);
+            line-height: 1.6;
+            margin-bottom: 4px;
+        }
+
+        .ref-source {
+            font-size: 11px;
+            color: #e8a849;
+            opacity: 0.55;
+            font-weight: 600;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Why Coffee Makes You Tired</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(170deg, #0f0c08 0%, #1a1510 40%, #0d0b07 100%);
+            color: #e8dcc8;
+            font-family: 'DM Sans', sans-serif;
+            padding: 28px 18px;
+        }
+
+        .container {
+            max-width: 820px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(24px, 5vw, 36px);
+            font-weight: 700;
+            margin: 0 0 2px;
+            line-height: 1.15;
+            background: linear-gradient(135deg, #e8a849 0%, #f0d9a8 50%, #c8824a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            color: rgba(232,220,200,0.4);
+            font-size: 14px;
+            margin: 0 0 24px;
+        }
+
+        .control-box {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 14px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+        }
+
+        .control-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .control-icon {
+            font-size: 22px;
+        }
+
+        .control-label {
+            font-size: 10px;
+            color: rgba(232,220,200,0.35);
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        .control-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: #e8dcc8;
+        }
+
+        .coffee-value {
+            font-size: 26px;
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-left: auto;
+        }
+
+        .preset-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1.5px solid rgba(255,255,255,0.07);
+            border-radius: 8px;
+            padding: 6px 11px;
+            color: rgba(232,220,200,0.35);
+            font-family: 'DM Sans';
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .preset-btn.active {
+            background: rgba(232,220,200,0.12);
+            border-color: rgba(232,220,200,0.35);
+            color: #e8dcc8;
+        }
+
+        .slider-container {
+            margin-top: 12px;
+        }
+
+        .range-slider {
+            width: 100%;
+            height: 28px;
+            -webkit-appearance: none;
+            background: transparent;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .range-slider::-webkit-slider-track {
+            height: 5px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #e8dcc8;
+            border: 3px solid #1a1510;
+            box-shadow: 0 0 10px rgba(232,220,200,0.4);
+            margin-top: -8px;
+            cursor: pointer;
+        }
+
+        .range-slider::-moz-range-track {
+            height: 5px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .range-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #e8dcc8;
+            border: 3px solid #1a1510;
+            box-shadow: 0 0 10px rgba(232,220,200,0.4);
+            cursor: pointer;
+        }
+
+        .coffee-slider::-webkit-slider-thumb {
+            background: #e8a849;
+            box-shadow: 0 0 10px rgba(232,168,73,0.4);
+        }
+
+        .coffee-slider::-moz-range-thumb {
+            background: #e8a849;
+            box-shadow: 0 0 10px rgba(232,168,73,0.4);
+        }
+
+        .tick-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: rgba(232,220,200,0.22);
+            margin-top: 2px;
+        }
+
+        .badge {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .toggle-btn {
+            background: rgba(255,255,255,0.04);
+            border: 1.5px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            padding: 6px 12px;
+            color: rgba(232,220,200,0.35);
+            font-family: 'DM Sans';
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .toggle-btn.active {
+            background: rgba(232,168,73,0.15);
+            border-color: rgba(232,168,73,0.4);
+            color: #e8a849;
+        }
+
+        .zone-bar {
+            height: 5px;
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+            background: rgba(255,255,255,0.04);
+            margin-bottom: 4px;
+        }
+
+        .zone-optimal {
+            position: absolute;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(78,205,196,0.2), rgba(78,205,196,0.45), rgba(78,205,196,0.2));
+        }
+
+        .zone-danger {
+            position: absolute;
+            right: 0;
+            width: 25%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,60,60,0.3));
+        }
+
+        .chart-container {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 10px;
+            height: 350px;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 18px;
+        }
+
+        .legend-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 7px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .legend-btn.active {
+            background: rgba(255,255,255,0.05);
+            opacity: 1;
+        }
+
+        .legend-btn.inactive {
+            opacity: 0.3;
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .legend-label {
+            color: rgba(232,220,200,0.65);
+            font-size: 11.5px;
+            font-weight: 500;
+        }
+
+        .explanation-box {
+            border-radius: 14px;
+            padding: 16px 20px;
+            margin-bottom: 18px;
+        }
+
+        .explanation-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 17px;
+            color: #e8a849;
+            margin: 0 0 6px;
+            font-weight: 700;
+        }
+
+        .explanation-body {
+            color: rgba(232,220,200,0.7);
+            font-size: 13.5px;
+            line-height: 1.7;
+            margin: 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+            gap: 8px;
+            margin-bottom: 22px;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 9px;
+            padding: 11px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 19px;
+            font-weight: 700;
+        }
+
+        .stat-unit {
+            font-size: 9.5px;
+            color: rgba(232,220,200,0.38);
+            margin-top: 1px;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: rgba(232,220,200,0.28);
+            margin-top: 3px;
+        }
+
+        .ref-toggle {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 9px;
+            padding: 9px 16px;
+            color: rgba(232,220,200,0.45);
+            font-family: 'DM Sans';
+            font-size: 12.5px;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        .ref-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ref-item {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 9px;
+            padding: 12px 14px;
+        }
+
+        .ref-text {
+            font-size: 12.5px;
+            color: rgba(232,220,200,0.65);
+            line-height: 1.6;
+            margin-bottom: 4px;
+        }
+
+        .ref-source {
+            font-size: 11px;
+            color: #e8a849;
+            opacity: 0.55;
+            font-weight: 600;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Why Coffee Makes You Tired</h1>
+        <p class="subtitle">Set your wake-up time, then slide to find your ideal coffee window</p>
+
+        <!-- Wake Time Control -->
+        <div class="control-box">
+            <div class="control-header">
+                <span class="control-icon">⏰</span>
+                <div>
+                    <div class="control-label">Wake-up time</div>
+                    <div class="control-value" id="wake-display">7 AM</div>
+                </div>
+                <div class="preset-buttons" id="wake-presets"></div>
+            </div>
+            <div class="slider-container">
+                <input type="range" class="range-slider" id="wake-slider" min="4" max="11" step="0.5" value="7">
+                <div class="tick-labels">
+                    <span>4 AM</span><span>6 AM</span><span>8 AM</span><span>10 AM</span><span>11 AM</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Coffee Time Control -->
+        <div class="control-box">
+            <div class="control-header" style="justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="control-icon">☕</span>
+                    <div>
+                        <div class="control-label">Coffee at</div>
+                        <div class="control-value coffee-value" id="coffee-display">11 AM</div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="badge" id="quality-badge"></span>
+                    <button class="toggle-btn active" id="coffee-toggle">ON</button>
+                </div>
+            </div>
+            <div class="zone-bar" id="zone-bar">
+                <div class="zone-optimal"></div>
+                <div class="zone-danger"></div>
+            </div>
+            <div class="slider-container">
+                <input type="range" class="range-slider coffee-slider" id="coffee-slider" min="0" max="34" step="1" value="8">
+                <div class="tick-labels" id="coffee-ticks"></div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-container">
+            <canvas id="hormonesChart"></canvas>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend" id="legend"></div>
+
+        <!-- Explanation -->
+        <div class="explanation-box" id="explanation-box">
+            <h3 class="explanation-title" id="exp-title"></h3>
+            <p class="explanation-body" id="exp-body"></p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-value" style="color: #e8a849;">15→23</div>
+                <div class="stat-unit">nmol/L</div>
+                <div class="stat-label">Cortisol waking → CAR</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" style="color: #4ecdc4;">2.5–4.5</div>
+                <div class="stat-unit">h half-life</div>
+                <div class="stat-label">Caffeine in plasma</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" style="color: #7b68ee;">~50%</div>
+                <div class="stat-unit">A₁ receptors</div>
+                <div class="stat-label">Blocked per coffee</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" style="color: #ff6b6b;">+50%</div>
+                <div class="stat-unit">cortisol</div>
+                <div class="stat-label">Coffee above baseline</div>
+            </div>
+        </div>
+
+        <!-- References -->
+        <button class="ref-toggle" id="ref-toggle">▸ Show study references (5)</button>
+        <div class="ref-list hidden" id="ref-list">
+            <div class="ref-item">
+                <div class="ref-text">CAR: ~15 → ~23 nmol/L salivary cortisol within 30 min of waking, in ~77% of healthy adults.</div>
+                <div class="ref-source">Wüst et al. (2000); Clow et al. (2004)</div>
+            </div>
+            <div class="ref-item">
+                <div class="ref-text">Caffeine half-life: 2.5–4.5 h. Peak plasma 15–120 min post-ingestion. Blocks up to 50% of cerebral A₁ receptors at typical doses.</div>
+                <div class="ref-source">Circulation (2000); Bauer et al. (2012) — PET, n=15</div>
+            </div>
+            <div class="ref-item">
+                <div class="ref-text">Adenosine roughly doubles over 12–16h of wakefulness. Caffeine blocks A₁/A₂A receptors competitively — adenosine keeps accumulating, causing rebound on clearance.</div>
+                <div class="ref-source">Reichert et al. (2022); Porkka-Heiskanen et al. (1997)</div>
+            </div>
+            <div class="ref-item">
+                <div class="ref-text">Coffee elevates cortisol ~50% above baseline. 300 mg/day × 5 days = incomplete tolerance. 250 mg × 3 doses elevated cortisol across the full day (p < .00001).</div>
+                <div class="ref-source">Lovallo et al. (2005, 2006) — n=96, double-blind crossover</div>
+            </div>
+            <div class="ref-item">
+                <div class="ref-text">400 mg caffeine 12h before bedtime: significant sleep onset delay. 4h before bedtime: >20 min less total sleep, >5% reduced sleep efficiency.</div>
+                <div class="ref-source">Sleep (2025) — randomised clinical crossover</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let state = {
+            wakeTime: 7,
+            coffeeOn: true,
+            coffeeSteps: 8,
+            visibility: {
+                'Cortisol': true,
+                'Adenosine (felt)': true,
+                'Caffeine': true,
+                'Energy Level': true
+            }
+        };
+
+        let chart = null;
+
+        // Formatters
+        function fmtTime(h) {
+            h = Math.max(0, Math.min(24, h));
+            const hour = Math.floor(h);
+            const min = Math.round((h - hour) * 60);
+            const ampm = hour >= 12 ? "PM" : "AM";
+            const h12 = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+            return min === 0 ? `${h12} ${ampm}` : `${h12}:${min.toString().padStart(2, "0")} ${ampm}`;
+        }
+
+        function fmtShort(h) {
+            h = Math.max(0, Math.min(24, h));
+            const hour = Math.floor(h);
+            const ampm = hour >= 12 ? "pm" : "am";
+            const h12 = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+            return `${h12}${ampm}`;
+        }
+
+        // Physiology functions
+        function cortisolNmol(h, wake) {
+            const car = 23 * Math.exp(-1.2 * Math.pow(h - (wake + 0.5), 2));
+            const diurnal = 12 * Math.exp(-0.08 * Math.pow(h - wake, 2)) + 3;
+            const noonBump = 4 * Math.exp(-0.8 * Math.pow(h - (wake + 5.5), 2));
+            return Math.max(3, car + diurnal * 0.3 + noonBump);
+        }
+
+        function cortisol(h, wake) {
+            return Math.min(95, (cortisolNmol(h, wake) / 25) * 100);
+        }
+
+        function adenosine(h, wake, ct) {
+            const awake = h - wake;
+            if (awake < 0) return 5;
+            const base = 8 + awake * 5;
+            if (ct === null) return Math.min(base, 92);
+            const t = h - ct;
+            if (t < 0) return Math.min(base, 92);
+            if (t < 0.5) return Math.min(Math.max(base - 30 * (t / 0.5), 5), 92);
+            if (t < 4) return Math.min(Math.max(base - 30 * Math.exp(-0.1 * (t - 0.5)), 5), 92);
+            const rebound = 18 * Math.exp(-0.35 * Math.pow(t - 5.5, 2));
+            return Math.min(base + rebound, 97);
+        }
+
+        function caffeineLevel(h, ct) {
+            if (ct === null) return 0;
+            const t = h - ct;
+            if (t < 0) return 0;
+            return Math.max((1 - Math.exp(-3 * t)) * Math.exp(-0.139 * t) * 85, 0);
+        }
+
+        function cortisolCaff(h, wake, ct) {
+            const base = cortisol(h, wake);
+            if (ct === null) return base;
+            return Math.min(base + (caffeineLevel(h, ct) / 85) * base * 0.4, 98);
+        }
+
+        function energyLevel(h, wake, ct) {
+            const c = cortisolCaff(h, wake, ct);
+            const a = adenosine(h, wake, ct);
+            const f = caffeineLevel(h, ct);
+            return Math.max(Math.min(c * 0.45 - a * 0.55 + f * 0.5 + 40, 97), 6);
+        }
+
+        // Generate data
+        function makeData(wake, ct) {
+            const start = Math.floor(wake);
+            const end = Math.min(start + 18, 23);
+            const data = { labels: [], datasets: [] };
+
+            const cortData = [], adenData = [], caffData = [], energyData = [];
+
+            for (let h = start; h <= end; h++) {
+                data.labels.push(fmtShort(h));
+                cortData.push(Math.round(cortisolCaff(h, wake, ct)));
+                adenData.push(Math.round(adenosine(h, wake, ct)));
+                caffData.push(Math.round(caffeineLevel(h, ct)));
+                energyData.push(Math.round(energyLevel(h, wake, ct)));
+            }
+
+            data.datasets = [
+                {
+                    label: 'Cortisol',
+                    data: cortData,
+                    borderColor: '#e8a849',
+                    borderWidth: 2,
+                    borderDash: [8, 4],
+                    tension: 0.4,
+                    pointRadius: 0,
+                    hidden: !state.visibility['Cortisol']
+                },
+                {
+                    label: 'Adenosine (felt)',
+                    data: adenData,
+                    borderColor: '#7b68ee',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    hidden: !state.visibility['Adenosine (felt)']
+                },
+                {
+                    label: 'Caffeine',
+                    data: caffData,
+                    borderColor: '#4ecdc4',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    hidden: !state.visibility['Caffeine']
+                },
+                {
+                    label: 'Energy Level',
+                    data: energyData,
+                    borderColor: '#ff6b6b',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    hidden: !state.visibility['Energy Level']
+                }
+            ];
+
+            return data;
+        }
+
+        // Get explanation
+        function getExplanation(ct, wake) {
+            if (ct === null) {
+                return {
+                    title: "Baseline — No Coffee",
+                    body: `With a ${fmtTime(wake)} wake-up, your cortisol peaks around ${fmtTime(wake + 0.5)}, surging from ~15 to ~23 nmol/L (Wüst et al., 2000). Adenosine accumulates steadily, roughly doubling over 12–16 hours. Energy tracks the balance between cortisol and adenosine.`,
+                    sev: "neutral"
+                };
+            }
+            const sw = ct - wake;
+            const bedtime = wake + 16;
+
+            if (sw < 1.5) {
+                return {
+                    title: "During CAR — Competing With Your Own Wake Signal",
+                    body: `At ${fmtTime(ct)}, only ${sw < 1 ? Math.round(sw * 60) + " min" : "~1 hour"} after waking, your CAR is still elevated at ~23 nmol/L. Caffeine stacks ~50% extra cortisol on top (Lovallo et al., 2005), causing overshoot then a harder crash. Adenosine floods receptors around ${fmtTime(ct + 5)}.`,
+                    sev: "bad"
+                };
+            }
+            if (sw < 2) {
+                return {
+                    title: "CAR Fading — Getting Better",
+                    body: `At ${fmtTime(ct)}, your CAR is subsiding but still present. The ideal window starts around ${fmtTime(wake + 2)}. PET imaging shows one coffee blocks ~50% of cerebral A₁ receptors (Bauer et al., 2012). Expect the adenosine rebound around ${fmtTime(ct + 5)}.`,
+                    sev: "okay"
+                };
+            }
+            if (sw <= 5) {
+                return {
+                    title: "The Sweet Spot — Post-CAR Dip",
+                    body: `${fmtTime(ct)} is ideal: your CAR has subsided and cortisol is declining, so caffeine fills a genuine energy gap. The rebound hits around ${fmtTime(ct + 5)} — manageable timing. With a ~5h half-life, caffeine clears well before bedtime (~${fmtTime(bedtime)}).`,
+                    sev: "good"
+                };
+            }
+            if (ct + 10 < bedtime) {
+                return {
+                    title: "Afternoon Coffee — Feels Good, Has Costs",
+                    body: `At ${fmtTime(ct)}, cortisol is low and adenosine high, giving caffeine maximum perceived effect. But ~50% remains at ${fmtTime(ct + 5)}. A 2025 Sleep trial found 400mg even 12h before bedtime delayed sleep onset significantly. Rebound tiredness hits around ${fmtTime(ct + 5)}.`,
+                    sev: "okay"
+                };
+            }
+            if (ct + 5 < bedtime) {
+                return {
+                    title: "Late Coffee — Sleep Architecture at Risk",
+                    body: `At ${fmtTime(ct)}, ~50% of caffeine remains at ${fmtTime(ct + 5)} — around your wind-down time. The 2025 Sleep trial: 400mg at 4h before bed cut total sleep >20 min, sleep efficiency >5%. Caffeine suppresses slow-wave activity that clears adenosine (Reichert et al., 2022). Higher morning adenosine → more coffee needed.`,
+                    sev: "bad"
+                };
+            }
+            return {
+                title: "Evening Coffee — Significant Sleep Disruption",
+                body: `Coffee at ${fmtTime(ct)} means ~70% is still active at your ~${fmtTime(bedtime)} bedtime. Caffeine suppresses deep SWA sleep — when your brain clears adenosine and consolidates memory (Reichert et al., 2022). Result: fragmented sleep, higher next-day adenosine, growing dependency cycle.`,
+                sev: "terrible"
+            };
+        }
+
+        const sevStyles = {
+            neutral: { bg: "rgba(232,220,200,0.08)", border: "rgba(232,220,200,0.12)", badge: null },
+            good: { bg: "rgba(78,205,196,0.08)", border: "rgba(78,205,196,0.25)", badge: { t: "OPTIMAL", c: "#4ecdc4" } },
+            okay: { bg: "rgba(232,168,73,0.07)", border: "rgba(232,168,73,0.2)", badge: { t: "OKAY", c: "#e8a849" } },
+            bad: { bg: "rgba(255,107,107,0.07)", border: "rgba(255,107,107,0.2)", badge: { t: "POOR", c: "#ff6b6b" } },
+            terrible: { bg: "rgba(255,60,60,0.08)", border: "rgba(255,60,60,0.22)", badge: { t: "AVOID", c: "#ff3c3c" } }
+        };
+
+        // Initialize chart
+        function initChart() {
+            const ctx = document.getElementById('hormonesChart').getContext('2d');
+            const ct = state.coffeeOn ? Math.min(state.wakeTime + state.coffeeSteps * 0.5, 23) : null;
+            const data = makeData(state.wakeTime, ct);
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(15,12,8,0.95)',
+                            borderColor: 'rgba(200,160,100,0.3)',
+                            borderWidth: 1,
+                            titleColor: '#c8a064',
+                            bodyColor: '#e8dcc8',
+                            padding: 12,
+                            displayColors: true,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                color: 'rgba(232,220,200,0.2)',
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255,255,255,0.04)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: 'rgba(232,220,200,0.35)'
+                            },
+                            grid: {
+                                color: 'rgba(255,255,255,0.04)'
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+        }
+
+        // Update UI
+        function updateUI() {
+            const ct = state.coffeeOn ? Math.min(state.wakeTime + state.coffeeSteps * 0.5, 23) : null;
+
+            // Update displays
+            document.getElementById('wake-display').textContent = fmtTime(state.wakeTime);
+            document.getElementById('coffee-display').textContent = state.coffeeOn ? fmtTime(ct) : "None";
+            document.getElementById('coffee-display').style.color = state.coffeeOn ? "#e8a849" : "rgba(232,220,200,0.2)";
+
+            // Update toggle button
+            const toggleBtn = document.getElementById('coffee-toggle');
+            toggleBtn.classList.toggle('active', state.coffeeOn);
+            toggleBtn.textContent = state.coffeeOn ? 'ON' : 'OFF';
+
+            // Update zone bar
+            document.getElementById('zone-bar').style.opacity = state.coffeeOn ? 1 : 0.15;
+
+            // Update explanation
+            const exp = getExplanation(ct, state.wakeTime);
+            const ss = sevStyles[exp.sev];
+            const expBox = document.getElementById('explanation-box');
+            expBox.style.background = `linear-gradient(135deg, ${ss.bg}, transparent)`;
+            expBox.style.border = `1px solid ${ss.border}`;
+            document.getElementById('exp-title').textContent = exp.title;
+            document.getElementById('exp-body').textContent = exp.body;
+
+            // Update badge
+            const badge = document.getElementById('quality-badge');
+            if (ss.badge) {
+                badge.textContent = ss.badge.t;
+                badge.style.color = ss.badge.c;
+                badge.style.background = ss.badge.c + '18';
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+
+            // Update coffee ticks
+            const ticks = [];
+            for (let offset = 0; offset <= 16; offset += 2) {
+                const h = state.wakeTime + offset;
+                if (h <= 23) ticks.push(fmtShort(h));
+            }
+            document.getElementById('coffee-ticks').innerHTML = ticks.map(t => `<span>${t}</span>`).join('');
+
+            // Update chart
+            if (chart) {
+                const data = makeData(state.wakeTime, ct);
+                chart.data = data;
+                chart.update('none');
+            }
+        }
+
+        // Initialize wake presets
+        const wakePresets = [
+            { label: "5 AM", v: 5 }, { label: "6 AM", v: 6 }, { label: "7 AM", v: 7 },
+            { label: "8 AM", v: 8 }, { label: "9 AM", v: 9 }, { label: "10 AM", v: 10 }
+        ];
+
+        const presetsContainer = document.getElementById('wake-presets');
+        wakePresets.forEach(p => {
+            const btn = document.createElement('button');
+            btn.className = 'preset-btn';
+            btn.textContent = p.label;
+            btn.onclick = () => {
+                state.wakeTime = p.v;
+                document.getElementById('wake-slider').value = p.v;
+                document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                updateUI();
+            };
+            if (p.v === state.wakeTime) btn.classList.add('active');
+            presetsContainer.appendChild(btn);
+        });
+
+        // Initialize legend
+        const lines = [
+            { key: 'Cortisol', color: '#e8a849' },
+            { key: 'Adenosine (felt)', color: '#7b68ee' },
+            { key: 'Caffeine', color: '#4ecdc4' },
+            { key: 'Energy Level', color: '#ff6b6b' }
+        ];
+
+        const legendContainer = document.getElementById('legend');
+        lines.forEach(l => {
+            const btn = document.createElement('button');
+            btn.className = 'legend-btn ' + (state.visibility[l.key] ? 'active' : 'inactive');
+            btn.innerHTML = `
+                <span class="legend-dot" style="background: ${l.color};"></span>
+                <span class="legend-label">${l.key}</span>
+            `;
+            btn.onclick = () => {
+                state.visibility[l.key] = !state.visibility[l.key];
+                btn.className = 'legend-btn ' + (state.visibility[l.key] ? 'active' : 'inactive');
+                updateUI();
+            };
+            legendContainer.appendChild(btn);
+        });
+
+        // Event listeners
+        document.getElementById('wake-slider').addEventListener('input', (e) => {
+            state.wakeTime = parseFloat(e.target.value);
+            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+            const matchingPreset = wakePresets.find(p => p.v === state.wakeTime);
+            if (matchingPreset) {
+                presetsContainer.children[wakePresets.indexOf(matchingPreset)].classList.add('active');
+            }
+            updateUI();
+        });
+
+        document.getElementById('coffee-slider').addEventListener('input', (e) => {
+            state.coffeeSteps = parseInt(e.target.value);
+            updateUI();
+        });
+
+        document.getElementById('coffee-toggle').addEventListener('click', () => {
+            state.coffeeOn = !state.coffeeOn;
+            updateUI();
+        });
+
+        document.getElementById('ref-toggle').addEventListener('click', () => {
+            const refList = document.getElementById('ref-list');
+            const btn = document.getElementById('ref-toggle');
+            refList.classList.toggle('hidden');
+            btn.textContent = refList.classList.contains('hidden') ? '▸ Show study references (5)' : '▾ Hide study references (5)';
+        });
+
+        // Initialize
+        initChart();
+        updateUI();
+    </script>
+</body>
+</html>
+</body>
+</html>

@@ -6,3 +6,7 @@ __pycache__/
 .vscode/
 .idea/
 venv
+data/photography-thumbnails/
+logs/
+flask_server.pid
+*.mp3

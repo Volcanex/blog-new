@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Editor</title>
+    <style>
+@import url('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .top-nav {
+            background: #1a1a1a;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #333;
+            position: sticky;
+            top: 0;
+            z-index: 10000;
+        }
+
+        .top-nav h1 {
+            font-size: 16px;
+            color: #fff;
+        }
+
+        .top-nav a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 14px;
+            margin-left: 20px;
+        }
+
+        .presets {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .presets label {
+            color: #888;
+            font-size: 12px;
+        }
+
+        .presets select {
+            background: #272822;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 5px 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .presets button {
+            background: #ff00ff;
+            color: #000;
+            border: none;
+            padding: 5px 15px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .presets button:hover {
+            background: #ff33ff;
+        }
+
+        .presets button.save-btn {
+            background: #00ff00;
+        }
+
+        .presets button.save-btn:hover {
+            background: #33ff33;
+        }
+
+        .container {
+            display: flex;
+            height: calc(100vh - 50px);
+        }
+
+        .editor-panel {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid #333;
+            background: #272822;
+        }
+
+        .preview-panel {
+            width: 50%;
+            background: #fff;
+        }
+
+        .tabs {
+            display: flex;
+            background: #1e1e1e;
+            border-bottom: 1px solid #333;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            color: #888;
+            border: none;
+            background: none;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .tab.active {
+            color: #fff;
+            background: #272822;
+        }
+
+        .editor-container {
+            flex: 1;
+            position: relative;
+        }
+
+        .editor {
+            display: none;
+            height: 100%;
+        }
+
+        .editor.active {
+            display: block;
+        }
+
+        .CodeMirror {
+            height: 100% !important;
+            font-size: 14px;
+        }
+
+        #preview {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #fff;
+        }
+
+        .preview-header {
+            background: #f0f0f0;
+            padding: 10px 20px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-header h2 {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .refresh-btn {
+            padding: 5px 15px;
+            background: #000;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+        }
+
+        .refresh-btn:hover {
+            background: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-nav">
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <h1>Live Editor</h1>
+            <div class="presets">
+                <label>Preset:</label>
+                <select id="preset-select">
+                    <option value="blank">Blank</option>
+                    <option value="cyber-gothic" selected>Cyber Gothic</option>
+                    <option value="y2k-playstation">Y2K PlayStation</option>
+                    <option value="geocities">GeoCities Madness</option>
+                    <option value="matrix">Matrix Hacker</option>
+                    <option value="vaporwave">Vaporwave Dreams</option>
+                    <option value="floral">Floral Garden</option>
+                    <option value="alchemy-1996">Alchemy 1996</option>
+                </select>
+                <button onclick="loadPreset()">Load</button>
+                <button class="save-btn" onclick="saveNewPreset()">+ New</button>
+            </div>
+        </div>
+        <a href="/">← Home</a>
+    </div>
+
+    <div class="container">
+        <div class="editor-panel">
+            <div class="tabs">
+                <button class="tab active" data-editor="html">HTML</button>
+                <button class="tab" data-editor="css">CSS</button>
+                <button class="tab" data-editor="js">JavaScript</button>
+            </div>
+
+            <div class="editor-container">
+                <div class="editor active" id="html-editor"></div>
+                <div class="editor" id="css-editor"></div>
+                <div class="editor" id="js-editor"></div>
+            </div>
+        </div>
+
+        <div class="preview-panel">
+            <div class="preview-header">
+                <h2>Live Preview</h2>
+                <button class="refresh-btn" onclick="updatePreview()">Refresh</button>
+            </div>
+            <iframe id="preview"></iframe>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+
+    <script>
+        // Presets with old web styling
+        const presets = {
+            blank: {
+                html: `<div>
+    <h1>Start here!</h1>
+</div>`,
+                css: `body {
+    margin: 0;
+    padding: 20px;
+}`,
+                js: `// Your JavaScript here`
+            },
+
+            'cyber-gothic': {
+                html: `<div class="container">
+    <div class="header">
+        <h1>𝔢𝔵𝔱𝔯𝔞𝔳𝔢𝔫𝔬𝔲𝔰 𝔱𝔥𝔢𝔯𝔞𝔭𝔶</h1>
+        <p class="glitch" data-text="whitethornapple">whitethornapple</p>
+    </div>
+
+    <marquee behavior="scroll" scrollamount="3">
+        ✦ ritual and decay ✦ worship of benign objects ✦ beauty in broken technology ✦
+    </marquee>
+
+    <div class="gallery">
+        <div class="photo-box">
+            <img src="../scraped_data/instagram/2025-12-21_21-44-10_UTC_1.jpg" width="200">
+            <p>𝖊𝖑𝖊𝖈𝖙𝖗𝖎𝖈 𝖘𝖔𝖚𝖑</p>
+        </div>
+        <div class="photo-box">
+            <img src="../scraped_data/instagram/2025-12-11_23-33-44_UTC_1.jpg" width="200">
+            <p>𝖉𝖎𝖌𝖎𝖙𝖆𝖑 𝖉𝖗𝖊𝖆𝖒𝖘</p>
+        </div>
+        <div class="photo-box">
+            <img src="../scraped_data/instagram/2025-12-09_16-47-39_UTC_1.jpg" width="200">
+            <p>𝖈𝖞𝖇𝖊𝖗 𝖜𝖎𝖙𝖈𝖍</p>
+        </div>
+    </div>
+
+    <div class="blink">⚡ LOADING... ⚡</div>
+</div>`,
+                css: `body {
+    margin: 0;
+    background: #000;
+    color: #ff00ff;
+    font-family: 'Courier New', monospace;
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><circle cx="10" cy="10" r="8" fill="%23ff00ff"/></svg>'), auto;
+    background-image: repeating-linear-gradient(
+        0deg, transparent, transparent 2px,
+        rgba(255,0,255,0.03) 2px, rgba(255,0,255,0.03) 4px
+    );
+}
+
+.container {
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header {
+    text-align: center;
+    border: 3px solid #ff00ff;
+    padding: 30px;
+    box-shadow: 0 0 30px #ff00ff, inset 0 0 30px #ff00ff;
+    margin-bottom: 30px;
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from { box-shadow: 0 0 20px #ff00ff, inset 0 0 20px #ff00ff; }
+    to { box-shadow: 0 0 40px #ff00ff, inset 0 0 40px #ff00ff; }
+}
+
+h1 {
+    font-size: 48px;
+    margin: 0 0 20px 0;
+    text-shadow: 0 0 20px #ff00ff;
+}
+
+.glitch {
+    font-size: 32px;
+    color: #00ffff;
+    text-shadow: 0 0 10px #00ffff;
+    position: relative;
+    animation: glitch 3s infinite;
+}
+
+@keyframes glitch {
+    0%, 100% { transform: translate(0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(-2px, -2px); }
+    60% { transform: translate(2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+}
+
+marquee {
+    background: linear-gradient(90deg, #1a001a, #330033, #1a001a);
+    padding: 15px;
+    border: 2px solid #ff00ff;
+    margin: 20px 0;
+    font-size: 20px;
+    color: #00ff00;
+}
+
+.gallery {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin: 30px 0;
+    flex-wrap: wrap;
+}
+
+.photo-box {
+    border: 3px solid #00ffff;
+    padding: 10px;
+    text-align: center;
+    box-shadow: 0 0 20px #00ffff;
+    transition: all 0.3s;
+}
+
+.photo-box:hover {
+    transform: scale(1.05) rotate(-2deg);
+    box-shadow: 0 0 40px #00ffff;
+}
+
+.photo-box img {
+    display: block;
+    border: 2px solid #ff00ff;
+    filter: contrast(1.2) brightness(0.9);
+}
+
+.photo-box p {
+    margin: 10px 0 0 0;
+    color: #00ffff;
+    font-size: 14px;
+}
+
+.blink {
+    text-align: center;
+    font-size: 24px;
+    color: #00ff00;
+    margin-top: 30px;
+    animation: blink 1s step-start infinite;
+}
+
+@keyframes blink {
+    50% { opacity: 0; }
+}`,
+                js: `// Cyber gothic effects
+console.log('𝔢𝔵𝔱𝔯𝔞𝔳𝔢𝔫𝔬𝔲𝔰 𝔱𝔥𝔢𝔯𝔞𝔭𝔶 activated');
+
+// Glitch text effect
+document.addEventListener('DOMContentLoaded', () => {
+    const glitch = document.querySelector('.glitch');
+    if (glitch) {
+        setInterval(() => {
+            const text = glitch.dataset.text;
+            const glitched = text.split('').map(char =>
+                Math.random() > 0.9 ? String.fromCharCode(33 + Math.random() * 94) : char
+            ).join('');
+            glitch.textContent = glitched;
+            setTimeout(() => glitch.textContent = text, 50);
+        }, 3000);
+    }
+});`
+            },
+
+            'y2k-playstation': {
+                html: `<table width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#0000FF">
+    <tr>
+        <td colspan="3" height="80" bgcolor="#FFFFFF">
+            <center>
+                <img src="../scraped_data/instagram/2025-10-25_17-29-26_UTC_1.jpg" height="60" style="vertical-align: middle;">
+                <font face="Arial Black" size="6" color="#0000FF">WHITETHORNAPPLE</font>
+            </center>
+        </td>
+    </tr>
+    <tr>
+        <td width="150" valign="top" bgcolor="#FFFF00">
+            <table width="100%" cellpadding="10">
+                <tr><td><font face="Verdana" size="2"><b>NAVIGATION</b></font></td></tr>
+                <tr><td bgcolor="#FF0000"><a href="#"><font color="#FFFFFF">HOME</font></a></td></tr>
+                <tr><td bgcolor="#00FF00"><a href="#"><font color="#000000">GALLERY</font></a></td></tr>
+                <tr><td bgcolor="#FF00FF"><a href="#"><font color="#FFFFFF">MUSIC</font></a></td></tr>
+                <tr><td bgcolor="#00FFFF"><a href="#"><font color="#000000">ABOUT</font></a></td></tr>
+            </table>
+        </td>
+        <td valign="top" bgcolor="#FFFFFF">
+            <table cellpadding="20">
+                <tr>
+                    <td>
+                        <font face="Comic Sans MS" size="5" color="#FF0000">
+                            <blink>★ WELCOME ★</blink>
+                        </font>
+                        <p><font face="Arial" size="3">
+                            Check out my <b>ULTRA COOL</b> website!
+                            <img src="../scraped_data/tumblr/post_2_img_0.jpg" width="200" align="right" hspace="10">
+                            This is where I post my art and vibes.
+                        </font></p>
+                        <p><img src="../scraped_data/instagram/2025-11-02_18-14-12_UTC_1.jpg" width="150"></p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td width="120" valign="top" bgcolor="#FF00FF">
+            <center>
+                <font face="Verdana" size="2" color="#FFFFFF">
+                    <p><b>STATS</b></p>
+                    <p>Visitors: 0001337</p>
+                    <p>Last Updated: 2000</p>
+                </font>
+            </center>
+        </td>
+    </tr>
+</table>`,
+                css: `body {
+    margin: 0;
+    background: #0000FF;
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="yellow"/><rect x="4" y="4" width="8" height="8" fill="red"/></svg>'), auto;
+}
+
+a {
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+img {
+    border: 3px solid #000000;
+}
+
+blink {
+    animation: blink-animation 1s steps(2, start) infinite;
+}
+
+@keyframes blink-animation {
+    to { visibility: hidden; }
+}`,
+                js: `// Y2K PlayStation vibes
+console.log('PlayStation 2000 loaded!');
+
+// Random background color flash
+setInterval(() => {
+    const colors = ['#0000FF', '#FF0000', '#00FF00', '#FFFF00', '#FF00FF'];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    document.querySelector('table').style.backgroundColor = randomColor;
+}, 5000);`
+            },
+
+            'geocities': {
+                html: `<body background="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mP8z8DwHwyBNBEqBQcAAPv/D/hnP9DqAAAAAElFTkSuQmCC">
+<center>
+    <h1>
+        <font face="Comic Sans MS" color="#FF00FF" size="7">
+            ~*~ WHITETHORNAPPLE'S HOMEPAGE ~*~
+        </font>
+    </h1>
+
+    <img src="https://web.archive.org/web/20091027053343/http://geocities.com/heartland/hills/7124/construction.gif" alt="Under Construction">
+
+    <marquee width="80%" behavior="alternate" bgcolor="#FFFF00">
+        <font color="#FF0000" size="5"><b>WELCOME TO MY SITE!!!</b></font>
+    </marquee>
+
+    <table border="5" bordercolor="#00FFFF" bgcolor="#FFFFFF" cellpadding="20">
+        <tr>
+            <td>
+                <img src="../scraped_data/instagram/2025-09-16_20-53-46_UTC_1.jpg" width="200">
+                <br><font face="Arial" size="2">Me at the club!!!</font>
+            </td>
+            <td>
+                <img src="../scraped_data/instagram/2023-10-05_16-13-19_UTC_1.jpg" width="200">
+                <br><font face="Arial" size="2">My artwork!!!</font>
+            </td>
+        </tr>
+    </table>
+
+    <p>
+        <img src="https://web.archive.org/web/20091027012028/http://geocities.com/southbeach/reef/3464/email.gif">
+        <a href="mailto:adele@whitethornapple.com">
+            <font face="Comic Sans MS" color="#0000FF" size="4">EMAIL ME!!!</font>
+        </a>
+    </p>
+
+    <hr width="80%" color="#FF00FF" size="5">
+
+    <table cellpadding="10">
+        <tr>
+            <td bgcolor="#FF00FF"><font color="#FFFF00"><b>LINKS I LIKE:</b></font></td>
+        </tr>
+        <tr>
+            <td bgcolor="#00FFFF">
+                <a href="https://soundcloud.com/adeleclifford">My SoundCloud</a><br>
+                <a href="https://instagram.com/whitethornapple">My Instagram</a>
+            </td>
+        </tr>
+    </table>
+
+    <p><font face="Verdana" size="2">
+        You are visitor number: <img src="https://web.archive.org/web/20091027002916/http://counter.digits.com/wc/-d/4/whitethorn" alt="counter">
+    </font></p>
+</center>
+</html>
+</body>
+</html>

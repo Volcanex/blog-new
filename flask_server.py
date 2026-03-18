@@ -17,6 +17,10 @@ import platform
 import subprocess
 from datetime import datetime
 import socket
+import threading
+import json
+import re
+import shutil
 
 class BlogFlaskServer:
     def __init__(self, pages_dir="pages", static_dir="output", port=5000):
@@ -30,6 +34,9 @@ class BlogFlaskServer:
 
         # Initialize SocketIO with CORS support
         self.socketio = SocketIO(self.app, cors_allowed_origins="*")
+
+        # Lock to prevent concurrent compile.py executions
+        self.compile_lock = threading.Lock()
 
         # Setup basic routes
         self._setup_basic_routes()
@@ -67,7 +74,74 @@ class BlogFlaskServer:
         except (FileNotFoundError, ValueError, psutil.NoSuchProcess, subprocess.TimeoutExpired):
             pass
         return None
-    
+
+    def _trigger_compile(self):
+        """
+        Trigger compile.py to regenerate static files.
+        Uses a lock to prevent concurrent executions.
+        Returns dict with success status and details.
+        """
+        # Try to acquire lock without blocking
+        acquired = self.compile_lock.acquire(blocking=False)
+
+        if not acquired:
+            return {
+                'success': False,
+                'error': 'Compile already in progress',
+                'message': 'Another compile.py execution is currently running'
+            }
+
+        try:
+            compile_script = Path.cwd() / 'compile.py'
+
+            if not compile_script.exists():
+                return {
+                    'success': False,
+                    'error': 'compile.py not found',
+                    'path': str(compile_script)
+                }
+
+            # Run compile.py with timeout
+            result = subprocess.run(
+                [sys.executable, str(compile_script)],
+                capture_output=True,
+                text=True,
+                timeout=60,
+                cwd=Path.cwd()
+            )
+
+            if result.returncode == 0:
+                return {
+                    'success': True,
+                    'message': 'Compile completed successfully',
+                    'stdout': result.stdout,
+                    'timestamp': datetime.now().isoformat()
+                }
+            else:
+                return {
+                    'success': False,
+                    'error': 'Compile failed',
+                    'returncode': result.returncode,
+                    'stdout': result.stdout,
+                    'stderr': result.stderr
+                }
+
+        except subprocess.TimeoutExpired:
+            return {
+                'success': False,
+                'error': 'Compile timed out',
+                'message': 'compile.py took longer than 60 seconds'
+            }
+        except Exception as e:
+            return {
+                'success': False,
+                'error': 'Compile execution failed',
+                'details': str(e)
+            }
+        finally:
+            # Always release the lock
+            self.compile_lock.release()
+
     def _setup_basic_routes(self):
         """Setup basic Flask routes"""
         
@@ -231,6 +305,166 @@ class BlogFlaskServer:
             pages.sort(key=lambda x: x.get('date', ''), reverse=True)
             return jsonify({'pages': pages})
 
+        @self.app.route('/api/posts/create', methods=['POST'])
+        def create_post():
+            """Create a new blog post"""
+            data = request.get_json()
+
+            # Validate required fields
+            required_fields = ['slug', 'title', 'content']
+            for field in required_fields:
+                if field not in data:
+                    return jsonify({'error': f'Missing required field: {field}'}), 400
+
+            slug = data['slug']
+
+            # Validate slug format (alphanumeric and hyphens only)
+            if not re.match(r'^[a-z0-9-]+$', slug):
+                return jsonify({'error': 'Slug must contain only lowercase letters, numbers, and hyphens'}), 400
+
+            # Check if post already exists
+            post_dir = self.pages_dir / slug
+            if post_dir.exists():
+                return jsonify({'error': f'Post with slug "{slug}" already exists'}), 409
+
+            try:
+                # Create post directory
+                post_dir.mkdir(parents=True, exist_ok=False)
+
+                # Create config.json
+                config = {
+                    'slug': slug,
+                    'title': data['title'],
+                    'date': data.get('date', datetime.now().strftime('%Y-%m-%d')),
+                    'description': data.get('description', ''),
+                    'categories': data.get('categories', [])
+                }
+
+                with open(post_dir / 'config.json', 'w') as f:
+                    json.dump(config, f, indent=4)
+
+                # Create content.md
+                with open(post_dir / 'content.md', 'w') as f:
+                    f.write(data['content'])
+
+                # Trigger compile if requested
+                compile_result = None
+                if data.get('auto_compile', True):
+                    compile_result = self._trigger_compile()
+
+                return jsonify({
+                    'success': True,
+                    'slug': slug,
+                    'path': str(post_dir),
+                    'compile_triggered': data.get('auto_compile', True),
+                    'compile_result': compile_result
+                }), 201
+
+            except Exception as e:
+                # Cleanup on failure
+                if post_dir.exists():
+                    shutil.rmtree(post_dir)
+                return jsonify({'error': f'Failed to create post: {str(e)}'}), 500
+
+        @self.app.route('/api/posts/update/<slug>', methods=['PUT'])
+        def update_post(slug):
+            """Update an existing blog post"""
+            # Validate slug format
+            if not re.match(r'^[a-z0-9-]+$', slug):
+                return jsonify({'error': 'Invalid slug format'}), 400
+
+            post_dir = self.pages_dir / slug
+            if not post_dir.exists():
+                return jsonify({'error': f'Post "{slug}" not found'}), 404
+
+            data = request.get_json()
+
+            try:
+                # Update config.json if metadata provided
+                if any(key in data for key in ['title', 'date', 'description', 'categories']):
+                    config_file = post_dir / 'config.json'
+                    if config_file.exists():
+                        with open(config_file, 'r') as f:
+                            config = json.load(f)
+                    else:
+                        config = {'slug': slug}
+
+                    # Update config fields
+                    if 'title' in data:
+                        config['title'] = data['title']
+                    if 'date' in data:
+                        config['date'] = data['date']
+                    if 'description' in data:
+                        config['description'] = data['description']
+                    if 'categories' in data:
+                        config['categories'] = data['categories']
+
+                    with open(config_file, 'w') as f:
+                        json.dump(config, f, indent=4)
+
+                # Update content.md if provided
+                if 'content' in data:
+                    with open(post_dir / 'content.md', 'w') as f:
+                        f.write(data['content'])
+
+                # Trigger compile if requested
+                compile_result = None
+                if data.get('auto_compile', True):
+                    compile_result = self._trigger_compile()
+
+                return jsonify({
+                    'success': True,
+                    'slug': slug,
+                    'updated_fields': list(data.keys()),
+                    'compile_triggered': data.get('auto_compile', True),
+                    'compile_result': compile_result
+                })
+
+            except Exception as e:
+                return jsonify({'error': f'Failed to update post: {str(e)}'}), 500
+
+        @self.app.route('/api/posts/delete/<slug>', methods=['DELETE'])
+        def delete_post(slug):
+            """Delete a blog post"""
+            # Validate slug format
+            if not re.match(r'^[a-z0-9-]+$', slug):
+                return jsonify({'error': 'Invalid slug format'}), 400
+
+            post_dir = self.pages_dir / slug
+            if not post_dir.exists():
+                return jsonify({'error': f'Post "{slug}" not found'}), 404
+
+            try:
+                # Delete the post directory
+                shutil.rmtree(post_dir)
+
+                # Trigger compile if requested
+                compile_result = None
+                auto_compile = request.args.get('auto_compile', 'true').lower() == 'true'
+                if auto_compile:
+                    compile_result = self._trigger_compile()
+
+                return jsonify({
+                    'success': True,
+                    'slug': slug,
+                    'deleted': True,
+                    'compile_triggered': auto_compile,
+                    'compile_result': compile_result
+                })
+
+            except Exception as e:
+                return jsonify({'error': f'Failed to delete post: {str(e)}'}), 500
+
+        @self.app.route('/api/posts/compile', methods=['POST'])
+        def trigger_compile():
+            """Manually trigger compile.py to regenerate static files"""
+            result = self._trigger_compile()
+
+            if result['success']:
+                return jsonify(result)
+            else:
+                return jsonify(result), 500
+
         @self.app.route('/api/dev/restart-services', methods=['POST'])
         def restart_dev_services():
             """
@@ -312,6 +546,33 @@ class BlogFlaskServer:
 
             return jsonify({
                 'all_healthy': all_healthy,
+                'services': status,
+                'timestamp': datetime.utcnow().isoformat() + 'Z'
+            })
+
+        @self.app.route('/api/dev/port-status', methods=['GET'])
+        def check_dev_port_status():
+            """
+            Check if dev ports are open without requiring authentication
+            Returns port availability for BlueMap, Trading, Depopper, WTA
+            """
+            ports = {
+                'bluemap': 8100,
+                'trading': 3005,
+                'depopper': 5123,
+                'wta': 6767,
+                'jupyter': 8888
+            }
+
+            status = {}
+            for service_name, port in ports.items():
+                is_open = self._check_port_open(port)
+                status[service_name] = {
+                    'port': port,
+                    'running': is_open
+                }
+
+            return jsonify({
                 'services': status,
                 'timestamp': datetime.utcnow().isoformat() + 'Z'
             })

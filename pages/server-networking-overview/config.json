@@ -1,0 +1,7 @@
+{
+    "title": "Server Networking Overview - Current State",
+    "slug": "server-networking-overview",
+    "date": "2025-12-30",
+    "description": "A comprehensive overview of all running services, microservices, and networking architecture on my development server",
+    "categories": ["architecture", "networking", "devops", "infrastructure"]
+}

@@ -1,0 +1,1865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photography</title>
+    <style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --bg: #080808;
+    --card-bg: #0e0e0e;
+    --text: #d4d4d4;
+    --muted: #5a5a5a;
+    --dim: #333;
+    --accent: #c8a87a;
+    --gap: 10px;
+    --min-col: 360px;
+}
+
+html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ── Settings icon ───────────────────────────────────── */
+.settings-btn {
+    position: fixed;
+    top: 16px;
+    left: 18px;
+    z-index: 8000;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    color: var(--dim);
+    transition: color 0.2s;
+    line-height: 1;
+}
+.settings-btn:hover { color: var(--muted); }
+.settings-btn.admin-active { color: var(--accent); }
+.settings-btn svg { width: 16px; height: 16px; fill: currentColor; display: block; }
+
+/* ── Auth modal ──────────────────────────────────────── */
+.auth-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(4,4,4,0.92);
+    z-index: 9500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+.auth-overlay.open { opacity: 1; pointer-events: all; }
+
+.auth-panel {
+    background: #111;
+    border: 1px solid var(--dim);
+    padding: 36px 40px;
+    width: 100%;
+    max-width: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.auth-title { font-size: 0.6rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); }
+.auth-status { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; min-height: 1em; }
+.auth-status.ok { color: var(--accent); }
+.auth-status.err { color: #a06060; }
+
+.auth-input {
+    background: var(--bg);
+    border: 1px solid var(--dim);
+    color: var(--text);
+    padding: 10px 12px;
+    font-size: 0.8rem;
+    font-family: inherit;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s;
+}
+.auth-input:focus { border-color: var(--muted); }
+
+.auth-actions { display: flex; gap: 12px; }
+.auth-submit {
+    flex: 1;
+    background: transparent;
+    border: 1px solid var(--dim);
+    color: var(--muted);
+    padding: 10px 20px;
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.2s, color 0.2s;
+}
+.auth-submit:hover { border-color: var(--accent); color: var(--accent); }
+.auth-cancel {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--dim);
+    padding: 10px 14px;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: inherit;
+    transition: color 0.2s;
+}
+.auth-cancel:hover { color: var(--muted); }
+.auth-logout {
+    background: transparent;
+    border: none;
+    color: #604040;
+    padding: 0;
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+    transition: color 0.2s;
+}
+.auth-logout:hover { color: #a06060; }
+
+/* ── Header ─────────────────────────────────────────── */
+.pg-header {
+    padding: 72px 24px 48px;
+    text-align: center;
+}
+.pg-header h1 {
+    font-size: 0.82rem;
+    font-weight: 400;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.pg-header .subtitle {
+    margin-top: 10px;
+    font-size: 0.76rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.admin-badge {
+    display: none;
+    margin-top: 8px;
+    font-size: 0.5rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--accent);
+    opacity: 0.7;
+}
+body.admin-mode .admin-badge { display: block; }
+
+/* ── View toggle (masters/raw) ────────────────────────── */
+.view-toggle {
+    display: none;
+    margin-top: 16px;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+}
+body.admin-mode .view-toggle { display: flex; }
+
+.view-toggle-btn {
+    background: transparent;
+    border: 1px solid var(--dim);
+    color: var(--muted);
+    padding: 6px 14px;
+    font-size: 0.55rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.view-toggle-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.view-toggle-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(200, 168, 122, 0.08);
+}
+
+
+.pg-psa {
+    margin-top: 18px;
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    line-height: 1.8;
+}
+.back-link {
+    display: inline-block;
+    margin-top: 20px;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--dim);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.back-link:hover { color: var(--muted); }
+
+/* ── Grid (JS masonry — left-to-right order) ─────────── */
+.gallery-grid {
+    position: relative;
+    padding: 0 var(--gap);
+}
+
+.photo-card {
+    position: absolute;
+    background: var(--card-bg);
+    overflow: hidden;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+.photo-card.visible { opacity: 1; }
+.photo-card:hover .card-img { transform: scale(1.015); }
+
+/* Admin: hidden card treatment */
+body.admin-mode .photo-card.is-hidden .card-img {
+    opacity: 0.2 !important;
+    filter: grayscale(1);
+}
+body.admin-mode .photo-card.is-hidden:hover .card-img { opacity: 0.35 !important; }
+
+.card-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s;
+    opacity: 0;
+}
+.card-img.loaded { opacity: 1; }
+
+.card-meta {
+    padding: 9px 11px 11px;
+    background: var(--card-bg);
+}
+.card-place {
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.card-exif {
+    margin-top: 4px;
+    font-size: 0.58rem;
+    letter-spacing: 0.05em;
+    color: var(--dim);
+    font-variant-numeric: tabular-nums;
+}
+.card-date {
+    margin-top: 4px;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    color: #2e2e2e;
+}
+
+/* ── Admin overlay on cards ──────────────────────────── */
+.card-admin {
+    display: none;
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 10;
+    gap: 5px;
+    flex-direction: column;
+    align-items: flex-start;
+}
+body.admin-mode .card-admin { display: flex; }
+
+.hidden-badge {
+    display: none;
+    font-size: 0.45rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: #604040;
+    background: rgba(8,8,8,0.85);
+    padding: 3px 7px;
+    border: 1px solid #604040;
+}
+body.admin-mode .photo-card.is-hidden .hidden-badge { display: block; }
+
+/* shared admin button base */
+.adm-btn {
+    font-size: 0.45rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    background: rgba(8,8,8,0.88);
+    border: 1px solid var(--dim);
+    color: var(--muted);
+    padding: 4px 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.2s, color 0.2s;
+    white-space: nowrap;
+    line-height: 1.6;
+}
+.adm-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.toggle-hide-btn {}
+body.admin-mode .photo-card.is-hidden .toggle-hide-btn { border-color: #604040; color: #a06060; }
+body.admin-mode .photo-card.is-hidden .toggle-hide-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.toggle-background-btn {}
+.toggle-background-btn.is-background {
+    border-color: #4CAF50;
+    color: #4CAF50;
+    background: rgba(76, 175, 80, 0.1);
+}
+.toggle-background-btn.is-background:hover {
+    border-color: #66BB6A;
+    color: #66BB6A;
+}
+
+
+/* rotate buttons side-by-side */
+.adm-rotate-row { display: flex; gap: 4px; }
+.rotate-btn { font-size: 0.7rem; padding: 2px 7px; letter-spacing: 0; }
+
+/* edit metadata toggle */
+.edit-meta-btn {}
+
+/* inline metadata editor */
+.card-meta-editor {
+    display: none;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(8,8,8,0.96);
+    border-top: 1px solid var(--dim);
+    padding: 10px;
+    z-index: 20;
+    flex-direction: column;
+    gap: 6px;
+}
+body.admin-mode .photo-card .card-meta-editor.open { display: flex; }
+
+.meta-field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.meta-label {
+    font-size: 0.42rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.meta-input {
+    background: #0a0a0a;
+    border: 1px solid var(--dim);
+    color: var(--text);
+    padding: 5px 7px;
+    font-size: 0.65rem;
+    font-family: inherit;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s;
+}
+.meta-input:focus { border-color: var(--muted); }
+.meta-save-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 2px;
+}
+.meta-save-btn {
+    flex: 1;
+    background: transparent;
+    border: 1px solid var(--dim);
+    color: var(--muted);
+    padding: 5px;
+    font-size: 0.45rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.2s, color 0.2s;
+}
+.meta-save-btn:hover { border-color: var(--accent); color: var(--accent); }
+.meta-cancel-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--dim);
+    padding: 5px 8px;
+    font-size: 0.45rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: inherit;
+    transition: color 0.2s;
+}
+.meta-cancel-btn:hover { color: var(--muted); }
+.meta-status {
+    font-size: 0.42rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    min-height: 0.8em;
+    color: var(--accent);
+}
+
+/* ── Load more sentinel ──────────────────────────────── */
+.load-more-wrap {
+    padding: 48px 24px 80px;
+}
+
+/* ── Lightbox ────────────────────────────────────────── */
+.lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(4,4,4,0.97);
+    z-index: 9000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+}
+.lightbox.open { opacity: 1; pointer-events: all; }
+
+.lb-img-wrap {
+    max-width: 92vw;
+    max-height: 80vh;
+    min-width: 300px;
+    min-height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+.lb-img {
+    display: block;
+    max-width: 92vw;
+    max-height: 80vh;
+    object-fit: contain;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s ease;
+    cursor: zoom-in;
+    transform-origin: 50% 50%;
+}
+.lb-img.ready { opacity: 1; }
+.lb-img.zoomed { cursor: zoom-out; }
+
+
+.lb-progress {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    z-index: 9002;
+    white-space: nowrap;
+}
+.lb-progress.active { display: flex; opacity: 1; transition: opacity 0.35s ease; }
+.lb-progress.fading { opacity: 0; }
+.lb-progress-text {
+    font-size: 0.48rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--dim);
+    transition: opacity 0.4s ease;
+}
+.lb-progress-bar {
+    width: 200px;
+    height: 1px;
+    background: #1e1e1e;
+    overflow: hidden;
+}
+.lb-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    transition: width 0.1s ease;
+}
+
+.lb-info { margin-top: 20px; text-align: center; padding: 0 24px; }
+.lb-date {
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: 'Courier New', Courier, monospace;
+    min-height: 1em;
+}
+.lb-exif {
+    margin-top: 6px;
+    font-size: 0.76rem;
+    letter-spacing: 0.06em;
+    color: #666;
+    font-family: 'Courier New', Courier, monospace;
+    font-variant-numeric: tabular-nums;
+    min-height: 1em;
+}
+.lb-place {
+    margin-top: 5px;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: #5a5a5a;
+    font-family: 'Courier New', Courier, monospace;
+    min-height: 1em;
+}
+.lb-desc {
+    margin-top: 8px;
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    color: #5a5a5a;
+    font-family: 'Courier New', Courier, monospace;
+    font-style: italic;
+    max-width: 500px;
+    line-height: 1.6;
+    margin-left: auto;
+    margin-right: auto;
+    min-height: 1em;
+}
+.lb-camera {
+    margin-top: 4px;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    color: #555;
+    font-family: 'Courier New', Courier, monospace;
+    min-height: 1em;
+}
+
+/* blinking cursor while typewriter is active */
+.tw-typing::after {
+    content: '▮';
+    animation: twBlink 0.65s step-end infinite;
+    color: var(--accent);
+    opacity: 0.7;
+}
+@keyframes twBlink { 50% { opacity: 0; } }
+
+/* ── Lightbox action buttons ─────────────────────────── */
+.lb-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.lb-share, .lb-download {
+    background: transparent;
+    border: 1px solid var(--dim);
+    color: var(--muted);
+    padding: 7px 16px;
+    font-size: 0.5rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.2s, color 0.2s;
+}
+.lb-share:hover, .lb-download:hover { border-color: var(--accent); color: var(--accent); }
+.lb-share.copied { border-color: var(--accent); color: var(--accent); }
+
+/* ── Select mode ─────────────────────────────────────── */
+.select-btn {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 8000;
+    background: transparent;
+    border: 1px solid var(--dim);
+    cursor: pointer;
+    padding: 8px 18px;
+    color: var(--muted);
+    font-size: 0.5rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    font-family: inherit;
+    line-height: 1;
+    transition: border-color 0.2s, color 0.2s;
+}
+.select-btn:hover { border-color: var(--accent); color: var(--accent); }
+.select-btn.select-active { border-color: var(--accent); color: var(--accent); }
+
+@keyframes selectFlash {
+    0%, 100% { border-color: var(--dim); color: var(--muted); }
+    50% { border-color: var(--accent); color: var(--accent); }
+}
+.select-btn.flashing { animation: selectFlash 0.35s ease-in-out 10; }
+
+.select-hint {
+    position: fixed;
+    top: 0;
+    right: 120px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    z-index: 8000;
+    font-size: 0.56rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    pointer-events: none;
+    opacity: 0;
+    white-space: nowrap;
+    transition: opacity 0.5s;
+}
+
+.card-check {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 18px;
+    height: 18px;
+    border: 1px solid rgba(200,168,122,0.3);
+    background: rgba(8,8,8,0.75);
+    z-index: 15;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s, border-color 0.15s;
+}
+body.select-mode .card-check { display: flex; }
+body.select-mode .photo-card.selected .card-check {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+body.select-mode .photo-card.selected .card-check::after {
+    content: '✓';
+    font-size: 0.55rem;
+    color: #080808;
+    line-height: 1;
+}
+body.select-mode .photo-card { cursor: default; }
+body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
+
+.select-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 60px;
+    background: #090909;
+    border-top: 1px solid #181818;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 8500;
+}
+.select-bar.visible { display: flex; }
+.select-bar-left {
+    font-size: 0.55rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.select-bar-actions { display: flex; gap: 10px; align-items: center; }
+.select-clear-btn {
+    background: none;
+    border: none;
+    color: var(--dim);
+    font-size: 0.48rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 6px 0;
+    transition: color 0.2s;
+}
+.select-clear-btn:hover { color: var(--muted); }
+.select-dl-btn {
+    background: transparent;
+    border: 1px solid var(--dim);
+    color: var(--muted);
+    padding: 8px 18px;
+    font-size: 0.5rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.2s, color 0.2s;
+}
+.select-dl-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.lb-close {
+    position: fixed;
+    top: 18px; right: 20px;
+    background: none; border: none;
+    color: var(--dim); font-size: 1.1rem; cursor: pointer;
+    padding: 10px; line-height: 1; transition: color 0.2s; z-index: 9001;
+}
+.lb-close:hover { color: var(--text); }
+
+.lb-counter {
+    position: fixed;
+    top: 22px; left: 50%; transform: translateX(-50%);
+    font-size: 0.55rem; letter-spacing: 0.2em; color: var(--dim); z-index: 9001;
+}
+.lb-nav {
+    position: fixed; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: #2c2c2c;
+    font-size: 1.8rem; cursor: pointer; padding: 24px 18px;
+    transition: color 0.2s; z-index: 9001; line-height: 1; user-select: none;
+}
+.lb-nav:hover { color: var(--muted); }
+.lb-prev { left: 8px; }
+.lb-next { right: 8px; }
+
+/* ── Empty / error ───────────────────────────────────── */
+.gallery-msg {
+    text-align: center;
+    padding: 80px 24px;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--dim);
+    text-transform: uppercase;
+}
+
+@media (max-width: 600px) {
+    .pg-header { padding: 48px 16px 32px; }
+    .lb-nav { display: none; }
+    .settings-btn { display: none; }
+    .select-btn {
+        right: 16px;
+        top: 16px;
+        font-size: 0.55rem;
+        padding: 10px 16px;
+    }
+    .select-hint { display: none; }
+    .select-dl-btn { padding: 12px 20px; font-size: 0.55rem; }
+    .select-clear-btn { padding: 12px 8px; font-size: 0.55rem; }
+    .lb-actions { gap: 6px; }
+    .lb-share, .lb-download { padding: 10px 18px; font-size: 0.55rem; }
+}
+</style>
+</head>
+<body>
+    <!-- Select mode button -->
+<div class="select-hint" id="select-hint">use this to save photos →</div>
+<button class="select-btn" id="select-btn" aria-label="Select photos" title="Select photos">select</button>
+
+<!-- Select bar (shown when photos are selected) -->
+<div class="select-bar" id="select-bar">
+    <div class="select-bar-left"><span id="select-count">0 selected</span></div>
+    <div class="select-bar-actions">
+        <button class="select-clear-btn" id="select-clear-btn">clear</button>
+        <button class="select-dl-btn" id="select-dl-btn">download selected</button>
+    </div>
+</div>
+
+<!-- Settings gear -->
+<button class="settings-btn" id="settings-btn" aria-label="Admin settings" title="Admin settings">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.92c.04-.34.07-.69.07-1.08s-.03-.74-.07-1.08l2.32-1.81c.21-.16.27-.45.13-.68l-2.2-3.81c-.14-.23-.42-.31-.66-.23l-2.74 1.1c-.57-.44-1.18-.81-1.86-1.08L14.21 2.1c-.05-.26-.28-.44-.55-.44h-4.4c-.27 0-.5.18-.55.44l-.42 2.9c-.68.27-1.29.64-1.86 1.08L3.69 5.04c-.24-.09-.52 0-.66.23L.83 9.08c-.14.23-.08.52.13.68l2.32 1.81C3.24 11.9 3.2 12.25 3.2 12.5s.04.6.08.92L1 15.23c-.21.16-.27.45-.13.68l2.2 3.81c.14.23.42.31.66.23l2.74-1.1c.57.44 1.18.81 1.86 1.08l.42 2.9c.05.26.28.44.55.44h4.4c.27 0 .5-.18.55-.44l.42-2.9c.68-.27 1.29-.64 1.86-1.08l2.74 1.1c.24.09.52 0 .66-.23l2.2-3.81c.14-.23.08-.52-.13-.68l-2.32-1.81z"/>
+    </svg>
+</button>
+
+<!-- Auth modal -->
+<div class="auth-overlay" id="auth-overlay" role="dialog" aria-modal="true">
+    <div class="auth-panel">
+        <div class="auth-title" id="auth-title">Admin access</div>
+        <div class="auth-status" id="auth-status"></div>
+        <div id="auth-login-form">
+            <input class="auth-input" type="password" id="auth-password" placeholder="Password" autocomplete="current-password">
+            <div class="auth-actions" style="margin-top:12px">
+                <button class="auth-submit" id="auth-submit">Enter</button>
+                <button class="auth-cancel" id="auth-cancel">Cancel</button>
+            </div>
+        </div>
+        <div id="auth-logged-in" style="display:none">
+            <button class="auth-logout" id="auth-logout">Sign out</button>
+        </div>
+    </div>
+</div>
+
+<div class="pg-header">
+    <h1>Photographs</h1>
+    <div class="subtitle" id="pg-count">—</div>
+    <div class="admin-badge">admin mode</div>
+    <div class="view-toggle">
+        <button class="view-toggle-btn active" id="view-masters">masters</button>
+        <button class="view-toggle-btn" id="view-raw">raw</button>
+    </div>
+    <a class="back-link" href="/">← index</a>
+    <div style="margin-top:10px">
+        <a class="back-link" href="https://instagram.com/gabrielpenman" target="_blank" rel="noopener">instagram ↗</a>
+    </div>
+    <div class="pg-psa">sometimes it takes a few days to colour grade and upload photos</div>
+</div>
+
+<div class="gallery-grid" id="gallery"></div>
+
+<div class="load-more-wrap" id="load-more-wrap" style="display:none"></div>
+
+<div id="gallery-msg" class="gallery-msg" style="display:none"></div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true">
+    <div class="lb-counter" id="lb-counter"></div>
+    <button class="lb-close" id="lb-close" aria-label="Close">✕</button>
+    <button class="lb-nav lb-prev" id="lb-prev" aria-label="Previous">‹</button>
+    <button class="lb-nav lb-next" id="lb-next" aria-label="Next">›</button>
+    <div class="lb-img-wrap">
+        <img class="lb-img" id="lb-img" src="" alt="">
+        <div class="lb-progress" id="lb-progress">
+            <div class="lb-progress-text">loading full photograph</div>
+            <div class="lb-progress-bar"><div class="lb-progress-fill" id="lb-progress-fill"></div></div>
+        </div>
+    </div>
+    <div class="lb-info">
+        <div class="lb-date" id="lb-date"></div>
+        <div class="lb-exif" id="lb-exif"></div>
+        <div class="lb-place" id="lb-place"></div>
+        <div class="lb-desc" id="lb-desc"></div>
+        <div class="lb-camera" id="lb-camera"></div>
+        <div class="lb-actions">
+            <button class="lb-share" id="lb-share">copy link</button>
+            <button class="lb-download" id="lb-download">download</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    const PAGE_SIZE = 24;
+    const GAP = 10;
+    const MIN_COL_WIDTH = 360;
+
+    let allPhotos = [];
+    let shown = 0;
+    let currentIdx = -1;
+    let selectMode = false;
+    const selectedFiles = new Set();
+    let viewMode = 'masters'; // 'masters' or 'raw'
+
+    // ── iOS Detection ────────────────────────────────────
+    function isIOS() {
+        return /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+               (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    }
+
+    // ── Admin state ──────────────────────────────────────
+    const STORAGE_KEY = 'photo_admin_pw';
+
+    function getAdminPassword() { return sessionStorage.getItem(STORAGE_KEY) || ''; }
+    function isAdmin() { return !!getAdminPassword(); }
+    function setAdminPassword(pw) {
+        pw ? sessionStorage.setItem(STORAGE_KEY, pw) : sessionStorage.removeItem(STORAGE_KEY);
+    }
+    function adminHeaders() {
+        const pw = getAdminPassword();
+        return pw ? { 'X-Admin-Password': pw } : {};
+    }
+
+    // ── View mode (masters/raw) toggle ───────────────────
+    function setViewMode(mode) {
+        viewMode = mode;
+        const mastersBtn = document.getElementById('view-masters');
+        const rawBtn = document.getElementById('view-raw');
+
+        if (mode === 'masters') {
+            mastersBtn.classList.add('active');
+            rawBtn.classList.remove('active');
+        } else {
+            rawBtn.classList.add('active');
+            mastersBtn.classList.remove('active');
+        }
+
+        loadPhotos();
+    }
+
+    // ── Settings + Auth modal ────────────────────────────
+    const settingsBtn   = document.getElementById('settings-btn');
+    const authOverlay   = document.getElementById('auth-overlay');
+    const authStatus    = document.getElementById('auth-status');
+    const authPassword  = document.getElementById('auth-password');
+    const authSubmit    = document.getElementById('auth-submit');
+    const authCancel    = document.getElementById('auth-cancel');
+    const authLogout    = document.getElementById('auth-logout');
+    const authLoginForm = document.getElementById('auth-login-form');
+    const authLoggedIn  = document.getElementById('auth-logged-in');
+    const authTitle     = document.getElementById('auth-title');
+
+    function openModal() {
+        if (isAdmin()) {
+            authLoginForm.style.display = 'none';
+            authLoggedIn.style.display  = 'block';
+            authTitle.textContent = 'Admin mode active';
+            authStatus.textContent = '';
+            authStatus.className = 'auth-status';
+        } else {
+            authLoginForm.style.display = 'block';
+            authLoggedIn.style.display  = 'none';
+            authTitle.textContent = 'Admin access';
+            authStatus.textContent = '';
+            authStatus.className = 'auth-status';
+            authPassword.value = '';
+            setTimeout(() => authPassword.focus(), 80);
+        }
+        authOverlay.classList.add('open');
+    }
+    function closeModal() { authOverlay.classList.remove('open'); }
+
+    settingsBtn.addEventListener('click', openModal);
+    authCancel.addEventListener('click', closeModal);
+    authOverlay.addEventListener('click', e => { if (e.target === authOverlay) closeModal(); });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && authOverlay.classList.contains('open')) closeModal();
+    });
+
+    function submitLogin() {
+        const pw = authPassword.value.trim();
+        if (!pw) return;
+        authStatus.textContent = '...';
+        authStatus.className = 'auth-status';
+        authSubmit.disabled = true;
+        fetch('/api/photography/auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: pw })
+        })
+            .then(r => r.json())
+            .then(data => {
+                authSubmit.disabled = false;
+                if (data.ok) {
+                    setAdminPassword(pw);
+                    applyAdminMode();
+                    authStatus.textContent = 'authenticated';
+                    authStatus.className = 'auth-status ok';
+                    setTimeout(closeModal, 800);
+                } else {
+                    authStatus.textContent = 'incorrect password';
+                    authStatus.className = 'auth-status err';
+                    authPassword.value = '';
+                    authPassword.focus();
+                }
+            })
+            .catch(() => {
+                authSubmit.disabled = false;
+                authStatus.textContent = 'error — try again';
+                authStatus.className = 'auth-status err';
+            });
+    }
+
+    authSubmit.addEventListener('click', submitLogin);
+    authPassword.addEventListener('keydown', e => { if (e.key === 'Enter') submitLogin(); });
+    authLogout.addEventListener('click', () => {
+        setAdminPassword('');
+        removeAdminMode();
+        closeModal();
+    });
+
+    // ── View mode toggle listeners ───────────────────────
+    document.getElementById('view-masters').addEventListener('click', () => setViewMode('masters'));
+    document.getElementById('view-raw').addEventListener('click', () => setViewMode('raw'));
+
+    function applyAdminMode() {
+        document.body.classList.add('admin-mode');
+        settingsBtn.classList.add('admin-active');
+        loadPhotos();
+    }
+    function removeAdminMode() {
+        document.body.classList.remove('admin-mode');
+        settingsBtn.classList.remove('admin-active');
+        loadPhotos();
+    }
+
+    // ── Helpers ──────────────────────────────────────────
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    function fmtDate(iso) {
+        if (!iso) return '';
+        const p = iso.split('-');
+        if (p.length < 2) return iso;
+        return `${MONTHS[parseInt(p[1],10)-1]} ${p[0]}`;
+    }
+
+    function exifLine(p) {
+        return [p.aperture, p.shutter, p.iso, p.focal_length].filter(Boolean).join('  ·  ');
+    }
+
+    function thumbUrl(filename, size, rotation) {
+        const path = viewMode === 'raw' ? '/api/photography/raw/thumbnail/' : '/api/photography/thumbnail/';
+        let u = path + encodeURIComponent(filename) + '?size=' + size;
+        if (rotation) u += '&r=' + rotation;
+        return u;
+    }
+
+    function fullPhotoUrl(filename, rotation) {
+        const path = viewMode === 'raw' ? '/api/photography/raw/full/' : '/api/photography/full/';
+        return path + encodeURIComponent(filename) + (rotation ? '?r=' + rotation : '');
+    }
+
+    function placeLine(p) {
+        const parts = [];
+        if (p.location) parts.push(p.location);
+        if (p.city)    parts.push(p.city);
+        if (p.country) parts.push(p.country);
+        return parts.join(', ');
+    }
+
+    // ── Admin actions ────────────────────────────────────
+
+    function toggleHide(photo, card) {
+        const base = viewMode === 'raw' ? '/api/photography/raw' : '/api/photography';
+        const endpoint = photo.hidden ? `${base}/unhide` : `${base}/hide`;
+        fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...adminHeaders() },
+            body: JSON.stringify({ filename: photo.filename })
+        })
+            .then(r => { if (r.status === 401) { setAdminPassword(''); removeAdminMode(); return null; } return r.json(); })
+            .then(data => {
+                if (!data) return;
+                photo.hidden = !photo.hidden;
+                updateCardHiddenState(card, photo);
+            })
+            .catch(() => {});
+    }
+
+    function toggleBackground(photo, card) {
+        fetch('/api/photography/toggle-background', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...adminHeaders() },
+            body: JSON.stringify({ filename: photo.filename })
+        })
+            .then(r => { if (r.status === 401) { setAdminPassword(''); removeAdminMode(); return null; } return r.json(); })
+            .then(data => {
+                if (!data) return;
+                photo.isBackground = data.isBackground;
+                updateCardBackgroundState(card, photo);
+            })
+            .catch(() => {});
+    }
+
+    function updateCardBackgroundState(card, photo) {
+        const btn = card.querySelector('.toggle-background-btn');
+        if (!btn) return;
+        if (photo.isBackground) {
+            btn.textContent = '🏠 background';
+            btn.classList.add('is-background');
+        } else {
+            btn.textContent = '⬜ background';
+            btn.classList.remove('is-background');
+        }
+    }
+
+    function updateCardHiddenState(card, photo) {
+        const btn = card.querySelector('.toggle-hide-btn');
+        if (photo.hidden) {
+            card.classList.add('is-hidden');
+            if (btn) btn.textContent = 'unhide';
+        } else {
+            card.classList.remove('is-hidden');
+            if (btn) btn.textContent = 'hide';
+        }
+    }
+
+    function rotatePhoto(photo, card, direction) {
+        const endpoint = viewMode === 'raw' ? '/api/photography/raw/rotate' : '/api/photography/rotate';
+        fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...adminHeaders() },
+            body: JSON.stringify({ filename: photo.filename, direction })
+        })
+            .then(r => { if (r.status === 401) { setAdminPassword(''); removeAdminMode(); return null; } return r.json(); })
+            .then(data => {
+                if (!data || !data.ok) return;
+                photo.rotation = data.rotation;
+                // Reload the card image with new rotation
+                const img = card.querySelector('.card-img');
+                if (img) {
+                    img.classList.remove('loaded');
+                    img.src = thumbUrl(photo.filename, 800, photo.rotation);
+                }
+                // Re-layout after image loads (height may change)
+                if (img) img.addEventListener('load', () => { img.classList.add('loaded'); layoutMasonry(); }, { once: true });
+            })
+            .catch(() => {});
+    }
+
+    function saveMetadata(photo, card, desc, loc, city, country, statusEl) {
+        statusEl.textContent = '...';
+        const endpoint = viewMode === 'raw' ? '/api/photography/raw/update-metadata' : '/api/photography/update-metadata';
+        fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...adminHeaders() },
+            body: JSON.stringify({ filename: photo.filename, description: desc, location: loc, city: city, country: country })
+        })
+            .then(r => { if (r.status === 401) { setAdminPassword(''); removeAdminMode(); return null; } return r.json(); })
+            .then(data => {
+                if (!data) return;
+                photo.description    = desc;
+                photo.location       = loc;
+                photo.city           = city;
+                photo.city_assumed   = false;
+                photo.country        = country;
+                photo.country_assumed = false;
+                // Update the visible place line on the card
+                const placeEl = card.querySelector('.card-place');
+                if (placeEl) {
+                    const pl = placeLine(photo);
+                    placeEl.textContent = pl;
+                    placeEl.style.display = pl ? '' : 'none';
+                }
+                statusEl.textContent = 'saved';
+                setTimeout(() => { statusEl.textContent = ''; }, 1500);
+            })
+            .catch(() => { statusEl.textContent = 'error'; });
+    }
+
+    // ── Select mode ───────────────────────────────────────
+
+    function updateSelectBar() {
+        const n = selectedFiles.size;
+        const bar = document.getElementById('select-bar');
+        document.getElementById('select-count').textContent = n + ' selected';
+        bar.classList.toggle('visible', n > 0);
+    }
+
+    function clearSelection() {
+        selectedFiles.clear();
+        document.querySelectorAll('.photo-card.selected').forEach(c => c.classList.remove('selected'));
+        updateSelectBar();
+    }
+
+    function toggleSelectMode() {
+        selectMode = !selectMode;
+        document.getElementById('select-btn').classList.toggle('select-active', selectMode);
+        document.body.classList.toggle('select-mode', selectMode);
+        if (!selectMode) { clearSelection(); }
+    }
+
+    function toggleCardSelect(photo, card) {
+        if (selectedFiles.has(photo.filename)) {
+            selectedFiles.delete(photo.filename);
+            card.classList.remove('selected');
+        } else {
+            selectedFiles.add(photo.filename);
+            card.classList.add('selected');
+        }
+        updateSelectBar();
+    }
+
+    async function downloadFile(filename, rotation) {
+        const url = fullPhotoUrl(filename, rotation);
+
+        // On iOS, use native share instead of download
+        if (isIOS() && navigator.share) {
+            try {
+                const resp = await fetch(url);
+                const blob = await resp.blob();
+                const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({ files: [file], title: filename });
+                    return;
+                }
+            } catch (err) {
+                if (err.name !== 'AbortError') console.warn('share failed, falling back to link', err);
+            }
+        }
+
+        // Fallback: traditional download
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    async function downloadSelected() {
+        const photos = allPhotos.filter(p => selectedFiles.has(p.filename));
+        if (photos.length === 0) return;
+
+        if (isIOS() && navigator.share) {
+            // Try to batch all files into a single share sheet
+            try {
+                const files = await Promise.all(photos.map(async p => {
+                    const resp = await fetch(fullPhotoUrl(p.filename, p.rotation || 0));
+                    const blob = await resp.blob();
+                    return new File([blob], p.filename, { type: blob.type || 'image/jpeg' });
+                }));
+                if (navigator.canShare && navigator.canShare({ files })) {
+                    await navigator.share({ files });
+                    return;
+                }
+            } catch (err) {
+                if (err.name === 'AbortError') return;
+                console.warn('Batch share failed, falling back to sequential', err);
+            }
+            // Fallback: sequential share
+            for (let i = 0; i < photos.length; i++) {
+                try {
+                    await downloadFile(photos[i].filename, photos[i].rotation || 0);
+                    if (i < photos.length - 1) await new Promise(r => setTimeout(r, 300));
+                } catch (err) {
+                    console.warn('Failed to share', photos[i].filename, err);
+                }
+            }
+        } else {
+            // Desktop: trigger downloads with stagger
+            photos.forEach((p, i) => {
+                setTimeout(() => downloadFile(p.filename, p.rotation || 0), i * 400);
+            });
+        }
+    }
+
+    // ── Card builder ─────────────────────────────────────
+
+    function buildCard(photo, index) {
+        const card = document.createElement('div');
+        card.className = 'photo-card';
+        if (photo.hidden) card.classList.add('is-hidden');
+        card.dataset.index = index;
+
+        // ── Admin overlay ──
+        const adminDiv = document.createElement('div');
+        adminDiv.className = 'card-admin';
+
+        const badge = document.createElement('div');
+        badge.className = 'hidden-badge';
+        badge.textContent = 'hidden';
+
+        const hideBtn = document.createElement('button');
+        hideBtn.className = 'adm-btn toggle-hide-btn';
+        hideBtn.textContent = photo.hidden ? 'unhide' : 'hide';
+        hideBtn.addEventListener('click', e => { e.stopPropagation(); toggleHide(photo, card); });
+
+        const bgBtn = document.createElement('button');
+        bgBtn.className = 'adm-btn toggle-background-btn';
+        bgBtn.textContent = photo.isBackground ? '🏠 background' : '⬜ background';
+        if (photo.isBackground) bgBtn.classList.add('is-background');
+        bgBtn.addEventListener('click', e => { e.stopPropagation(); toggleBackground(photo, card); });
+
+        const rotRow = document.createElement('div');
+        rotRow.className = 'adm-rotate-row';
+
+        const rotCCW = document.createElement('button');
+        rotCCW.className = 'adm-btn rotate-btn';
+        rotCCW.textContent = '↺';
+        rotCCW.title = 'Rotate CCW';
+        rotCCW.addEventListener('click', e => { e.stopPropagation(); rotatePhoto(photo, card, 'ccw'); });
+
+        const rotCW = document.createElement('button');
+        rotCW.className = 'adm-btn rotate-btn';
+        rotCW.textContent = '↻';
+        rotCW.title = 'Rotate CW';
+        rotCW.addEventListener('click', e => { e.stopPropagation(); rotatePhoto(photo, card, 'cw'); });
+
+        rotRow.appendChild(rotCCW);
+        rotRow.appendChild(rotCW);
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'adm-btn edit-meta-btn';
+        editBtn.textContent = 'edit info';
+        editBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            const editor = card.querySelector('.card-meta-editor');
+            if (!editor) return;
+            editor.classList.toggle('open');
+            if (editor.classList.contains('open')) {
+                editor.querySelector('.meta-desc').value    = photo.description || '';
+                editor.querySelector('.meta-loc').value     = photo.location || '';
+                editor.querySelector('.meta-city').value    = photo.city || '';
+                editor.querySelector('.meta-country').value = photo.country || '';
+                editor.querySelector('.meta-desc').focus();
+            }
+        });
+
+        adminDiv.appendChild(badge);
+        adminDiv.appendChild(hideBtn);
+        adminDiv.appendChild(bgBtn);
+        adminDiv.appendChild(rotRow);
+        adminDiv.appendChild(editBtn);
+
+        // ── Photo image ──
+        const img = document.createElement('img');
+        img.className = 'card-img';
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.alt = photo.date_taken || photo.filename;
+        img.src = thumbUrl(photo.filename, 800, photo.rotation);
+        img.addEventListener('load', () => { img.classList.add('loaded'); layoutMasonry(); });
+        img.addEventListener('error', () => { img.classList.add('loaded'); layoutMasonry(); });
+
+        // ── Meta ──
+        const meta = document.createElement('div');
+        meta.className = 'card-meta';
+
+        const dateEl = document.createElement('div');
+        dateEl.className = 'card-date';
+        dateEl.textContent = fmtDate(photo.date_taken);
+
+        const exifEl = document.createElement('div');
+        exifEl.className = 'card-exif';
+        const exif = exifLine(photo);
+        if (exif) exifEl.textContent = exif;
+
+        const placeEl = document.createElement('div');
+        placeEl.className = 'card-place';
+        const pl = placeLine(photo);
+        placeEl.textContent = pl;
+        placeEl.style.display = pl ? '' : 'none';
+
+        meta.appendChild(placeEl);
+        if (exif) meta.appendChild(exifEl);
+        meta.appendChild(dateEl);
+
+        // ── Inline metadata editor (admin) ──
+        const editor = document.createElement('div');
+        editor.className = 'card-meta-editor';
+
+        function makeField(labelText, cls, placeholder, current) {
+            const wrap = document.createElement('div');
+            wrap.className = 'meta-field';
+            const lbl = document.createElement('div');
+            lbl.className = 'meta-label';
+            lbl.textContent = labelText;
+            const inp = document.createElement('input');
+            inp.className = 'meta-input ' + cls;
+            inp.type = 'text';
+            inp.placeholder = placeholder;
+            inp.value = current || '';
+            inp.addEventListener('click', e => e.stopPropagation());
+            inp.addEventListener('keydown', e => e.stopPropagation());
+            wrap.appendChild(lbl);
+            wrap.appendChild(inp);
+            return wrap;
+        }
+
+        editor.appendChild(makeField('Description', 'meta-desc', 'Add a description…', photo.description));
+        editor.appendChild(makeField('Location', 'meta-loc', 'Specific spot, street, landmark…', photo.location));
+        editor.appendChild(makeField('City', 'meta-city', 'City', photo.city));
+        editor.appendChild(makeField('Country', 'meta-country', 'Country', photo.country));
+
+        const saveRow = document.createElement('div');
+        saveRow.className = 'meta-save-row';
+
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'meta-save-btn';
+        saveBtn.textContent = 'Save';
+        saveBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            const statusEl = editor.querySelector('.meta-status');
+            saveMetadata(
+                photo, card,
+                editor.querySelector('.meta-desc').value,
+                editor.querySelector('.meta-loc').value,
+                editor.querySelector('.meta-city').value,
+                editor.querySelector('.meta-country').value,
+                statusEl
+            );
+        });
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'meta-cancel-btn';
+        cancelBtn.textContent = 'Close';
+        cancelBtn.addEventListener('click', e => { e.stopPropagation(); editor.classList.remove('open'); });
+
+        const statusEl = document.createElement('div');
+        statusEl.className = 'meta-status';
+
+        saveRow.appendChild(saveBtn);
+        saveRow.appendChild(cancelBtn);
+        editor.appendChild(saveRow);
+        editor.appendChild(statusEl);
+
+        // ── Select check indicator ──
+        const check = document.createElement('div');
+        check.className = 'card-check';
+
+        card.appendChild(adminDiv);
+        card.appendChild(check);
+        card.appendChild(img);
+        card.appendChild(meta);
+        card.appendChild(editor);
+
+        card.addEventListener('click', () => {
+            if (editor.classList.contains('open')) return;
+            if (selectMode) { toggleCardSelect(photo, card); return; }
+            openLightbox(index);
+        });
+
+        return card;
+    }
+
+    // ── JS Masonry (left-to-right order) ─────────────────
+    // Cards flow left→right for each row; after first row,
+    // each new card goes into the shortest column (standard masonry).
+
+    function layoutMasonry() {
+        const gallery = document.getElementById('gallery');
+        const cards = Array.from(gallery.children).filter(c => c.classList.contains('photo-card'));
+        if (cards.length === 0) { gallery.style.height = '0'; return; }
+
+        const containerW = gallery.clientWidth;
+        const numCols = Math.max(1, Math.floor((containerW + GAP) / (MIN_COL_WIDTH + GAP)));
+        const colW = (containerW - GAP * (numCols - 1)) / numCols;
+        const colHeights = new Array(numCols).fill(0);
+
+        cards.forEach((card, i) => {
+            card.style.width = colW + 'px';
+            // First row fills strictly left→right; then shortest column
+            const col = i < numCols ? i : colHeights.indexOf(Math.min(...colHeights));
+            card.style.left = (col * (colW + GAP)) + 'px';
+            card.style.top  = colHeights[col] + 'px';
+            colHeights[col] += card.offsetHeight + GAP;
+        });
+
+        gallery.style.height = Math.max(...colHeights) + 'px';
+    }
+
+    // Re-layout on window resize
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(layoutMasonry, 80);
+    });
+
+    // ── Rendering ────────────────────────────────────────
+
+    function renderMore() {
+        const gallery = document.getElementById('gallery');
+        const end = Math.min(shown + PAGE_SIZE, allPhotos.length);
+        const newCards = [];
+        for (let i = shown; i < end; i++) {
+            const card = buildCard(allPhotos[i], i);
+            gallery.appendChild(card);
+            newCards.push(card);
+        }
+        shown = end;
+        layoutMasonry();
+        // Stagger fade-in for new cards
+        newCards.forEach((card, i) => {
+            setTimeout(() => card.classList.add('visible'), i * 40);
+        });
+        document.getElementById('load-more-wrap').style.display =
+            shown < allPhotos.length ? 'block' : 'none';
+    }
+
+    // ── Lightbox ─────────────────────────────────────────
+
+    let currentBlobUrl = null;
+    let fetchController = null;
+
+    function revokeBlobUrl() {
+        if (currentBlobUrl) { URL.revokeObjectURL(currentBlobUrl); currentBlobUrl = null; }
+    }
+
+    function abortFetch() {
+        if (fetchController) { fetchController.abort(); fetchController = null; }
+    }
+
+    function openLightbox(idx) {
+        currentIdx = idx;
+        document.body.style.overflow = 'hidden';
+        document.getElementById('lightbox').classList.add('open');
+        const p = allPhotos[idx];
+        if (p) history.replaceState(null, '', '?photo=' + encodeURIComponent(p.filename));
+        loadLightboxPhoto();
+    }
+
+    function closeLightbox() {
+        document.getElementById('lightbox').classList.remove('open');
+        const img = document.getElementById('lb-img');
+        img.classList.remove('ready');
+        img.src = '';
+        stopLoadingMessages();
+        stopTypewriters();
+        document.getElementById('lb-progress').classList.remove('active', 'fading');
+        abortFetch();
+        revokeBlobUrl();
+        resetZoom();
+        document.body.style.overflow = '';
+        currentIdx = -1;
+        history.replaceState(null, '', window.location.pathname);
+    }
+
+    // ── Loading message cycling ───────────────────────────
+    const LB_MESSAGES = [
+        'Loading full photo',
+        'This can take a while',
+        'The server is in my living room'
+    ];
+    const LB_RANDOM_MESSAGES = [
+        "I bet it's gonna be a really cool photo",
+        "I pay £30 a month for gigabit internet though so it should be faster than this",
+        "I probably could've just added thumbnails but I want you to wait",
+        "Almost done (maybe)",
+        "Do you think I'm a good photographer? Please tell me if you think I am, I'm really vain",
+        "I still don't really know how to colour grade",
+        "Maybe if I didn't let AI program everything this would load faster",
+        "It's gonna be so worth it",
+        "I still don't really get how exposure works"
+    ];
+    let msgTimers = [];
+    let lastRandomIdx = -1;
+
+    function pickRandom() {
+        let idx;
+        do { idx = Math.floor(Math.random() * LB_RANDOM_MESSAGES.length); }
+        while (idx === lastRandomIdx && LB_RANDOM_MESSAGES.length > 1);
+        lastRandomIdx = idx;
+        return LB_RANDOM_MESSAGES[idx];
+    }
+
+    function startRandomCycle(textEl) {
+        const hold = 3000;
+        const t1 = setTimeout(() => {
+            textEl.style.opacity = '0';
+            const t2 = setTimeout(() => {
+                textEl.textContent = pickRandom();
+                textEl.style.opacity = '1';
+                startRandomCycle(textEl);
+            }, 400);
+            msgTimers.push(t2);
+        }, hold);
+        msgTimers.push(t1);
+    }
+
+    function startLoadingMessages() {
+        msgTimers.forEach(clearTimeout);
+        msgTimers = [];
+        lastRandomIdx = -1;
+        const textEl = document.querySelector('.lb-progress-text');
+        textEl.style.opacity = '1';
+        textEl.textContent = LB_MESSAGES[0];
+        LB_MESSAGES.slice(1).forEach((msg, i) => {
+            const t1 = setTimeout(() => {
+                textEl.style.opacity = '0';
+                const t2 = setTimeout(() => {
+                    textEl.textContent = msg;
+                    textEl.style.opacity = '1';
+                    // After the last fixed message, kick off random cycling
+                    if (i === LB_MESSAGES.length - 2) startRandomCycle(textEl);
+                }, 400);
+                msgTimers.push(t2);
+            }, (i + 1) * 3000);
+            msgTimers.push(t1);
+        });
+    }
+
+    function stopLoadingMessages() {
+        msgTimers.forEach(clearTimeout);
+        msgTimers = [];
+    }
+
+    // ── Typewriter for photo details ─────────────────────
+    let twTimers = [];
+
+    function stopTypewriters() {
+        twTimers.forEach(clearTimeout);
+        twTimers = [];
+        document.querySelectorAll('.tw-typing').forEach(el => el.classList.remove('tw-typing'));
+    }
+
+    function typeInto(el, text, delay, speed) {
+        el.textContent = '';
+        el.classList.add('tw-typing');
+        let i = 0;
+        function tick() {
+            if (i < text.length) {
+                el.textContent = text.slice(0, ++i);
+                twTimers.push(setTimeout(tick, speed + Math.random() * speed * 0.25));
+            } else {
+                el.classList.remove('tw-typing');
+            }
+        }
+        twTimers.push(setTimeout(tick, delay));
+    }
+
+    function typeInfoSequence(p) {
+        stopTypewriters();
+        const date   = fmtDate(p.date_taken);
+        const exif   = exifLine(p);
+        const place  = placeLine(p);
+        const desc   = p.description || '';
+        const camera = [p.camera, p.lens].filter(Boolean).join('  ·  ');
+
+        const speed = 26; // ms per character
+        let delay = 0;
+
+        if (date)   { typeInto(document.getElementById('lb-date'),   date,   delay, speed); delay += date.length   * speed + 500; }
+        if (exif)   { typeInto(document.getElementById('lb-exif'),   exif,   delay, speed); delay += exif.length   * speed + 500; }
+        if (place)  { typeInto(document.getElementById('lb-place'),  place,  delay, speed); delay += place.length  * speed + 500; }
+        if (camera) { typeInto(document.getElementById('lb-camera'), camera, delay, speed); delay += camera.length * speed + 500; }
+        if (desc)   { typeInto(document.getElementById('lb-desc'),   desc,   delay, Math.round(speed * 0.6)); }
+    }
+
+    function loadLightboxPhoto() {
+        const p = allPhotos[currentIdx];
+        const img = document.getElementById('lb-img');
+        const progress = document.getElementById('lb-progress');
+        const fill = document.getElementById('lb-progress-fill');
+
+        abortFetch();
+        revokeBlobUrl();
+        img.onload = null;
+        img.onerror = null;
+        img.classList.remove('ready');
+        img.src = '';
+        fill.style.transition = 'none';
+        fill.style.width = '0%';
+        fill.getBoundingClientRect(); // force reflow so width:0% is painted before transition re-enables
+        fill.style.transition = ''; // restore CSS transition
+        progress.classList.add('active');
+        startLoadingMessages();
+        fetchController = new AbortController();
+
+        document.getElementById('lb-counter').textContent = (currentIdx + 1) + ' / ' + allPhotos.length;
+        stopTypewriters();
+        document.getElementById('lb-date').textContent    = '';
+        document.getElementById('lb-exif').textContent    = '';
+        document.getElementById('lb-place').textContent   = '';
+        document.getElementById('lb-place').style.display = ''; // always shown — reserves min-height
+        document.getElementById('lb-camera').textContent  = '';
+        document.getElementById('lb-desc').textContent    = '';
+        document.getElementById('lb-desc').style.display  = ''; // always shown — reserves min-height
+
+        const url = fullPhotoUrl(p.filename, p.rotation);
+
+        fetch(url, { signal: fetchController.signal })
+            .then(response => {
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                const total = parseInt(response.headers.get('Content-Length') || '0', 10);
+                const reader = response.body.getReader();
+                const chunks = [];
+                let loaded = 0;
+
+                function pump() {
+                    return reader.read().then(({ done, value }) => {
+                        if (done) {
+                            const blob = new Blob(chunks, { type: 'image/jpeg' });
+                            currentBlobUrl = URL.createObjectURL(blob);
+                            img.onload  = () => {
+                                stopLoadingMessages();
+                                fill.style.width = '100%';
+                                // Hold at full for 280ms, then fade bar out
+                                setTimeout(() => {
+                                    progress.classList.add('fading');
+                                    // After bar fades (350ms), show photo
+                                    setTimeout(() => {
+                                        progress.classList.remove('active', 'fading');
+                                        img.classList.add('ready');
+                                        // Wait 2s after photo is visible, then start typing
+                                        setTimeout(() => typeInfoSequence(p), 2000);
+                                    }, 350);
+                                }, 280);
+                            };
+                            img.onerror = () => { stopLoadingMessages(); progress.classList.remove('active', 'fading'); img.classList.add('ready'); };
+                            img.src = currentBlobUrl;
+                            return;
+                        }
+                        chunks.push(value);
+                        loaded += value.length;
+                        if (total) {
+                            fill.style.width = Math.min(100, Math.round((loaded / total) * 100)) + '%';
+                        }
+                        return pump();
+                    });
+                }
+                return pump();
+            })
+            .catch(err => {
+                if (err.name === 'AbortError') return;
+                stopLoadingMessages();
+                progress.classList.remove('active');
+                img.classList.add('ready');
+            });
+    }
+
+    function navigate(dir) {
+        const next = currentIdx + dir;
+        if (next < 0 || next >= allPhotos.length) return;
+        abortFetch();
+        resetZoom();
+        currentIdx = next;
+        const p = allPhotos[currentIdx];
+        if (p) history.replaceState(null, '', '?photo=' + encodeURIComponent(p.filename));
+        loadLightboxPhoto();
+    }
+
+    // ── Event listeners ──────────────────────────────────
+
+    // ── Select / download buttons ────────────────────────
+    document.getElementById('select-btn').addEventListener('click', toggleSelectMode);
+    document.getElementById('select-clear-btn').addEventListener('click', clearSelection);
+    document.getElementById('select-dl-btn').addEventListener('click', downloadSelected);
+
+    document.getElementById('lb-download').addEventListener('click', async e => {
+        e.stopPropagation();
+        const p = allPhotos[currentIdx];
+        if (p) await downloadFile(p.filename, p.rotation || 0);
+    });
+
+    // ── Share button ─────────────────────────────────────
+    let shareCopiedTimer = null;
+    document.getElementById('lb-share').addEventListener('click', e => {
+        e.stopPropagation();
+        const btn = document.getElementById('lb-share');
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+            btn.textContent = 'copied';
+            btn.classList.add('copied');
+            clearTimeout(shareCopiedTimer);
+            shareCopiedTimer = setTimeout(() => {
+                btn.textContent = 'copy link';
+                btn.classList.remove('copied');
+            }, 2000);
+        }).catch(() => {});
+    });
+
+    document.getElementById('lb-close').addEventListener('click', closeLightbox);
+    document.getElementById('lightbox').addEventListener('click', function(e) { if (e.target === this) closeLightbox(); });
+    document.getElementById('lb-prev').addEventListener('click', e => { e.stopPropagation(); navigate(-1); });
+    document.getElementById('lb-next').addEventListener('click', e => { e.stopPropagation(); navigate(1); });
+
+    document.addEventListener('keydown', e => {
+        if (currentIdx === -1) return;
+        if (e.key === 'Escape')      closeLightbox();
+        if (e.key === 'ArrowLeft')   navigate(-1);
+        if (e.key === 'ArrowRight')  navigate(1);
+    });
+
+    // ── Lightbox zoom ────────────────────────────────────
+    let lbZoomed = false;
+    const lbImg = document.getElementById('lb-img');
+
+    function resetZoom() {
+        lbZoomed = false;
+        lbImg.style.transition = 'transform 0.3s ease';
+        lbImg.style.transform = '';
+        lbImg.style.transformOrigin = '50% 50%';
+        lbImg.classList.remove('zoomed');
+    }
+
+    lbImg.addEventListener('click', e => {
+        if (window.matchMedia('(pointer: coarse)').matches) return; // mobile: use native pinch zoom
+        if (!lbZoomed) {
+            const rect = lbImg.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top)  / rect.height) * 100;
+            lbImg.style.transformOrigin = `${x}% ${y}%`;
+            lbImg.style.transition = 'transform 0.3s ease';
+            lbImg.style.transform = 'scale(2.5)';
+            lbImg.classList.add('zoomed');
+            lbZoomed = true;
+        } else {
+            resetZoom();
+        }
+    });
+
+    lbImg.addEventListener('mousemove', e => {
+        if (!lbZoomed) return;
+        const x = (e.clientX / window.innerWidth)  * 100;
+        const y = (e.clientY / window.innerHeight) * 100;
+        lbImg.style.transition = 'none';
+        lbImg.style.transformOrigin = `${x}% ${y}%`;
+    });
+
+    // ── Infinite scroll ───────────────────────────────────
+    const sentinel = document.getElementById('load-more-wrap');
+    const scrollObserver = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting && shown < allPhotos.length) {
+            renderMore();
+        }
+    }, { rootMargin: '200px' });
+    scrollObserver.observe(sentinel);
+
+    let touchStartX = 0;
+    let touchStartCount = 0;
+    document.getElementById('lightbox').addEventListener('touchstart', e => {
+        touchStartCount = e.touches.length;
+        if (e.touches.length === 1) touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    document.getElementById('lightbox').addEventListener('touchend', e => {
+        if (touchStartCount !== 1) return; // ignore pinch-zoom and other multi-touch
+        const dx = e.changedTouches[0].screenX - touchStartX;
+        if (Math.abs(dx) > 50) navigate(dx < 0 ? 1 : -1);
+    }, { passive: true });
+
+    // ── Load photos ──────────────────────────────────────
+
+    function loadPhotos() {
+        const gallery = document.getElementById('gallery');
+        gallery.innerHTML = '';
+        gallery.style.height = '0';
+        shown = 0;
+        allPhotos = [];
+
+        const headers = isAdmin() ? adminHeaders() : {};
+        const endpoint = viewMode === 'raw' ? '/api/photography/photos/raw' : '/api/photography/photos';
+
+        fetch(endpoint, { headers })
+            .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+            .then(data => {
+                allPhotos = data.photos || [];
+                const countEl = document.getElementById('pg-count');
+                if (allPhotos.length === 0) { countEl.textContent = 'no photographs yet'; return; }
+                countEl.textContent = data.count + ' photographs · Nikon D610';
+                renderMore();
+                // Deep-link: open photo from ?photo=filename
+                const targetFilename = new URLSearchParams(window.location.search).get('photo');
+                if (targetFilename) {
+                    const idx = allPhotos.findIndex(p => p.filename === targetFilename);
+                    if (idx !== -1) openLightbox(idx);
+                }
+            })
+            .catch(() => {
+                document.getElementById('pg-count').textContent = 'could not load';
+                const msg = document.getElementById('gallery-msg');
+                msg.textContent = 'Failed to load photographs.';
+                msg.style.display = 'block';
+            });
+    }
+
+    // ── Init ─────────────────────────────────────────────
+    if (isAdmin()) {
+        document.body.classList.add('admin-mode');
+        settingsBtn.classList.add('admin-active');
+    }
+
+    // Update button text for iOS devices
+    if (isIOS()) {
+        document.getElementById('select-dl-btn').textContent = 'share selected';
+        document.getElementById('lb-download').textContent = 'save';
+    } else {
+        document.getElementById('select-dl-btn').textContent = 'download selected';
+        document.getElementById('lb-download').textContent = 'download';
+    }
+
+    loadPhotos();
+
+    // ── Select button hint + flash on load ───────────────
+    setTimeout(() => {
+        const hint = document.getElementById('select-hint');
+        const btn  = document.getElementById('select-btn');
+        // Fade hint in
+        hint.style.opacity = '1';
+        // Fade hint out after 3s visible
+        setTimeout(() => { hint.style.opacity = '0'; }, 3000);
+        // Flash button 5×
+        btn.classList.add('flashing');
+        btn.addEventListener('animationend', () => btn.classList.remove('flashing'), { once: true });
+    }, 600);
+
+})();
+</script>
+</body>
+</html>

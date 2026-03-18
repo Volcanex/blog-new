@@ -127,6 +127,41 @@ shared/
 ### Global Endpoints
 - `GET /api/health` - Server health check
 - `GET /api/pages` - List all pages
+- `GET /api/server-details` - Get server hardware stats (CPU, RAM, GPU)
+
+### Publishing API (New)
+Programmatic post management with automatic compile.py triggering:
+
+- `POST /api/posts/create` - Create a new blog post
+  ```json
+  {
+    "slug": "my-new-post",
+    "title": "My New Post",
+    "content": "# Markdown content",
+    "description": "Optional description",
+    "date": "2026-01-21",
+    "categories": ["tech", "blog"],
+    "auto_compile": true
+  }
+  ```
+
+- `PUT /api/posts/update/<slug>` - Update existing post (partial updates supported)
+  ```json
+  {
+    "title": "Updated Title",
+    "content": "Updated content",
+    "description": "New description",
+    "categories": ["updated"],
+    "auto_compile": true
+  }
+  ```
+
+- `DELETE /api/posts/delete/<slug>` - Delete a post
+  - Query param: `auto_compile=true` (default)
+
+- `POST /api/posts/compile` - Manually trigger compile.py
+  - Protected by compile lock to prevent concurrent executions
+  - 60-second timeout
 
 ### Page-specific Endpoints
 Each page defines its own endpoints at `/api/{page-slug}/...`

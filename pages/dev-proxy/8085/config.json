@@ -1,7 +1,0 @@
-{
-    "title": "Pub/Sub Emulator",
-    "slug": "8085",
-    "parent": "dev-proxy",
-    "description": "Google Cloud Pub/Sub emulator",
-    "hidden": true
-}

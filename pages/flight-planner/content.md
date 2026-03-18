@@ -1,0 +1,2188 @@
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #f5f5f5;
+    color: #333;
+}
+
+.container {
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 30px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+h1 {
+    color: #2c3e50;
+    margin: 0 0 10px 0;
+    font-size: 28px;
+    font-weight: 600;
+    text-align: center;
+    border-bottom: 3px solid #3498db;
+    padding-bottom: 15px;
+}
+
+.subtitle {
+    color: #666;
+    margin-bottom: 25px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.search-form {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.form-row {
+    margin-bottom: 12px;
+}
+
+.form-group {
+    margin-bottom: 12px;
+}
+
+label {
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 5px;
+    font-size: 13px;
+    display: block;
+}
+
+select, input {
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fff;
+    width: 220px;
+    transition: border-color 0.2s;
+}
+
+select:focus, input:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+button {
+    background: #3498db;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s;
+}
+
+button:hover {
+    background: #2980b9;
+}
+
+button:active {
+    background: #2472a4;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.status-box {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-left: 4px solid #ffc107;
+    border-radius: 4px;
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    display: none;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.status-box.active {
+    display: block;
+}
+
+.status-box.searching {
+    background: #d1ecf1;
+    border-color: #17a2b8;
+    border-left-color: #17a2b8;
+}
+
+.status-box.success {
+    background: #d4edda;
+    border-color: #28a745;
+    border-left-color: #28a745;
+}
+
+.status-box.error {
+    background: #f8d7da;
+    border-color: #dc3545;
+    border-left-color: #dc3545;
+}
+
+.results-container {
+    display: none;
+}
+
+.results-container.active {
+    display: block;
+}
+
+.path-card {
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.path-summary {
+    border-bottom: 2px solid #eee;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.path-summary h2 {
+    color: #2c3e50;
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.cost-badge {
+    background: #27ae60;
+    color: #fff;
+    padding: 8px 16px;
+    font-weight: 600;
+    font-size: 22px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.path-visualization {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 20px;
+    text-align: center;
+    margin: 15px 0;
+}
+
+.airport-node {
+    background: #fff;
+    border: 1px solid #3498db;
+    border-radius: 3px;
+    padding: 12px 16px;
+    display: inline-block;
+    font-weight: 600;
+    font-size: 14px;
+    margin: 5px;
+    color: #2c3e50;
+}
+
+.airport-node .day {
+    font-size: 11px;
+    margin-top: 4px;
+    font-weight: 400;
+    color: #666;
+}
+
+.arrow {
+    color: #95a5a6;
+    font-size: 18px;
+    font-weight: normal;
+    display: inline-block;
+    margin: 0 8px;
+}
+
+.stats {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.stats table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.stats td {
+    padding: 10px;
+    border: 1px solid #eee;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 20px;
+    font-weight: 600;
+    color: #3498db;
+}
+
+.stat-label {
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-box {
+    background: #fff8dc;
+    border: 1px solid #f0e68c;
+    border-left: 4px solid #f0e68c;
+    border-radius: 4px;
+    padding: 15px 20px;
+    margin-top: 20px;
+}
+
+.info-box h3 {
+    margin: 0 0 12px 0;
+    color: #2c3e50;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.info-box p {
+    margin: 8px 0;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #555;
+}
+
+.graph-container {
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.graph-container h3 {
+    margin-top: 0;
+    color: #2c3e50;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+#search-graph {
+    width: 100%;
+    height: 500px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fafafa;
+}
+
+.graph-legend {
+    margin-top: 15px;
+    text-align: center;
+    font-size: 12px;
+}
+
+.legend-item {
+    display: inline-block;
+    margin: 5px 12px;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #999;
+    border-radius: 2px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+.spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid #ddd;
+    margin: 20px 0;
+}
+
+.param-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.param-cell {
+    /* Grid handles layout */
+}
+
+h3, h4 {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+h4 {
+    font-size: 15px;
+    margin: 15px 0 10px 0;
+}
+
+center {
+    margin: 15px 0;
+}
+
+/* Paths Table Styles */
+.paths-table-container {
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+}
+
+.paths-table-header {
+    border-bottom: 2px solid #eee;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.paths-table-header h2 {
+    color: #2c3e50;
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.paths-count {
+    color: #666;
+    font-size: 14px;
+    font-weight: normal;
+}
+
+.paths-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.paths-table thead {
+    background: #f5f5f5;
+    border-bottom: 2px solid #ddd;
+}
+
+.paths-table th {
+    padding: 12px 10px;
+    text-align: left;
+    font-weight: 600;
+    color: #2c3e50;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #ddd;
+}
+
+.paths-table th.cost-col {
+    text-align: right;
+}
+
+.paths-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #eee;
+    color: #555;
+}
+
+.paths-table tbody tr:hover {
+    background: #f9f9f9;
+}
+
+.paths-table tbody tr.clickable {
+    cursor: pointer;
+}
+
+.path-detail-row {
+    display: none;
+}
+
+.path-detail-row.expanded {
+    display: table-row;
+}
+
+.path-detail-row td {
+    background: #f9f9f9;
+    padding: 20px;
+    border-left: 4px solid #3498db;
+}
+
+.path-detail-content {
+    max-width: 100%;
+}
+
+.path-detail-header {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 14px;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 8px;
+}
+
+.flight-segment {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 10px;
+}
+
+.flight-segment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.segment-route {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 15px;
+}
+
+.segment-cost {
+    color: #27ae60;
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.flight-segment-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    font-size: 13px;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-label {
+    color: #666;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 3px;
+}
+
+.detail-value {
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.layover-notice {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
+    padding: 10px 15px;
+    margin: 10px 0;
+    font-size: 13px;
+    color: #856404;
+}
+
+.expand-icon {
+    font-size: 12px;
+    margin-left: 5px;
+    color: #999;
+}
+
+.paths-table td.cost-col {
+    text-align: right;
+    font-weight: 600;
+    color: #27ae60;
+    font-size: 15px;
+}
+
+.paths-table td.route-col {
+    font-family: monospace;
+    color: #2c3e50;
+}
+
+.paths-table .route-arrow {
+    color: #95a5a6;
+    margin: 0 4px;
+}
+
+.paths-table td.stops-col,
+.paths-table td.days-col {
+    text-align: center;
+}
+
+.path-rank {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    text-align: center;
+    background: #3498db;
+    color: #fff;
+    border-radius: 50%;
+    font-weight: 600;
+    font-size: 11px;
+}
+
+.path-rank.rank-1 {
+    background: #f39c12;
+}
+
+.search-stats {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 12px;
+    margin-top: 15px;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+
+.search-stats .stat-item {
+    text-align: center;
+    margin: 5px 10px;
+}
+
+.search-stats .stat-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #3498db;
+}
+
+.search-stats .stat-label {
+    font-size: 10px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 3px;
+}
+</style>
+
+<html>
+<div class="container">
+    <h1>✈ FLIGHT PATH OPTIMIZER ✈</h1>
+    <p class="subtitle">Find optimal flight routes using A* search with real-time Google Flights data</p>
+
+    <hr>
+
+    <div class="search-form">
+        <h3 style="margin-top: 0; color: #2c3e50;">SEARCH PARAMETERS</h3>
+
+        <details style="margin-bottom: 15px; padding: 10px; background: #fff; border: 1px solid #ddd; border-radius: 3px;">
+            <summary style="cursor: pointer; font-weight: 600; color: #555;">Manage Airports</summary>
+            <div style="margin-top: 15px;">
+                <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 10px;">
+                    <div>
+                        <label for="new-airport">Add Airport (IATA Code):</label>
+                        <input type="text" id="new-airport" placeholder="e.g., BKK" maxlength="3" style="width: 100px; text-transform: uppercase;">
+                    </div>
+                    <button onclick="addAirport()" style="padding: 8px 16px;">Add</button>
+                </div>
+
+                <div>
+                    <label for="remove-airport">Remove Airport:</label>
+                    <select id="remove-airport" style="width: 150px;"></select>
+                    <button onclick="removeAirport()" style="padding: 8px 16px; margin-left: 10px;">Remove</button>
+                    <button onclick="resetAirports()" style="padding: 8px 16px; margin-left: 10px; background: #e74c3c;">Reset to Defaults</button>
+                </div>
+
+                <div id="airport-status" style="margin-top: 10px; padding: 8px; border-radius: 3px; display: none;"></div>
+            </div>
+        </details>
+
+        <div class="param-row">
+            <div class="param-cell">
+                <div class="form-group">
+                    <label for="source-airport">SOURCE AIRPORT:</label>
+                    <select id="source-airport">
+                        <option value="">Select source...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="param-cell">
+                <div class="form-group">
+                    <label for="dest-airport">DESTINATION AIRPORT:</label>
+                    <select id="dest-airport">
+                        <option value="">Select destination...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="param-row">
+            <div class="param-cell">
+                <div class="form-group">
+                    <label for="start-date">START DATE:</label>
+                    <input type="date" id="start-date">
+                </div>
+            </div>
+
+            <div class="param-cell">
+                <div class="form-group">
+                    <label for="end-date">END DATE:</label>
+                    <input type="date" id="end-date">
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <h4 style="margin: 10px 0; color: #000080;">ADVANCED OPTIONS</h4>
+
+        <div class="param-row">
+            <div class="param-cell">
+                <div class="form-group">
+                    <label for="api-limit">API CALL LIMIT:</label>
+                    <input type="number" id="api-limit" value="200" min="10" max="1000" step="10">
+                </div>
+            </div>
+
+            <div class="param-cell">
+                <div class="form-group">
+                    <label for="max-iterations">MAX ITERATIONS:</label>
+                    <input type="number" id="max-iterations" value="1000" min="100" max="10000" step="100">
+                </div>
+            </div>
+        </div>
+
+        <div class="param-row">
+            <div class="param-cell">
+                <div class="form-group">
+                    <label for="stay-cost">OVERNIGHT STAY COST ($):</label>
+                    <input type="number" id="stay-cost" value="100" min="0" max="500" step="10">
+                </div>
+            </div>
+            <div class="param-cell">
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="force-indirect" style="width: auto; cursor: pointer;">
+                        <span>Force Indirect Routes (Skip Direct Flights)</span>
+                    </label>
+                    <div style="font-size: 11px; color: #666; margin-top: 5px;">
+                        Find opportunities other tools miss by forcing multi-hop routes
+                    </div>
+                </div>
+            </div>
+            <div class="param-cell">
+                <div class="form-group">
+                    <label for="viz-update-interval">GRAPH UPDATE INTERVAL (ms):</label>
+                    <input type="number" id="viz-update-interval" value="500" min="0" max="10000" step="100">
+                    <div style="font-size: 11px; color: #666; margin-top: 5px;">
+                        Min time between graph updates (0=instant, 500=smooth animation)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <center>
+            <button id="search-btn" onclick="startSearch()">
+                <span id="search-btn-text">► SEARCH PATHS</span>
+            </button>
+        </center>
+    </div>
+
+    <div id="status-box" class="status-box">
+        <div id="status-text"></div>
+    </div>
+
+    <!-- Search Graph Visualization - Always visible -->
+    <div class="graph-container">
+        <h3>SEARCH GRAPH VISUALIZATION</h3>
+        <p style="font-size: 9pt; margin: 5px 0; color: #666;">Click and drag to pan. Scroll to zoom.</p>
+        <div id="search-graph"></div>
+        <div class="graph-legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #a0aec0;"></div>
+                <span>Source</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ed8936;"></div>
+                <span>Destination</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #48bb78;"></div>
+                <span>Current</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #4299e1;"></div>
+                <span>Explored</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ecc94b;"></div>
+                <span>Frontier</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #9f7aea;"></div>
+                <span>Optimal Path</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="results-container" class="results-container">
+        <div class="paths-table-container">
+            <div class="paths-table-header">
+                <h2>ALL PATHS FOUND <span class="paths-count" id="paths-count"></span></h2>
+            </div>
+
+            <table class="paths-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th class="cost-col">Cost</th>
+                        <th>Route</th>
+                        <th class="stops-col">Stops</th>
+                        <th class="days-col">Days</th>
+                    </tr>
+                </thead>
+                <tbody id="paths-table-body">
+                    <!-- Paths will be populated here -->
+                </tbody>
+            </table>
+
+            <div class="search-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="iterations">0</div>
+                    <div class="stat-label">Iterations</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="api-calls">0</div>
+                    <div class="stat-label">API Calls</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="api-cost">$0.000</div>
+                    <div class="stat-label">API Cost</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-box">
+        <h3>HOW IT WORKS</h3>
+        <p><strong>A* Search Algorithm:</strong> This tool uses the A* pathfinding algorithm to find the cheapest flight route between airports.</p>
+        <p><strong>Real Flight Data:</strong> Flight prices are fetched in real-time from Google Flights via the DataForSEO SERP API.</p>
+        <p><strong>Multi-Day Search:</strong> The algorithm considers layovers and overnight stays to find the most cost-effective route, including multi-day layovers that other tools ignore.</p>
+        <p><strong>Smart Optimization:</strong> Uses heuristics to explore the most promising paths first, minimizing API calls.</p>
+    </div>
+
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+let currentSearchId = null;
+let pollInterval = null;
+let graphData = { nodes: [], edges: [] };
+let svg, simulation;
+let airportCoords = {}; // Store airport coordinates
+let sourceAirport = null; // Track source airport for radial layout
+
+// Load airports and coordinates on page load
+async function loadAirports() {
+    try {
+        const [airportsRes, coordsRes] = await Promise.all([
+            fetch('/api/flight-planner/airports'),
+            fetch('/api/flight-planner/airport-coords')
+        ]);
+
+        const airportsData = await airportsRes.json();
+        const coordsData = await coordsRes.json();
+
+        airportCoords = coordsData.coordinates;
+
+        const sourceSelect = document.getElementById('source-airport');
+        const destSelect = document.getElementById('dest-airport');
+
+        // Store current selections
+        const currentSource = sourceSelect.value;
+        const currentDest = destSelect.value;
+
+        // Clear existing options
+        sourceSelect.innerHTML = '<option value="">Select source...</option>';
+        destSelect.innerHTML = '<option value="">Select destination...</option>';
+
+        // Add all airports
+        airportsData.airports.forEach(airport => {
+            sourceSelect.add(new Option(airport, airport));
+            destSelect.add(new Option(airport, airport));
+        });
+
+        // Restore previous selections if they still exist, otherwise use defaults
+        if (airportsData.airports.includes(currentSource)) {
+            sourceSelect.value = currentSource;
+        } else if (airportsData.airports.includes('LHR')) {
+            sourceSelect.value = 'LHR';
+        } else {
+            sourceSelect.value = airportsData.airports[0];
+        }
+
+        if (airportsData.airports.includes(currentDest)) {
+            destSelect.value = currentDest;
+        } else if (airportsData.airports.includes('JFK')) {
+            destSelect.value = 'JFK';
+        } else {
+            destSelect.value = airportsData.airports[1] || airportsData.airports[0];
+        }
+
+    } catch (error) {
+        console.error('Error loading airports:', error);
+        showStatus('Error loading airports: ' + error.message, 'error');
+    }
+}
+
+// Calculate geographic distance between two airports (Haversine formula)
+function calculateDistance(airport1, airport2) {
+    const coords1 = airportCoords[airport1];
+    const coords2 = airportCoords[airport2];
+
+    if (!coords1 || !coords2) return 1000; // Default distance
+
+    const R = 6371; // Earth's radius in km
+    const dLat = (coords2.lat - coords1.lat) * Math.PI / 180;
+    const dLon = (coords2.lon - coords1.lon) * Math.PI / 180;
+
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(coords1.lat * Math.PI / 180) * Math.cos(coords2.lat * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // Distance in km
+}
+
+// Calculate radial position with logarithmic scaling
+function calculateRadialPosition(airport, centerX, centerY, maxRadius) {
+    if (!sourceAirport || airport === sourceAirport) {
+        return { x: centerX, y: centerY };
+    }
+
+    const distance = calculateDistance(sourceAirport, airport);
+    // Logarithmic scaling: log(1 + distance) to handle distances from 0 to ~20000km
+    const scaledDistance = Math.log(1 + distance) / Math.log(1 + 20000) * maxRadius;
+
+    // Get airport coords for angular positioning
+    const coords = airportCoords[airport];
+    const sourceCoords = airportCoords[sourceAirport];
+
+    if (!coords || !sourceCoords) {
+        // Random angle if coords missing
+        const angle = Math.random() * 2 * Math.PI;
+        return {
+            x: centerX + scaledDistance * Math.cos(angle),
+            y: centerY + scaledDistance * Math.sin(angle)
+        };
+    }
+
+    // Use geographic angle
+    const angle = Math.atan2(coords.lat - sourceCoords.lat, coords.lon - sourceCoords.lon);
+
+    return {
+        x: centerX + scaledDistance * Math.cos(angle),
+        y: centerY + scaledDistance * Math.sin(angle)
+    };
+}
+
+// Buffering system for graph updates
+let updateQueue = [];
+let isProcessingQueue = false;
+let lastUpdateTime = 0;
+let lastUpdateHash = null;
+let processedSnapshotCount = 0; // Track how many snapshots we've already processed
+
+function queueGraphUpdate(vizData) {
+    // Create a simple hash of the update to avoid duplicates
+    const hash = JSON.stringify({
+        numNodes: vizData.explored_nodes?.length || 0,
+        numEdges: vizData.edges?.length || 0,
+        numFrontier: vizData.frontier_nodes?.length || 0
+    });
+
+    // Only queue if different from last update
+    if (hash !== lastUpdateHash) {
+        updateQueue.push(vizData);
+        lastUpdateHash = hash;
+    }
+}
+
+function queueNewSnapshots(snapshots) {
+    // Queue all snapshots we haven't seen yet
+    if (!snapshots || !Array.isArray(snapshots)) return;
+
+    const newSnapshots = snapshots.slice(processedSnapshotCount);
+    newSnapshots.forEach(snapshot => queueGraphUpdate(snapshot));
+    processedSnapshotCount = snapshots.length;
+}
+
+async function processUpdateQueue() {
+    if (isProcessingQueue) return;
+    isProcessingQueue = true;
+
+    while (updateQueue.length > 0) {
+        const updateInterval = parseInt(document.getElementById('viz-update-interval')?.value || 500);
+        const now = Date.now();
+        const timeSinceLastUpdate = now - lastUpdateTime;
+
+        // Wait if needed to respect minimum interval
+        if (timeSinceLastUpdate < updateInterval) {
+            await new Promise(resolve => setTimeout(resolve, updateInterval - timeSinceLastUpdate));
+        }
+
+        // Pull next update from queue
+        const vizData = updateQueue.shift();
+        if (vizData) {
+            updateGraphVisualization(vizData);
+            lastUpdateTime = Date.now();
+        }
+    }
+
+    isProcessingQueue = false;
+}
+
+function initGraph() {
+    const container = document.getElementById('search-graph');
+    const width = container.clientWidth;
+    const height = 500;
+
+    // Clear any existing SVG
+    d3.select('#search-graph').selectAll('*').remove();
+
+    // Clear stored node positions for new search
+    if (window.graphNodePositions) {
+        window.graphNodePositions.clear();
+    }
+
+    // Clear update queue and snapshot counter
+    updateQueue = [];
+    lastUpdateTime = 0;
+    processedSnapshotCount = 0;
+    lastUpdateHash = null;
+
+    svg = d3.select('#search-graph')
+        .append('svg')
+        .attr('width', width)
+        .attr('height', height);
+
+    // Create a container group for zoom/pan
+    const g = svg.append('g').attr('class', 'zoom-container');
+
+    // Add zoom behavior
+    const zoom = d3.zoom()
+        .scaleExtent([0.1, 4])  // Allow zoom from 10% to 400%
+        .on('zoom', (event) => {
+            g.attr('transform', event.transform);
+        });
+
+    svg.call(zoom);
+
+    // Create groups for links and nodes (links first so they appear behind nodes)
+    g.append('g').attr('class', 'links');
+    g.append('g').attr('class', 'nodes');
+
+    // Add markers for different edge states (in svg, not in g)
+    const defs = svg.append('defs');
+
+    // Green arrow for found flights
+    defs.append('marker')
+        .attr('id', 'arrow-found')
+        .attr('viewBox', '-0 -5 10 10')
+        .attr('refX', 20)
+        .attr('refY', 0)
+        .attr('orient', 'auto')
+        .attr('markerWidth', 6)
+        .attr('markerHeight', 6)
+        .append('svg:path')
+        .attr('d', 'M 0,-5 L 10,0 L 0,5')
+        .attr('fill', '#48bb78');
+
+    // Red arrow for not found
+    defs.append('marker')
+        .attr('id', 'arrow-not-found')
+        .attr('viewBox', '-0 -5 10 10')
+        .attr('refX', 20)
+        .attr('refY', 0)
+        .attr('orient', 'auto')
+        .attr('markerWidth', 6)
+        .attr('markerHeight', 6)
+        .append('svg:path')
+        .attr('d', 'M 0,-5 L 10,0 L 0,5')
+        .attr('fill', '#f56565');
+
+    // Purple arrow for optimal path
+    defs.append('marker')
+        .attr('id', 'arrow-optimal')
+        .attr('viewBox', '-0 -5 10 10')
+        .attr('refX', 20)
+        .attr('refY', 0)
+        .attr('orient', 'auto')
+        .attr('markerWidth', 8)
+        .attr('markerHeight', 8)
+        .append('svg:path')
+        .attr('d', 'M 0,-5 L 10,0 L 0,5')
+        .attr('fill', '#9f7aea');
+
+    // Custom distance-based repulsion force
+    function distanceBasedRepulsion(alpha) {
+        const nodes = simulation.nodes();
+        for (let i = 0; i < nodes.length; i++) {
+            for (let j = i + 1; j < nodes.length; j++) {
+                const a = nodes[i];
+                const b = nodes[j];
+
+                // Calculate screen distance
+                const dx = b.x - a.x;
+                const dy = b.y - a.y;
+                const screenDist = Math.sqrt(dx * dx + dy * dy);
+
+                if (screenDist === 0) continue;
+
+                // Get geographic distance between airports
+                const geoDist = calculateDistance(a.airport, b.airport);
+
+                // Repulsion strength inversely proportional to geographic distance
+                // Close airports (geographically) should stay apart on screen
+                // Far airports can be closer on screen
+                const geoFactor = 1 / (1 + geoDist / 1000); // Normalize by 1000km
+                const repulsionStrength = 800 * geoFactor * alpha;
+
+                // Apply repulsion force
+                const force = repulsionStrength / (screenDist * screenDist);
+                const fx = (dx / screenDist) * force;
+                const fy = (dy / screenDist) * force;
+
+                a.vx -= fx;
+                a.vy -= fy;
+                b.vx += fx;
+                b.vy += fy;
+            }
+        }
+    }
+
+    simulation = d3.forceSimulation()
+        .force('link', d3.forceLink()
+            .id(d => d.id)
+            .distance(d => d.distance || 150)
+            .strength(d => d.linkStrength || 0.3))  // Use per-edge strength
+        .force('distanceRepulsion', distanceBasedRepulsion)  // Custom distance-based repulsion
+        .force('collision', d3.forceCollide().radius(35))
+        .force('x', d3.forceX().strength(0.05))
+        .force('y', d3.forceY().strength(0.05));
+
+    // Store existing node positions across updates
+    window.graphNodePositions = new Map();
+}
+
+function updateGraphVisualization(vizData) {
+    if (!svg || !simulation) {
+        initGraph();
+    }
+
+    if (!vizData) return;
+
+    const container = document.getElementById('search-graph');
+    const width = container.clientWidth;
+    const height = 500;
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const maxRadius = Math.min(width, height) * 0.4;
+
+    // Build node list from visualization data
+    const nodeMap = new Map();
+    const exploredSet = new Set();
+    const frontierSet = new Set();
+
+    // Add explored nodes
+    if (vizData.explored_nodes) {
+        vizData.explored_nodes.forEach(n => {
+            const id = `${n.airport}_${n.day}`;
+            exploredSet.add(id);
+            if (!nodeMap.has(id)) {
+                nodeMap.set(id, { id, airport: n.airport, day: n.day, state: 'explored' });
+            }
+        });
+    }
+
+    // Add frontier nodes
+    if (vizData.frontier_nodes) {
+        vizData.frontier_nodes.forEach(n => {
+            const id = `${n.airport}_${n.day}`;
+            frontierSet.add(id);
+            if (!nodeMap.has(id)) {
+                nodeMap.set(id, { id, airport: n.airport, day: n.day, state: 'frontier' });
+            }
+        });
+    }
+
+    // Mark current node
+    if (vizData.current_node) {
+        const currentId = `${vizData.current_node.airport}_${vizData.current_node.day}`;
+        if (nodeMap.has(currentId)) {
+            nodeMap.get(currentId).state = 'current';
+        } else {
+            nodeMap.set(currentId, {
+                id: currentId,
+                airport: vizData.current_node.airport,
+                day: vizData.current_node.day,
+                state: 'current'
+            });
+        }
+    }
+
+    // Add nodes from edges
+    if (vizData.edges) {
+        vizData.edges.forEach(e => {
+            const sourceId = `${e.source.airport}_${e.source.day}`;
+            const targetId = `${e.target.airport}_${e.target.day}`;
+
+            if (!nodeMap.has(sourceId)) {
+                nodeMap.set(sourceId, { id: sourceId, airport: e.source.airport, day: e.source.day, state: 'undiscovered' });
+            }
+            if (!nodeMap.has(targetId)) {
+                nodeMap.set(targetId, { id: targetId, airport: e.target.airport, day: e.target.day, state: 'undiscovered' });
+            }
+        });
+    }
+
+    const nodes = Array.from(nodeMap.values());
+
+    // Mark source node (first node in path)
+    if (vizData.path_nodes && vizData.path_nodes.length > 0) {
+        const sourceNode = vizData.path_nodes[0];
+        const sourceId = `${sourceNode.airport}_${sourceNode.day}`;
+        nodes.forEach(node => {
+            if (node.id === sourceId) {
+                node.state = 'source';
+            }
+        });
+    }
+
+    // Mark nodes that are part of the optimal path
+    if (vizData.path_nodes && vizData.path_nodes.length > 0) {
+        const pathNodeSet = new Set(vizData.path_nodes.map(n => `${n.airport}_${n.day}`));
+        nodes.forEach(node => {
+            if (pathNodeSet.has(node.id) && node.state !== 'source' && node.state !== 'current') {
+                node.state = 'optimal';
+            }
+        });
+    }
+
+    // Mark destination nodes with special color
+    if (destinationAirport) {
+        nodes.forEach(node => {
+            if (node.airport === destinationAirport && node.state !== 'current' && node.state !== 'source') {
+                node.state = 'destination';
+            }
+        });
+    }
+
+    // Track new nodes for restart decision
+    let hasNewNodes = false;
+
+    // Preserve or calculate positions
+    nodes.forEach(node => {
+        // Try to restore previous position from stored positions
+        if (window.graphNodePositions.has(node.id)) {
+            const saved = window.graphNodePositions.get(node.id);
+            node.x = saved.x;
+            node.y = saved.y;
+            node.vx = saved.vx || 0;
+            node.vy = saved.vy || 0;
+        } else {
+            // New node - calculate initial position
+            hasNewNodes = true;
+            const pos = calculateRadialPosition(node.airport, centerX, centerY, maxRadius);
+            node.x = pos.x;
+            node.y = pos.y;
+            node.vx = 0;
+            node.vy = 0;
+        }
+    });
+
+    // Build edges with different link strengths based on state
+    const edges = (vizData.edges || []).map(e => {
+        let linkStrength;
+        // Assign different forces to different edge types
+        switch(e.state) {
+            case 'checking':
+                linkStrength = 0.1;  // Weak force - being checked
+                break;
+            case 'optimal':
+                linkStrength = 0.0;  // No force - just visual
+                break;
+            case 'found':
+                linkStrength = 0.3;  // Normal force
+                break;
+            case 'not_found':
+                linkStrength = 0.05; // Very weak force
+                break;
+            default:
+                linkStrength = 0.3;
+        }
+
+        return {
+            source: `${e.source.airport}_${e.source.day}`,
+            target: `${e.target.airport}_${e.target.day}`,
+            cost: e.cost,
+            state: e.state,
+            distance: calculateDistance(e.source.airport, e.target.airport) / 100 + 50,
+            linkStrength: linkStrength
+        };
+    });
+
+    // Node colors based on state
+    function getNodeColor(state) {
+        switch(state) {
+            case 'source': return '#10b981'; // Emerald green for source
+            case 'current': return '#48bb78'; // Pulsing green
+            case 'explored': return '#4299e1'; // Blue
+            case 'frontier': return '#ecc94b'; // Yellow glow
+            case 'destination': return '#ed8936'; // Orange for destination
+            case 'optimal': return '#9f7aea'; // Purple for optimal path
+            default: return '#a0aec0'; // Gray
+        }
+    }
+
+    // Edge styling based on state
+    function getEdgeStyle(state) {
+        switch(state) {
+            case 'checking': return { stroke: '#f59e0b', dasharray: '5,5', width: 3, marker: '', opacity: 0.8 };
+            case 'found': return { stroke: '#48bb78', dasharray: '', width: 2, marker: 'url(#arrow-found)' };
+            case 'not_found': return { stroke: '#f56565', dasharray: '2,2', width: 1, marker: 'url(#arrow-not-found)' };
+            case 'optimal': return { stroke: '#9f7aea', dasharray: '', width: 4, marker: 'url(#arrow-optimal)' };
+            default: return { stroke: '#cbd5e0', dasharray: '', width: 1, marker: '' };
+        }
+    }
+
+    // Update edges (select from zoom container)
+    const zoomContainer = svg.select('g.zoom-container');
+    const linkGroup = zoomContainer.select('g.links');
+    let linkSelection = linkGroup;
+
+    const link = linkSelection
+        .selectAll('line')
+        .data(edges, d => `${d.source}-${d.target}`);
+
+    link.exit().remove();
+
+    const linkEnter = link.enter().append('line');
+
+    link.merge(linkEnter)
+        .attr('stroke', d => getEdgeStyle(d.state).stroke)
+        .attr('stroke-width', d => getEdgeStyle(d.state).width)
+        .attr('stroke-dasharray', d => getEdgeStyle(d.state).dasharray)
+        .attr('marker-end', d => getEdgeStyle(d.state).marker)
+        .attr('stroke-opacity', 0.8);
+
+    // Update nodes (select from zoom container)
+    const nodeGroup = zoomContainer.select('g.nodes');
+    let nodeSelection = nodeGroup;
+
+    const node = nodeSelection
+        .selectAll('g')
+        .data(nodes, d => d.id);
+
+    node.exit().remove();
+
+    const nodeEnter = node.enter().append('g');
+
+    nodeEnter.append('circle')
+        .attr('r', 10);
+
+    nodeEnter.append('text')
+        .attr('dx', 12)
+        .attr('dy', 4)
+        .style('font-size', '11px')
+        .style('font-weight', '600')
+        .style('fill', '#2d3748');
+
+    const nodeUpdate = node.merge(nodeEnter);
+
+    nodeUpdate.select('circle')
+        .attr('fill', d => getNodeColor(d.state))
+        .attr('r', d => (d.state === 'current' || d.state === 'source') ? 12 : (d.state === 'optimal' ? 11 : 10))
+        .attr('stroke', '#2d3748')
+        .attr('stroke-width', d => (d.state === 'current' || d.state === 'source') ? 3 : 2)
+        .style('filter', d => {
+            if (d.state === 'current') return 'drop-shadow(0 0 8px #48bb78)';
+            if (d.state === 'source') return 'drop-shadow(0 0 8px #10b981)';
+            if (d.state === 'optimal') return 'drop-shadow(0 0 4px #9f7aea)';
+            return 'none';
+        });
+
+    nodeUpdate.select('text')
+        .text(d => `${d.airport}${d.day > 0 ? `+${d.day}` : ''}`);
+
+    // Update simulation
+    simulation.nodes(nodes);
+    simulation.force('link').links(edges);
+    simulation.force('x', d3.forceX(centerX).strength(0.05));
+    simulation.force('y', d3.forceY(centerY).strength(0.05));
+
+    simulation.on('tick', () => {
+        // D3 force simulation mutates links - d.source and d.target are now node objects
+        linkSelection.selectAll('line')
+            .attr('x1', d => d.source.x)
+            .attr('y1', d => d.source.y)
+            .attr('x2', d => d.target.x)
+            .attr('y2', d => d.target.y);
+
+        nodeUpdate.attr('transform', d => `translate(${d.x},${d.y})`);
+
+        // Save positions for next update
+        nodes.forEach(node => {
+            window.graphNodePositions.set(node.id, {
+                x: node.x,
+                y: node.y,
+                vx: node.vx,
+                vy: node.vy
+            });
+        });
+    });
+
+    // Only restart simulation if we have new nodes, and use low alpha to minimize movement
+    if (hasNewNodes) {
+        simulation.alpha(0.1).restart();
+    } else {
+        // Just update without restarting - smooth incremental updates
+        simulation.alpha(Math.max(0.01, simulation.alpha()));
+    }
+}
+
+function showStatus(message, type = 'searching') {
+    const statusBox = document.getElementById('status-box');
+    const statusText = document.getElementById('status-text');
+
+    statusBox.className = `status-box active ${type}`;
+
+    // If it's a detailed status update, format it nicely
+    if (typeof message === 'object') {
+        const { event, details } = message;
+        statusText.innerHTML = `<strong>${event}</strong><br>${details}`;
+    } else {
+        statusText.innerHTML = message;
+    }
+}
+
+function hideStatus() {
+    const statusBox = document.getElementById('status-box');
+    statusBox.className = 'status-box';
+}
+
+function createPathDetailHTML(pathData, graph) {
+    let html = '<div class="path-detail-content">';
+    html += '<div class="path-detail-header">Flight Details & Segments</div>';
+
+    // Get edges for this specific path
+    const pathEdges = [];
+    for (let i = 0; i < pathData.path.length - 1; i++) {
+        const from = pathData.path[i];
+        const to = pathData.path[i + 1];
+
+        // Find matching edge in graph
+        const edge = graph.edges.find(e =>
+            e.source.airport === from.airport && e.source.day === from.day &&
+            e.target.airport === to.airport && e.target.day === to.day
+        );
+
+        if (edge) {
+            pathEdges.push({
+                from: from,
+                to: to,
+                edge: edge,
+                segmentNum: i + 1
+            });
+        }
+    }
+
+    // Display each segment
+    pathEdges.forEach((segment, idx) => {
+        const isFlight = segment.edge.is_flight;
+        const isLayover = segment.from.airport === segment.to.airport;
+        const dayDiff = segment.to.day - segment.from.day;
+
+        html += '<div class="flight-segment">';
+        html += '<div class="flight-segment-header">';
+        html += `<div class="segment-route">Segment ${segment.segmentNum}: ${segment.from.airport} → ${segment.to.airport}</div>`;
+        html += `<div class="segment-cost">$${segment.edge.cost.toFixed(2)}</div>`;
+        html += '</div>';
+
+        html += '<div class="flight-segment-details">';
+
+        // Type
+        html += '<div class="detail-item">';
+        html += '<div class="detail-label">Type</div>';
+        if (isLayover) {
+            html += `<div class="detail-value">Layover (${dayDiff} day${dayDiff !== 1 ? 's' : ''})</div>`;
+        } else {
+            html += '<div class="detail-value">Flight</div>';
+        }
+        html += '</div>';
+
+        // Departure
+        html += '<div class="detail-item">';
+        html += '<div class="detail-label">Departure</div>';
+        html += `<div class="detail-value">${segment.from.airport} - Day ${segment.from.day}</div>`;
+        html += '</div>';
+
+        // Arrival
+        html += '<div class="detail-item">';
+        html += '<div class="detail-label">Arrival</div>';
+        html += `<div class="detail-value">${segment.to.airport} - Day ${segment.to.day}</div>`;
+        html += '</div>';
+
+        // Duration
+        if (dayDiff > 0) {
+            html += '<div class="detail-item">';
+            html += '<div class="detail-label">Duration</div>';
+            html += `<div class="detail-value">${dayDiff} day${dayDiff !== 1 ? 's' : ''}</div>`;
+            html += '</div>';
+        }
+
+        // Data source
+        html += '<div class="detail-item">';
+        html += '<div class="detail-label">Data Source</div>';
+        html += `<div class="detail-value">${segment.edge.is_estimated ? 'Estimated' : 'Real-time API'}</div>`;
+        html += '</div>';
+
+        // Certainty
+        if (segment.edge.is_estimated) {
+            html += '<div class="detail-item">';
+            html += '<div class="detail-label">Certainty</div>';
+            html += `<div class="detail-value">${(segment.edge.certainty * 100).toFixed(0)}%</div>`;
+            html += '</div>';
+        }
+
+        html += '</div>'; // flight-segment-details
+
+        // Google Flights link (if available)
+        if (segment.edge.url && !isLayover) {
+            html += `<div style="margin-top: 15px;">`;
+            html += `<a href="${segment.edge.url}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #4285f4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 600; font-size: 13px;">`;
+            html += '✈ View on Google Flights';
+            html += '</a>';
+            html += '</div>';
+        }
+
+        // Multi-day layover notice
+        if (isLayover && dayDiff > 0) {
+            html += `<div class="layover-notice">⏱ Multi-day layover: ${dayDiff} day${dayDiff !== 1 ? 's' : ''} in ${segment.from.airport}. This is an opportunity to explore or find cheaper connecting flights!</div>`;
+        }
+
+        html += '</div>'; // flight-segment
+    });
+
+    // Summary stats
+    html += '<div class="flight-segment" style="background: #f0f9ff; border-color: #3498db;">';
+    html += '<div class="flight-segment-header">';
+    html += '<div class="segment-route">Journey Summary</div>';
+    html += `<div class="segment-cost">Total: $${pathData.cost.toFixed(2)}</div>`;
+    html += '</div>';
+    html += '<div class="flight-segment-details">';
+
+    html += '<div class="detail-item">';
+    html += '<div class="detail-label">Total Stops</div>';
+    html += `<div class="detail-value">${pathData.num_stops}</div>`;
+    html += '</div>';
+
+    html += '<div class="detail-item">';
+    html += '<div class="detail-label">Total Days</div>';
+    html += `<div class="detail-value">${pathData.days}</div>`;
+    html += '</div>';
+
+    html += '<div class="detail-item">';
+    html += '<div class="detail-label">Segments</div>';
+    html += `<div class="detail-value">${pathEdges.length}</div>`;
+    html += '</div>';
+
+    html += '<div class="detail-item">';
+    html += '<div class="detail-label">Route</div>';
+    html += `<div class="detail-value">${pathData.path.map(n => n.airport).join(' → ')}</div>`;
+    html += '</div>';
+
+    html += '</div>'; // flight-segment-details
+    html += '</div>'; // flight-segment
+
+    html += '</div>'; // path-detail-content
+
+    return html;
+}
+
+function showResults(result) {
+    const container = document.getElementById('results-container');
+    container.className = 'results-container active';
+
+    // Update paths count
+    const pathsCount = result.paths ? result.paths.length : 0;
+    document.getElementById('paths-count').textContent = `(${pathsCount} route${pathsCount !== 1 ? 's' : ''})`;
+
+    // Update search stats
+    document.getElementById('iterations').textContent = result.iterations;
+    document.getElementById('api-calls').textContent = result.api_calls;
+
+    // Update API cost
+    if (result.api_cost !== undefined) {
+        document.getElementById('api-cost').textContent = '$' + result.api_cost.toFixed(3);
+    }
+
+    // Populate paths table
+    const tableBody = document.getElementById('paths-table-body');
+    tableBody.innerHTML = '';
+
+    if (result.paths && result.paths.length > 0) {
+        result.paths.forEach((pathData, index) => {
+            const row = document.createElement('tr');
+            row.className = 'clickable';
+            row.dataset.pathIndex = index;
+
+            // Rank
+            const rankCell = document.createElement('td');
+            rankCell.innerHTML = `<span class="path-rank ${index === 0 ? 'rank-1' : ''}">${index + 1}</span>`;
+            row.appendChild(rankCell);
+
+            // Cost
+            const costCell = document.createElement('td');
+            costCell.className = 'cost-col';
+            costCell.textContent = '$' + pathData.cost.toFixed(2);
+            row.appendChild(costCell);
+
+            // Route
+            const routeCell = document.createElement('td');
+            routeCell.className = 'route-col';
+            const routeStr = pathData.path.map((node, i) => {
+                const dayInfo = node.day > 0 ? `(D${node.day})` : '';
+                return node.airport + dayInfo;
+            }).join(' → ');
+            routeCell.innerHTML = routeStr + ' <span class="expand-icon">▼</span>';
+            row.appendChild(routeCell);
+
+            // Stops
+            const stopsCell = document.createElement('td');
+            stopsCell.className = 'stops-col';
+            stopsCell.textContent = pathData.num_stops;
+            row.appendChild(stopsCell);
+
+            // Days
+            const daysCell = document.createElement('td');
+            daysCell.className = 'days-col';
+            daysCell.textContent = pathData.days;
+            row.appendChild(daysCell);
+
+            // Create detail row
+            const detailRow = document.createElement('tr');
+            detailRow.className = 'path-detail-row';
+            detailRow.dataset.pathIndex = index;
+
+            const detailCell = document.createElement('td');
+            detailCell.colSpan = 5;
+            detailCell.innerHTML = createPathDetailHTML(pathData, result.graph);
+            detailRow.appendChild(detailCell);
+
+            // Add click handler to toggle details
+            row.addEventListener('click', () => {
+                const wasExpanded = detailRow.classList.contains('expanded');
+
+                // Close all other detail rows
+                document.querySelectorAll('.path-detail-row.expanded').forEach(r => {
+                    r.classList.remove('expanded');
+                });
+
+                // Toggle this one
+                if (!wasExpanded) {
+                    detailRow.classList.add('expanded');
+                }
+            });
+
+            tableBody.appendChild(row);
+            tableBody.appendChild(detailRow);
+        });
+
+        // Update graph visualization with cheapest path
+        const cheapestPath = result.paths[0].path;
+        if (result.graph && result.graph.nodes && result.graph.nodes.length > 0) {
+            // Mark edges that are part of the cheapest path
+            const pathNodeIds = new Set();
+            const pathEdgeKeys = new Set();
+
+            if (cheapestPath && cheapestPath.length > 0) {
+                cheapestPath.forEach(node => {
+                    pathNodeIds.add(`${node.airport}_${node.day}`);
+                });
+
+                // Create edge keys for path edges
+                for (let i = 0; i < cheapestPath.length - 1; i++) {
+                    const from = cheapestPath[i];
+                    const to = cheapestPath[i + 1];
+                    pathEdgeKeys.add(`${from.airport}_${from.day}->${to.airport}_${to.day}`);
+                }
+            }
+
+            // Mark edges as optimal if they're in the cheapest path
+            const enhancedEdges = result.graph.edges.map(edge => {
+                const edgeKey = `${edge.source.airport}_${edge.source.day}->${edge.target.airport}_${edge.target.day}`;
+                return {
+                    ...edge,
+                    state: pathEdgeKeys.has(edgeKey) ? 'optimal' : 'default'
+                };
+            });
+
+            // Convert graph format to visualization format
+            const vizData = {
+                explored_nodes: result.graph.nodes,
+                frontier_nodes: [],
+                edges: enhancedEdges,
+                path_nodes: cheapestPath || [],
+                current_node: null,
+                current_edge: null
+            };
+            updateGraphVisualization(vizData);
+        }
+    } else {
+        // No paths found
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 5;
+        cell.style.textAlign = 'center';
+        cell.style.padding = '20px';
+        cell.style.color = '#999';
+        cell.textContent = 'No paths found';
+        row.appendChild(cell);
+        tableBody.appendChild(row);
+    }
+}
+
+let destinationAirport = ''; // Global variable to track destination
+
+async function startSearch() {
+    // Save parameters for next time
+    saveParameters();
+
+    const sourceAirportValue = document.getElementById('source-airport').value;
+    const destAirport = document.getElementById('dest-airport').value;
+    const startDateStr = document.getElementById('start-date').value;
+    const endDateStr = document.getElementById('end-date').value;
+    const apiLimit = parseInt(document.getElementById('api-limit').value);
+    const maxIterations = parseInt(document.getElementById('max-iterations').value);
+    const stayCost = parseFloat(document.getElementById('stay-cost').value);
+    const forceIndirect = document.getElementById('force-indirect').checked;
+
+    // Set global variables for visualization
+    sourceAirport = sourceAirportValue;
+    destinationAirport = destAirport;
+
+    if (!sourceAirport || !destAirport) {
+        showStatus('Please select source and destination airports', 'error');
+        return;
+    }
+
+    if (!startDateStr || !endDateStr) {
+        showStatus('Please select start and end dates', 'error');
+        return;
+    }
+
+    if (!apiLimit || apiLimit < 10) {
+        showStatus('API limit must be at least 10', 'error');
+        return;
+    }
+
+    // Convert dates to day offsets from today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const startDate = new Date(startDateStr);
+    const endDate = new Date(endDateStr);
+
+    // Calculate day offsets
+    const startDay = Math.floor((startDate - today) / (1000 * 60 * 60 * 24));
+    const endDay = Math.floor((endDate - today) / (1000 * 60 * 60 * 24));
+    const maxDays = endDay - startDay + 1;
+
+    if (startDay < 0) {
+        showStatus('Start date cannot be in the past', 'error');
+        return;
+    }
+
+    if (maxDays < 1) {
+        showStatus('End date must be after start date', 'error');
+        return;
+    }
+
+    if (sourceAirport === destAirport) {
+        showStatus('Source and destination must be different', 'error');
+        return;
+    }
+
+    // Show results container for live visualization
+    document.getElementById('results-container').className = 'results-container active';
+
+    // Clear previous results
+    document.getElementById('paths-count').textContent = '(0 routes)';
+    document.getElementById('paths-table-body').innerHTML = '';
+    document.getElementById('iterations').textContent = '0';
+    document.getElementById('api-calls').textContent = '0';
+    document.getElementById('api-cost').textContent = '$0.000';
+
+    // Initialize graph for visualization
+    initGraph();
+
+    // Disable search button
+    const searchBtn = document.getElementById('search-btn');
+    const searchBtnText = document.getElementById('search-btn-text');
+    searchBtn.disabled = true;
+    searchBtnText.innerHTML = '<span class="spinner"></span> Searching...';
+
+    try {
+        // Start search
+        const response = await fetch('/api/flight-planner/search', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                source: sourceAirport,
+                destination: destAirport,
+                start_day: startDay,
+                max_days: maxDays,
+                max_api_calls: apiLimit,
+                max_iterations: maxIterations,
+                stay_cost: stayCost,
+                force_indirect: forceIndirect
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Search failed');
+        }
+
+        currentSearchId = data.search_id;
+
+        // Set global source airport for radial layout (reuse the local variable name matches global)
+        // sourceAirport is already set from the function parameter
+
+        // Initialize graph
+        initGraph();
+
+        showStatus(`Searching for flights from ${sourceAirport} to ${destAirport}...`, 'searching');
+
+        // Start polling for status
+        pollInterval = setInterval(checkSearchStatus, 1000); // Poll every second for real-time updates
+
+    } catch (error) {
+        console.error('Search error:', error);
+        showStatus('Error starting search: ' + error.message, 'error');
+        searchBtn.disabled = false;
+        searchBtnText.textContent = '► SEARCH PATHS';
+    }
+}
+
+async function checkSearchStatus() {
+    if (!currentSearchId) return;
+
+    try {
+        const response = await fetch(`/api/flight-planner/status/${currentSearchId}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error('Failed to get search status');
+        }
+
+        if (data.status === 'running') {
+            // Update stat cards in real-time
+            if (data.result) {
+                if (data.result.iterations !== undefined) {
+                    document.getElementById('iterations').textContent = data.result.iterations;
+                }
+                if (data.result.api_calls !== undefined) {
+                    document.getElementById('api-calls').textContent = data.result.api_calls;
+                }
+                if (data.result.api_cost !== undefined) {
+                    document.getElementById('api-cost').textContent = '$' + data.result.api_cost.toFixed(3);
+                }
+            }
+
+            // Queue all new visualization snapshots (buffered playback)
+            if (data.result && data.result.viz_snapshots) {
+                queueNewSnapshots(data.result.viz_snapshots);
+                processUpdateQueue(); // Start processing if not already running
+            } else if (data.result && data.result.visualization) {
+                // Fallback to single visualization if snapshots not available
+                queueGraphUpdate(data.result.visualization);
+                processUpdateQueue();
+            }
+
+            // Show live progress updates from log
+            if (data.result && data.result.log && data.result.log.length > 0) {
+                // Get last 5 log messages
+                const recentLogs = data.result.log.slice(-5);
+                const logMessages = recentLogs
+                    .map(log => log.message || '')
+                    .filter(msg => msg.length > 0)
+                    .join('<br>');
+
+                let statusMessage = logMessages || 'Searching...';
+
+                // Add live stats
+                if (data.result.visualization) {
+                    const viz = data.result.visualization;
+                    const stats = `<div style="margin-bottom: 8px; font-size: 9pt;">
+                        <strong>Explored:</strong> ${viz.explored_nodes ? viz.explored_nodes.length : 0} nodes |
+                        <strong>Frontier:</strong> ${viz.frontier_nodes ? viz.frontier_nodes.length : 0} nodes |
+                        <strong>Edges:</strong> ${viz.edges ? viz.edges.length : 0}
+                    </div>`;
+                    statusMessage = stats + statusMessage;
+                }
+
+                if (data.progress) {
+                    statusMessage = `<div style="margin-bottom: 10px;"><strong>Progress: ${data.progress}%</strong></div>` + statusMessage;
+                }
+                showStatus(statusMessage, 'searching');
+            } else {
+                showStatus('Initializing search...', 'searching');
+            }
+        }
+        else if (data.status === 'completed') {
+            // Search completed
+            clearInterval(pollInterval);
+
+            const searchBtn = document.getElementById('search-btn');
+            const searchBtnText = document.getElementById('search-btn-text');
+            searchBtn.disabled = false;
+            searchBtnText.textContent = '► SEARCH PATHS';
+
+            if (data.result && data.result.paths && data.result.paths.length > 0) {
+                const numPaths = data.result.paths.length;
+                showStatus(`FOUND ${numPaths} PATH${numPaths !== 1 ? 'S' : ''} | Cheapest: $${data.result.paths[0].cost.toFixed(2)}`, 'success');
+                setTimeout(() => hideStatus(), 3000);
+                showResults(data.result);
+            } else {
+                showStatus('NO PATH FOUND - Try adjusting search parameters or increasing max days', 'error');
+
+                // Still show the graph visualization of what was explored
+                if (data.result && data.result.graph) {
+                    // Show results container with empty table
+                    const container = document.getElementById('results-container');
+                    container.className = 'results-container active';
+
+                    // Update stats
+                    if (data.result.iterations !== undefined) {
+                        document.getElementById('iterations').textContent = data.result.iterations;
+                    }
+                    if (data.result.api_calls !== undefined) {
+                        document.getElementById('api-calls').textContent = data.result.api_calls;
+                    }
+                    if (data.result.api_cost !== undefined) {
+                        document.getElementById('api-cost').textContent = '$' + data.result.api_cost.toFixed(3);
+                    }
+
+                    // Clear paths table
+                    document.getElementById('paths-count').textContent = '(0 routes)';
+                    const tableBody = document.getElementById('paths-table-body');
+                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;">No paths found</td></tr>';
+
+                    // Show graph visualization
+                    const vizData = {
+                        explored_nodes: data.result.graph.nodes || [],
+                        frontier_nodes: [],
+                        edges: data.result.graph.edges || [],
+                        path_nodes: [],
+                        current_node: null,
+                        current_edge: null
+                    };
+                    updateGraphVisualization(vizData);
+                }
+            }
+
+        } else if (data.status === 'error') {
+            // Search error
+            clearInterval(pollInterval);
+
+            const searchBtn = document.getElementById('search-btn');
+            const searchBtnText = document.getElementById('search-btn-text');
+            searchBtn.disabled = false;
+            searchBtnText.textContent = '► SEARCH PATHS';
+
+            showStatus('SEARCH ERROR: ' + data.error, 'error');
+        }
+
+    } catch (error) {
+        console.error('Status check error:', error);
+        clearInterval(pollInterval);
+
+        const searchBtn = document.getElementById('search-btn');
+        const searchBtnText = document.getElementById('search-btn-text');
+        searchBtn.disabled = false;
+        searchBtnText.textContent = '► SEARCH PATHS';
+
+        showStatus('ERROR: ' + error.message, 'error');
+    }
+}
+
+// Save parameters to localStorage
+function saveParameters() {
+    const params = {
+        apiLimit: document.getElementById('api-limit').value,
+        maxIterations: document.getElementById('max-iterations').value,
+        stayCost: document.getElementById('stay-cost').value,
+        forceIndirect: document.getElementById('force-indirect').checked,
+        vizUpdateInterval: document.getElementById('viz-update-interval').value
+    };
+    localStorage.setItem('flightPlannerParams', JSON.stringify(params));
+}
+
+// Load parameters from localStorage
+function loadParameters() {
+    const saved = localStorage.getItem('flightPlannerParams');
+    if (saved) {
+        try {
+            const params = JSON.parse(saved);
+            if (params.apiLimit) document.getElementById('api-limit').value = params.apiLimit;
+            if (params.maxIterations) document.getElementById('max-iterations').value = params.maxIterations;
+            if (params.stayCost) document.getElementById('stay-cost').value = params.stayCost;
+            if (params.forceIndirect !== undefined) document.getElementById('force-indirect').checked = params.forceIndirect;
+            if (params.vizUpdateInterval) document.getElementById('viz-update-interval').value = params.vizUpdateInterval;
+        } catch (e) {
+            console.error('Failed to load saved parameters:', e);
+        }
+    }
+}
+
+// Initialize default dates
+function initializeDates() {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const weekFromNow = new Date(today);
+    weekFromNow.setDate(weekFromNow.getDate() + 7);
+
+    // Format dates as YYYY-MM-DD for date inputs
+    const formatDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const startDateInput = document.getElementById('start-date');
+    const endDateInput = document.getElementById('end-date');
+
+    // Set min attribute to today for both inputs
+    startDateInput.min = formatDate(today);
+    endDateInput.min = formatDate(today);
+
+    // Set default values
+    startDateInput.value = formatDate(today);
+    endDateInput.value = formatDate(weekFromNow);
+
+    // Update end date min when start date changes
+    startDateInput.addEventListener('change', function() {
+        const selectedStart = new Date(this.value);
+        endDateInput.min = formatDate(selectedStart);
+
+        // If end date is before new start date, adjust it
+        if (endDateInput.value && new Date(endDateInput.value) < selectedStart) {
+            const newEndDate = new Date(selectedStart);
+            newEndDate.setDate(newEndDate.getDate() + 7);
+            endDateInput.value = formatDate(newEndDate);
+        }
+    });
+}
+
+// Airport management functions
+async function populateRemoveDropdown() {
+    const removeSelect = document.getElementById('remove-airport');
+
+    try {
+        const res = await fetch('/api/flight-planner/airports');
+        const data = await res.json();
+
+        removeSelect.innerHTML = '';
+        data.airports.forEach(airport => {
+            removeSelect.add(new Option(airport, airport));
+        });
+    } catch (err) {
+        console.error('Error loading airports for removal:', err);
+    }
+}
+
+async function addAirport() {
+    const input = document.getElementById('new-airport');
+    const airportCode = input.value.trim().toUpperCase();
+    const statusDiv = document.getElementById('airport-status');
+
+    if (!airportCode || airportCode.length !== 3) {
+        statusDiv.textContent = 'Please enter a valid 3-letter IATA code';
+        statusDiv.style.background = '#f8d7da';
+        statusDiv.style.color = '#721c24';
+        statusDiv.style.display = 'block';
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/flight-planner/airports/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ airport_code: airportCode })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            statusDiv.textContent = `✓ Added ${airportCode}`;
+            statusDiv.style.background = '#d4edda';
+            statusDiv.style.color = '#155724';
+            statusDiv.style.display = 'block';
+            input.value = '';
+
+            // Reload airport lists
+            await loadAirports();
+            populateRemoveDropdown();
+        } else {
+            statusDiv.textContent = `Error: ${data.error}`;
+            statusDiv.style.background = '#f8d7da';
+            statusDiv.style.color = '#721c24';
+            statusDiv.style.display = 'block';
+        }
+    } catch (error) {
+        statusDiv.textContent = 'Failed to add airport';
+        statusDiv.style.background = '#f8d7da';
+        statusDiv.style.color = '#721c24';
+        statusDiv.style.display = 'block';
+    }
+}
+
+async function removeAirport() {
+    const select = document.getElementById('remove-airport');
+    const airportCode = select.value;
+    const statusDiv = document.getElementById('airport-status');
+
+    if (!airportCode) return;
+
+    try {
+        const response = await fetch('/api/flight-planner/airports/remove', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ airport_code: airportCode })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            statusDiv.textContent = `✓ Removed ${airportCode}`;
+            statusDiv.style.background = '#d4edda';
+            statusDiv.style.color = '#155724';
+            statusDiv.style.display = 'block';
+
+            // Reload airport lists
+            await loadAirports();
+            populateRemoveDropdown();
+        } else {
+            statusDiv.textContent = `Error: ${data.error}`;
+            statusDiv.style.background = '#f8d7da';
+            statusDiv.style.color = '#721c24';
+            statusDiv.style.display = 'block';
+        }
+    } catch (error) {
+        statusDiv.textContent = 'Failed to remove airport';
+        statusDiv.style.background = '#f8d7da';
+        statusDiv.style.color = '#721c24';
+        statusDiv.style.display = 'block';
+    }
+}
+
+async function resetAirports() {
+    const statusDiv = document.getElementById('airport-status');
+
+    if (!confirm('Reset to default airport list?')) return;
+
+    try {
+        const response = await fetch('/api/flight-planner/airports/reset', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            statusDiv.textContent = '✓ Reset to defaults';
+            statusDiv.style.background = '#d4edda';
+            statusDiv.style.color = '#155724';
+            statusDiv.style.display = 'block';
+
+            // Reload airport lists
+            await loadAirports();
+            populateRemoveDropdown();
+        } else {
+            statusDiv.textContent = `Error: ${data.error}`;
+            statusDiv.style.background = '#f8d7da';
+            statusDiv.style.color = '#721c24';
+            statusDiv.style.display = 'block';
+        }
+    } catch (error) {
+        statusDiv.textContent = 'Failed to reset airports';
+        statusDiv.style.background = '#f8d7da';
+        statusDiv.style.color = '#721c24';
+        statusDiv.style.display = 'block';
+    }
+}
+
+// Initialize on page load
+async function init() {
+    await loadAirports();
+    await populateRemoveDropdown();
+    initializeDates();
+    loadParameters();
+}
+
+init();
+
+// Make new airport input uppercase automatically
+document.addEventListener('DOMContentLoaded', () => {
+    const newAirportInput = document.getElementById('new-airport');
+    if (newAirportInput) {
+        newAirportInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.toUpperCase();
+        });
+    }
+});
+</script>
+</html>

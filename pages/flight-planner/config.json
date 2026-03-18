@@ -1,0 +1,7 @@
+{
+    "title": "Flight Path Optimizer",
+    "slug": "flight-planner",
+    "date": "2026-01-11",
+    "description": "Find optimal flight paths using A* search algorithm with real-time flight data from Google Flights",
+    "categories": ["tools", "travel", "optimization"]
+}

@@ -3,175 +3,440 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="x-geo-butler-verify" content="012AB09C9E49C2F7">
     <title>Gabrielpenman.com</title>
     <style>
+    :root {
+        --crt-red: rgb(218, 49, 49);
+        --crt-green: rgb(112, 159, 115);
+        --crt-blue: rgb(40, 129, 206);
+    }
+
+    /* Character-grid based layout */
+    * {
+        box-sizing: border-box;
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
     body {
-        max-width: 1000px;
-        margin: 0 auto;
-        padding: 20px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        margin: 0;
+        padding: 1ch;
+        font-family: 'VT323', 'Courier New', monospace;
+        background-color: #000000;  /* Fallback if no photo selected */
+        color: #FFFFFF;
+        font-size: 20px;
+        line-height: 1.2;
+        overflow-y: auto;
+        min-height: 100vh;
+        position: relative;
     }
-    
-    .subpages {
-        margin-left: 20px;
-        margin-top: 10px;
-        border-left: 2px solid #e1e8ed;
-        padding-left: 15px;
-    }
-    
-    .subpage-item {
-        margin: 8px 0;
-        font-size: 0.9em;
-    }
-    
-    .subpage-item a {
-        color: #0066cc;
-        text-decoration: none;
+
+    #page-content {
+        width: 100%;
+        min-height: 100%;
         display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .subpage-item a:hover {
-        text-decoration: underline;
-    }
-    
-    .subpage-item a:visited {
-        color: #551a8b;
-    }
-    
-    .subpage-toggle {
-        cursor: pointer;
-        background: none;
-        border: none;
-        color: #666;
-        font-size: 0.9em;
-        margin-top: 8px;
-        padding: 4px 8px;
-        border-radius: 3px;
-        background: #f8f9fa;
-    }
-    
-    .subpage-toggle:hover {
-        background: #e9ecef;
-    }
-    
-    .subpages.collapsed {
-        display: none;
-    }
-    
-    article {
-        margin-bottom: 30px;
-        padding-bottom: 20px;
-        border-bottom: 1px solid #eee;
-    }
-    
-    article:last-child {
-        border-bottom: none;
-    }
-    
-    .date {
-        color: #666;
-        font-size: 0.9em;
-        margin: 5px 0;
-    }
-    
-    .description {
-        margin: 8px 0;
-        color: #333;
-    }
-    
-    .categories {
-        font-size: 0.85em;
-        color: #888;
-    }
-    
-    .assets-info {
-        font-size: 0.8em;
-        color: #999;
-        margin-top: 5px;
+        flex-direction: column;
+        position: relative;
+        padding-bottom: 5ch;
+        background-color: transparent;  /* Let photo background show through */
     }
 
-    .status-section {
-        margin-top: 50px;
-        padding: 20px;
-    }
-
-    .status-section h3 {
-        margin-top: 0;
-        color: #333;
-    }
-
-    .status-item {
-        margin: 12px 0;
-        font-size: 0.95em;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .status-dot {
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        border-radius: 2px;
-        background: #22c55e;
+    h1 {
+        text-align: center;
+        font-size: 2.5em;
+        margin: 0 0 1ch 0;
+        color: #00FFFF;
+        letter-spacing: 0.2ch;
         flex-shrink: 0;
+        font-weight: normal;
+        font-family: 'VT323', monospace;
+        text-shadow: 2px 2px 0 #000000;
+        padding: 0 1ch;
     }
 
-    .status-label {
-        font-weight: 500;
-        color: #555;
-        min-width: 100px;
-    }
-
-    .cpu-grid {
+    /* Mosaic container - blocks flow and wrap naturally */
+    .grid-container {
         display: flex;
         flex-wrap: wrap;
-        gap: 0;
-        width: 310px;
+        gap: 2ch;
+        width: 100%;
+        max-width: 1400px;
+        margin: 0 auto;
+        min-height: calc(100vh - 12ch);
+        position: relative;
+        align-content: flex-start;
+        align-items: flex-start;
+        justify-content: center;
+        overflow: visible;
+    }
+
+    /* Teletext/Prestel block styling - solid bright colors */
+    .ascii-block {
+        background-color: #0000AA;
+        color: #FFFF00;
+        padding: 1ch;
+        margin: 0;
+        position: relative;
+        font-family: 'VT323', 'Courier New', monospace;
+        border: none;
+        flex-shrink: 0;
+        box-sizing: border-box;
+        font-size: 20px;
+        font-weight: bold;
+        opacity: 0.85;  /* More transparency to show photo background better */
+        /* CSS bevel effect - light top-left, dark bottom-right */
+        box-shadow:
+            inset 2px 2px 0px rgba(255, 255, 255, 0.3),
+            inset -2px -2px 0px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Blog post blocks - SQUARE */
+    .ascii-block.blog-post {
+        width: 35ch;
+        height: 35ch;
+        cursor: pointer;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .ascii-block.blog-post:hover {
+        background-color: #001100;
+    }
+
+    .ascii-block.blog-post h3 {
+        margin: 0 0 1ch 0;
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+
+    .ascii-block.blog-post .description {
+        flex: 1;
+        overflow: hidden;
+        margin: 1ch 0;
+        line-height: 1.4;
+        font-size: 0.9em;
+    }
+
+    .ascii-block.blog-post a {
+        display: block;
+        margin-top: auto;
+        color: inherit;
+        padding-top: 1ch;
+        text-decoration: underline;
+    }
+
+    /* System status - SQUARE - Green background */
+    .ascii-block.system-status {
+        width: 35ch;
+        height: 35ch;
+        background-color: #00AA00;
+        color: #FFFF00;
+    }
+
+    .ascii-block.system-status h3 {
+        margin: 0 0 1ch 0;
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+
+    .ascii-block.system-status div {
+        margin: 0.5ch 0;
+        font-size: 0.9em;
+    }
+
+    /* Dev ports - SQUARE - Cyan background */
+    .ascii-block.dev-ports {
+        width: 35ch;
+        height: 35ch;
+        background-color: #00AAAA;
+        color: #FFFF00;
+    }
+
+    .ascii-block.dev-ports h3 {
+        margin: 0 0 1ch 0;
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+
+    .ascii-block.dev-ports a {
+        display: block;
+        margin: 0.5ch 0;
+        font-size: 0.9em;
+        color: #FFFF00;
+        font-weight: bold;
+    }
+
+    /* CPU grid styling - 4 rows of 4 characters */
+    #cpu-grid {
+        font-family: 'VT323', monospace;
+        line-height: 1.2;
     }
 
     .cpu-row {
+        letter-spacing: 0.1ch;
+    }
+
+    .ascii-block a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .ascii-block a:hover {
+        text-decoration: underline;
+    }
+
+    /* Teletext color variations - solid backgrounds */
+    .ascii-block.blog-post.color-red {
+        background-color: #AA0000;
+        color: #FFFF00;
+    }
+    .ascii-block.blog-post.color-blue {
+        background-color: #0000AA;
+        color: #FFFFFF;
+    }
+    .ascii-block.blog-post.color-yellow {
+        background-color: #AAAA00;
+        color: #0000AA;
+    }
+    .ascii-block.blog-post.color-cyan {
+        background-color: #00AAAA;
+        color: #FFFF00;
+    }
+    .ascii-block.blog-post.color-magenta {
+        background-color: #AA00AA;
+        color: #FFFF00;
+    }
+    .ascii-block.blog-post.color-green {
+        background-color: #00AA00;
+        color: #FFFF00;
+    }
+
+
+    /* Loading screen */
+    #loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: #000000;
+        z-index: 9999;
         display: flex;
-        gap: 2px;
-        margin-bottom: 10px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #4dd0e1;
+        font-family: 'Courier New', monospace;
+        transition: opacity 0.5s ease-out;
     }
 
-    .cpu-core-pair {
+    #loading-screen.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .loading-text {
+        font-size: 1.5em;
+        margin-bottom: 20px;
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .loading-dots {
+        font-size: 2em;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 0.4; }
+        50% { opacity: 1; }
+    }
+
+    @media (max-width: 768px) {
+        .grid-container {
+            flex-direction: column;
+        }
+
+        .ascii-block {
+            width: 100% !important;
+            height: auto !important;
+            min-height: 20ch;
+        }
+
+        body {
+            padding: 1ch;
+        }
+
+        h1 {
+            font-size: 1.5em;
+            padding: 0 0.5ch;
+        }
+
+        #glitched-title {
+            font-size: 1.5em !important;
+            padding: 0 0.5ch !important;
+        }
+    }
+
+
+    /* RAM grid styling - 8GB sections */
+    #ram-grid {
         display: flex;
-        gap: 2px;
+        flex-direction: column;
+        gap: 0.25ch;
+        margin: 0.5ch 0;
+        font-family: 'VT323', monospace;
     }
 
-    .cpu-core {
-        display: flex;
-        gap: 2px;
+    .ram-section {
+        font-size: 0.9em;
     }
 
-    .cpu-square {
-        width: 16px;
-        height: 16px;
-        border-radius: 1px;
-        background: #e5e7eb;
+    h1 {
+        color: #ffffff;
+        font-size: 2.5em;
+        margin: 15px 0;
     }
 
-    .cpu-square.active {
-        background: #22c55e;
+    h2 {
+        color: #ffffff;
+        font-size: 1.6em;
+        margin: 12px 0;
     }
 
-    .ram-bar {
-        display: flex;
-        width: 200px;
-        height: 16px;
-        border-radius: 2px;
-        overflow: hidden;
-        background: #e5e7eb;
+    h3 {
+        color: #ffffff;
+        font-size: 1.3em;
+        margin: 10px 0;
     }
 
-    .ram-used {
-        background: #22c55e;
-        height: 100%;
-        transition: width 0.3s ease;
+    a {
+        color: #cccccc;
+        font-size: 1em;
+    }
+
+    a:visited {
+        color: #aaaaaa;
+    }
+
+    a:hover {
+        color: #ffffff;
+        text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+        body {
+            padding: 10px;
+        }
+
+        .status-section {
+            padding: 10px;
+            overflow-x: auto;
+        }
+
+        .status-item {
+            flex-wrap: wrap;
+            gap: 5px;
+            font-size: 0.85em;
+        }
+
+        .status-label {
+            min-width: 70px;
+            font-size: 0.9em;
+        }
+
+        #cpu-grid {
+            font-size: 0.9em;
+        }
+
+        #ram-grid {
+            font-size: 0.8em;
+        }
+
+        #spidey-container img {
+            max-width: 150px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .status-label {
+            min-width: 60px;
+        }
+
+        #cpu-grid {
+            font-size: 0.8em;
+        }
+
+        #ram-grid {
+            font-size: 0.7em;
+        }
+
+        h1 {
+            font-size: 1.5em;
+        }
+
+        article h2 {
+            font-size: 1.2em;
+        }
+    }
+
+    /* CRT Effect - Full RGB separation with scanlines */
+    .crt {
+        text-shadow: 0 0 0.2em currentColor, 1px 1px rgba(255, 0, 255, 0.5),
+            -1px -1px rgba(0, 255, 255, 0.4);
+        position: relative;
+    }
+
+    .crt:before,
+    .crt:after {
+        content: "";
+        transform: translateZ(0);
+        pointer-events: none;
+        position: fixed;
+        height: 100vh;
+        width: 100vw;
+        left: 0;
+        top: 0;
+        z-index: 9999;
+    }
+
+    /* Horizontal scanlines */
+    .crt:before {
+        background: repeating-linear-gradient(
+            0deg,
+            rgba(0, 0, 0, 0.15) 0px,
+            rgba(0, 0, 0, 0.15) 1px,
+            transparent 1px,
+            transparent 2px
+        );
+    }
+
+    /* RGB color separation overlay */
+    .crt:after {
+        background:
+            repeating-linear-gradient(
+                0deg,
+                var(--crt-red) 0px,
+                var(--crt-red) 1px,
+                transparent 1px,
+                transparent 3px
+            ),
+            repeating-linear-gradient(
+                0deg,
+                var(--crt-green) 1px,
+                var(--crt-green) 2px,
+                transparent 2px,
+                transparent 3px
+            ),
+            repeating-linear-gradient(
+                0deg,
+                var(--crt-blue) 2px,
+                var(--crt-blue) 3px,
+                transparent 3px,
+                transparent 3px
+            );
+        opacity: 0.08;
+        mix-blend-mode: screen;
     }
     </style>
     <script>
@@ -188,77 +453,247 @@
         }
     }
 
+    </script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loading-text">INITIALIZING</div>
+        <div class="loading-dots">...</div>
+    </div>
+
+    <div id="page-content" class="crt">
+    <h1>GABRIELPENMAN.COM</h1>
+    <div class="grid-container" id="grid-container">
+        <div class="ascii-block system-status">
+            <h3>SYSTEM</h3>
+            <div>MC:  <span id="minecraft-status">OFF</span></div>
+            <div>API: <span id="api-status">OFF</span></div>
+            <div>MAP: <span id="bluemap-status">OFF</span></div>
+            <div>CPU: <span id="cpu-name">0%</span></div>
+            <div id="cpu-grid"></div>
+            <div>RAM: <span id="ram-usage">0%</span></div>
+            <div id="ram-grid"></div>
+        </div>
+        <div class="ascii-block blog-post color-red" onclick="window.location.href='/photography'">
+            <h3>Photography</h3>
+            <div class="description">Photos shot on my Nikon D610</div>
+            <a href="/photography">/photography</a>
+        </div>
+        <div class="ascii-block dev-ports">
+            <h3>DEV PORTS</h3>
+            <div><a href="/dev/8100/">→ BlueMap:8100</a> <span id="bluemap-port-status">OFF</span></div>
+            <div><a href="/dev/3005/">→ Trading:3005</a> <span id="trading-port-status">OFF</span></div>
+            <div><a href="/dev/5123/">→ Depopper:5123</a> <span id="depopper-port-status">OFF</span></div>
+            <div><a href="/dev/6767/">→ WTA:6767</a> <span id="wta-port-status">OFF</span></div>
+            <div><a href="/dev/8888/">→ Jupyter:8888</a> <span id="jupyter-port-status">OFF</span></div>
+        </div>
+        <div class="ascii-block blog-post color-blue" onclick="window.location.href='/music'">
+            <h3>Music</h3>
+            <div class="description">Music I've made.</div>
+            <a href="/music">/music</a>
+        </div>
+        <div class="ascii-block blog-post color-yellow" onclick="window.location.href='/site-editor'">
+            <h3>Site Editor</h3>
+            <div class="description">Live HTML/CSS/JS editor with preset themes - the tool used to build the WTA site.</div>
+            <a href="/site-editor">/site-editor</a>
+        </div>
+        <div class="ascii-block blog-post color-cyan" onclick="window.location.href='/red-flag-game'">
+            <h3>Red Flag Generator</h3>
+            <div class="description">Discover random dating red flags - from mild to absolutely terrifying</div>
+            <a href="/red-flag-game">/red-flag-game</a>
+        </div>
+        <div class="ascii-block blog-post color-magenta" onclick="window.location.href='/coffee-hormones'">
+            <h3>Why Coffee Makes You Tired</h3>
+            <div class="description">Interactive visualization showing how coffee timing affects cortisol, adenosine, and energy levels throughout the day</div>
+            <a href="/coffee-hormones">/coffee-hormones</a>
+        </div>
+        <div class="ascii-block blog-post color-green" onclick="window.location.href='/party-rooms'">
+            <h3>Party Rooms - Multiplayer Game Hub</h3>
+            <div class="description">Create or join real-time multiplayer rooms for pub games with friends</div>
+            <a href="/party-rooms">/party-rooms</a>
+        </div>
+        <div class="ascii-block blog-post color-red" onclick="window.location.href='/mafia-game'">
+            <h3>Mafia Game - Role Assigner</h3>
+            <div class="description">Interactive Mafia game role assignment for playing with friends at the pub</div>
+            <a href="/mafia-game">/mafia-game</a>
+        </div>
+        <div class="ascii-block blog-post color-blue" onclick="window.location.href='/flight-planner'">
+            <h3>Flight Path Optimizer</h3>
+            <div class="description">Find optimal flight paths using A* search algorithm with real-time flight data from Google Flights</div>
+            <a href="/flight-planner">/flight-planner</a>
+        </div>
+        <div class="ascii-block blog-post color-yellow" onclick="window.location.href='/geo-butler-backend-architecture'">
+            <h3>GEO-Butler Backend Architecture: A Deep Dive into Serverless Search Analytics</h3>
+            <div class="description">How we built a multi-engine search platform with Firebase, Python, and AI. Exploring serverless architecture, data flows, and lessons learned building GEO-Butler.</div>
+            <a href="/geo-butler-backend-architecture">/geo-butler-backend-architecture</a>
+        </div>
+        <div class="ascii-block blog-post color-cyan" onclick="window.location.href='/server-networking-overview'">
+            <h3>Server Networking Overview - Current State</h3>
+            <div class="description">A comprehensive overview of all running services, microservices, and networking architecture on my development server</div>
+            <a href="/server-networking-overview">/server-networking-overview</a>
+        </div>
+        <div class="ascii-block blog-post color-magenta" onclick="window.location.href='/collaborative-canvas'">
+            <h3>Collaborative Canvas</h3>
+            <div class="description">Real-time collaborative black and white drawing canvas for up to 8 players</div>
+            <a href="/collaborative-canvas">/collaborative-canvas</a>
+        </div>
+        <div class="ascii-block blog-post color-green" onclick="window.location.href='/gpu-value-analysis'">
+            <h3>GPU Value Analysis for Machine Learning</h3>
+            <div class="description">Interactive analysis of GPU price/performance for ML workloads with changeable axes and CUDA support visualization</div>
+            <a href="/gpu-value-analysis">/gpu-value-analysis</a>
+        </div>
+        <div class="ascii-block blog-post color-red" onclick="window.location.href='/llm-compression-gap'">
+            <h3>The LLM Compression Gap</h3>
+            <div class="description">Exploring why LLM-based compression achieves superior results but can't compete in the Hutter Prize due to computational constraints</div>
+            <a href="/llm-compression-gap">/llm-compression-gap</a>
+        </div>
+        <div class="ascii-block blog-post color-blue" onclick="window.location.href='/ideal-carry-on-bag-size'">
+            <h3>What's the Ideal Carry-On Bag Size?</h3>
+            <div class="description">Interactive visualization of airline carry-on bag size restrictions worldwide to find the perfect bag dimensions</div>
+            <a href="/ideal-carry-on-bag-size">/ideal-carry-on-bag-size</a>
+        </div>
+        <div class="ascii-block blog-post color-yellow" onclick="window.location.href='/conway-immigration'">
+            <h3>Conway's Game of Life Immigration</h3>
+            <div class="description">Interactive Immigration Game based on Conway's Game of Life where two populations compete with colored organisms</div>
+            <a href="/conway-immigration">/conway-immigration</a>
+        </div>
+        <div class="ascii-block blog-post color-cyan" onclick="window.location.href='/first-post'">
+            <h3>Modular Blog Architecture</h3>
+            <div class="description">How this blog works - each page is self-contained with its own styling and functionality.</div>
+            <a href="/first-post">/first-post</a>
+        </div>
+        <div class="ascii-block blog-post color-magenta" onclick="window.location.href='/pool-leaderboard'">
+            <h3>Pool Leaderboard</h3>
+            <div class="description">Live pool ELO leaderboard and game tracking system</div>
+            <a href="/pool-leaderboard">/pool-leaderboard</a>
+        </div>
+        <div class="ascii-block blog-post color-magenta" onclick="window.photoBackground && window.photoBackground.toggleAdminMode();" style="cursor: pointer;">
+            <h3>ADMIN</h3>
+            <div class="description">Configure glitchGL effects for background and title</div>
+            <a href="#" onclick="window.photoBackground && window.photoBackground.toggleAdminMode(); return false;">→ Settings Panel</a>
+        </div>
+    </div>
+    </div>
+
+    <script>
     function refreshStatus() {
         fetch('/api/server-details')
             .then(response => response.json())
             .then(data => {
-                // CPU cores grid - 8 cores x 8 squares = 64 squares total
-                const cpuGrid = document.getElementById('cpu-grid');
-                cpuGrid.innerHTML = '';
-
-                // Get first 8 cores and create 8 squares per core
-                const cores = data.cpu.per_core.slice(0, 8);
-
-                // Create 4 rows of 2 cores each
-                for (let row = 0; row < 4; row++) {
-                    const rowDiv = document.createElement('div');
-                    rowDiv.className = 'cpu-row';
-
-                    for (let coreInRow = 0; coreInRow < 2; coreInRow++) {
-                        const coreIndex = row * 2 + coreInRow;
-                        const coreUsage = cores[coreIndex] || 0;
-
-                        const coreDiv = document.createElement('div');
-                        coreDiv.className = 'cpu-core';
-
-                        // Create 8 squares per core
-                        for (let j = 0; j < 8; j++) {
-                            const square = document.createElement('div');
-                            square.className = 'cpu-square';
-                            // Light up square if usage percentage is high enough for this square
-                            const squareThreshold = (j / 8) * 100;
-                            if (coreUsage > squareThreshold) {
-                                square.classList.add('active');
-                            }
-                            coreDiv.appendChild(square);
-                        }
-
-                        rowDiv.appendChild(coreDiv);
-
-                        // Add spacer between cores in the same row
-                        if (coreInRow === 0) {
-                            const spacer = document.createElement('div');
-                            spacer.style.width = '12px';
-                            rowDiv.appendChild(spacer);
-                        }
-                    }
-
-                    cpuGrid.appendChild(rowDiv);
+                // Update system status with ON/OFF text
+                const mcStatus = document.getElementById('minecraft-status');
+                if (data.minecraft_healthy) {
+                    mcStatus.textContent = 'ON';
+                } else {
+                    mcStatus.textContent = 'OFF';
                 }
 
-                document.getElementById('cpu-name').textContent = data.cpu.cores + ' - ' + data.cpu.usage_percent.toFixed(1) + '%';
+                const apiStatus = document.getElementById('api-status');
+                apiStatus.textContent = 'ON';
 
-                // RAM bar
-                const ramPercent = data.ram.usage_percent;
-                const ramUsedGb = (ramPercent * data.ram.total_gb / 100).toFixed(1);
-                document.getElementById('ram-bar-used').style.width = ramPercent + '%';
-                document.getElementById('ram-usage').textContent = ramPercent.toFixed(1) + '% (' + ramUsedGb + 'GB / ' + data.ram.total_gb.toFixed(1) + 'GB)';
+                // CPU info
+                const cpuCores = data.cpu.cores || '8 cores / 16 threads';
+                document.getElementById('cpu-name').textContent = cpuCores + ' @ ' + data.cpu.usage_percent.toFixed(0) + '%';
 
-                // GPU
-                const gpuText = data.gpu.available ? data.gpu.usage_percent.toFixed(1) + '% (' + data.gpu.model + ')' : 'Not available';
-                document.getElementById('gpu-status').textContent = gpuText;
+                // CPU grid - 16 threads as bars
+                const cpuGrid = document.getElementById('cpu-grid');
+                if (data.cpu.per_core) {
+                    const cores = data.cpu.per_core.slice(0, 16);
+                    cpuGrid.innerHTML = '';
 
-                // Services
-                document.getElementById('minecraft-status').textContent = data.minecraft_healthy ? 'Running' : 'Offline';
-                document.getElementById('api-status').textContent = 'Online';
+                    // Create 4 rows of 4 bars each
+                    for (let row = 0; row < 4; row++) {
+                        const rowDiv = document.createElement('div');
+                        rowDiv.className = 'cpu-row';
 
-                // BlueMap check
-                fetch('/proxy/dynmap/', { method: 'GET' })
-                    .then(r => {
-                        document.getElementById('bluemap-status').textContent = r.ok ? 'Active' : 'Inactive';
+                        let rowBar = '';
+                        for (let col = 0; col < 4; col++) {
+                            const coreIndex = row * 4 + col;
+                            const usage = cores[coreIndex] || 0;
+
+                            // 4 blocks per core (each = 25%)
+                            const blocks = Math.round(usage / 25);
+                            rowBar += '█'.repeat(blocks) + '░'.repeat(4 - blocks) + ' ';
+                        }
+
+                        rowDiv.textContent = rowBar.trim();
+                        cpuGrid.appendChild(rowDiv);
+                    }
+                }
+
+                // RAM - Split into 8GB sections (31GB = 8+8+8+7)
+                if (data.ram && data.ram.usage_percent !== undefined && data.ram.total_gb !== undefined) {
+                    const totalGb = data.ram.total_gb;
+                    const usedGb = (data.ram.usage_percent * totalGb / 100);
+
+                    // Update header
+                    document.getElementById('ram-usage').textContent =
+                        data.ram.usage_percent.toFixed(0) + '% (' + usedGb.toFixed(1) + '/' + totalGb.toFixed(0) + 'GB)';
+
+                    // Calculate sections (8GB each, last one is remainder)
+                    const sectionSize = 8;
+                    const numFullSections = Math.floor(totalGb / sectionSize);
+                    const lastSectionSize = totalGb % sectionSize || sectionSize;
+                    const totalSections = numFullSections + (lastSectionSize > 0 && lastSectionSize < sectionSize ? 1 : 0);
+
+                    const ramGrid = document.getElementById('ram-grid');
+                    ramGrid.innerHTML = '';
+
+                    let remainingUsed = usedGb;
+
+                    for (let i = 0; i < totalSections; i++) {
+                        const sectionCapacity = (i === totalSections - 1 && lastSectionSize < sectionSize) ? lastSectionSize : sectionSize;
+                        const sectionUsed = Math.min(remainingUsed, sectionCapacity);
+                        remainingUsed -= sectionUsed;
+
+                        const sectionDiv = document.createElement('div');
+                        sectionDiv.className = 'ram-section';
+
+                        const sectionPercent = (sectionUsed / sectionCapacity) * 100;
+                        const barLength = 16; // 16 blocks per section
+                        const filledLength = Math.round((sectionPercent / 100) * barLength);
+
+                        const bar = '█'.repeat(filledLength) + '░'.repeat(barLength - filledLength);
+                        sectionDiv.textContent = bar + ' ' + sectionUsed.toFixed(1) + '/' + sectionCapacity.toFixed(0) + 'GB';
+
+                        ramGrid.appendChild(sectionDiv);
+                    }
+                }
+
+                // Check dev port status (using API endpoint that doesn't require auth)
+                fetch('/api/dev/port-status')
+                    .then(response => response.json())
+                    .then(portData => {
+                        // BlueMap
+                        const mapStatus = document.getElementById('bluemap-status');
+                        if (mapStatus) {
+                            mapStatus.textContent = portData.services.bluemap.running ? 'ON' : 'OFF';
+                        }
+
+                        // Update other port statuses if elements exist
+                        const tradingStatus = document.getElementById('trading-port-status');
+                        if (tradingStatus) {
+                            tradingStatus.textContent = portData.services.trading.running ? 'ON' : 'OFF';
+                        }
+
+                        const depopperStatus = document.getElementById('depopper-port-status');
+                        if (depopperStatus) {
+                            depopperStatus.textContent = portData.services.depopper.running ? 'ON' : 'OFF';
+                        }
+
+                        const wtaStatus = document.getElementById('wta-port-status');
+                        if (wtaStatus) {
+                            wtaStatus.textContent = portData.services.wta.running ? 'ON' : 'OFF';
+                        }
+
+                        const jupyterStatus = document.getElementById('jupyter-port-status');
+                        if (jupyterStatus) {
+                            jupyterStatus.textContent = portData.services.jupyter.running ? 'ON' : 'OFF';
+                        }
                     })
-                    .catch(() => {
-                        document.getElementById('bluemap-status').textContent = 'Inactive';
+                    .catch(error => {
+                        console.error('Failed to fetch port status:', error);
                     });
             })
             .catch(error => {
@@ -266,146 +701,27 @@
             });
     }
 
-    // Load status on page load
+    // Load status on page load and refresh every half second
     document.addEventListener('DOMContentLoaded', refreshStatus);
+    setInterval(refreshStatus, 500);
     </script>
-</head>
-<body>
-    <h1>Gabrielpenman.com</h1>
-    <div class="posts">
-        <article>
-            <h2><a href="dev-proxy">Dev Proxy Ports</a></h2>
-            <div class="date">2025-11-27</div>
-            <div class="description">Quick access to all local development services</div>
-            <div class="categories">Categories: development, devtools, local-services</div>
-            
-        </article>
-        <article>
-            <h2><a href="proxy-pattern">Nginx Proxy Pattern for Local Services</a></h2>
-            <div class="date">2025-11-17</div>
-            <div class="description">Standard pattern for proxying local services (dynmap, etc.) through Nginx for modular, sustainable integrations</div>
-            <div class="categories">Categories: architecture, web-development, nginx, deployment</div>
-            
-        </article>
-        <article>
-            <h2><a href="dynmap-plugin">Live Map</a></h2>
-            <div class="date">2025-11-17</div>
-            <div class="description">Interactive Minecraft world map powered by BlueMap</div>
-            <div class="categories">Categories: minecraft, server-administration</div>
-            
-        </article>
-        <article>
-            <h2><a href="collaborative-canvas">Collaborative Canvas</a></h2>
-            <div class="date">2025-09-05</div>
-            <div class="description">Real-time collaborative black and white drawing canvas for up to 8 players</div>
-            <div class="categories">Categories: games, interactive, collaborative, websockets</div>
-            
-        </article>
-        <article>
-            <h2><a href="gpu-value-analysis">GPU Value Analysis for Machine Learning</a></h2>
-            <div class="date">2025-09-03</div>
-            <div class="description">Interactive analysis of GPU price/performance for ML workloads with changeable axes and CUDA support visualization</div>
-            <div class="categories">Categories: machine learning, gpu, visualization, analysis</div>
-            
-        </article>
-        <article>
-            <h2><a href="llm-compression-gap">The LLM Compression Gap</a></h2>
-            <div class="date">2025-08-20</div>
-            <div class="description">Exploring why LLM-based compression achieves superior results but can't compete in the Hutter Prize due to computational constraints</div>
-            <div class="categories">Categories: compression, llm, algorithms, hutter-prize, research</div>
-            
-        </article>
-        <article>
-            <h2><a href="ideal-carry-on-bag-size">What's the Ideal Carry-On Bag Size?</a></h2>
-            <div class="date">2025-08-14</div>
-            <div class="description">Interactive visualization of airline carry-on bag size restrictions worldwide to find the perfect bag dimensions</div>
-            <div class="categories">Categories: travel, data-visualization, airlines</div>
-            
-        </article>
-        <article>
-            <h2><a href="conway-immigration">Conway's Game of Life Immigration</a></h2>
-            <div class="date">2025-08-11</div>
-            <div class="description">Interactive Immigration Game based on Conway's Game of Life where two populations compete with colored organisms</div>
-            <div class="categories">Categories: games, simulation, interactive</div>
-            <div class="assets-info">5 assets included</div>
-            <div class="subpages" id="subpages-conway-immigration">
-                <div class="subpage-item">
-                    <a href="conway-immigration/info">
-                        <span>→</span>
-                        <span>Information</span>
-                    </a>
-                </div>
-                <div class="subpage-item">
-                    <a href="conway-immigration/sandbox">
-                        <span>→</span>
-                        <span>Sandbox</span>
-                    </a>
-                </div>
-            </div>
-        </article>
-        <article>
-            <h2><a href="first-post">Modular Blog Architecture</a></h2>
-            <div class="date">2025-01-15</div>
-            <div class="description">How this blog works - each page is self-contained with its own styling and functionality.</div>
-            <div class="categories">Categories: architecture, web-development, technical</div>
-            <div class="assets-info">1 assets included</div>
-        </article>
-        <article>
-            <h2><a href="pool-leaderboard">Pool Leaderboard</a></h2>
-            <div class="date">2025-01-15</div>
-            <div class="description">Live pool ELO leaderboard and game tracking system</div>
-            <div class="categories">Categories: games, leaderboard, pool</div>
-            
-        </article>
-    </div>
 
-    <div class="status-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="margin: 0;">System Status</h3>
-            <button onclick="refreshStatus()" style="padding: 6px 12px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9em;">Refresh</button>
-        </div>
-        <div class="status-item">
-            <span class="status-dot"></span>
-            <span class="status-label">Minecraft:</span>
-            <span id="minecraft-status">Loading...</span>
-        </div>
-        <div class="status-item">
-            <span class="status-dot"></span>
-            <span class="status-label">API:</span>
-            <span id="api-status">Loading...</span>
-        </div>
-        <div class="status-item">
-            <span class="status-dot"></span>
-            <span class="status-label">BlueMap:</span>
-            <span id="bluemap-status">Loading...</span>
-        </div>
-        <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
-        <div class="status-item">
-            <span class="status-label">CPU:</span>
-            <span id="cpu-name">Loading...</span>
-        </div>
-        <div style="margin: 12px 0 12px 108px;">
-            <div class="cpu-grid" id="cpu-grid">
-                <!-- 8 cores x 8 squares = 64 squares total -->
-            </div>
-        </div>
-        <div class="status-item">
-            <span class="status-label">RAM:</span>
-            <div style="display: flex; gap: 8px; align-items: center;">
-                <div class="ram-bar">
-                    <div class="ram-used" id="ram-bar-used" style="width: 0%;"></div>
-                </div>
-                <span id="ram-usage">Loading...</span>
-            </div>
-        </div>
-        <div class="status-item">
-            <span class="status-label">GPU:</span>
-            <span id="gpu-status">Loading...</span>
-        </div>
-    </div>
+    <!-- glitchGL Photo Background - ENABLED -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lil-gui@0.21"></script>
+    <script src="/assets/js/glitchGL.min.js"></script>
+    <script src="/assets/js/photo-background.js"></script>
+    <script>
+        // Initialize photo background with glitchGL effects
+        window.pageConfig = {
+            crt_effects: 'full',          // Options: 'none', 'subtle', 'full'
+            photo_background: true        // Enable photo background system
+        };
 
-    <footer style="margin-top: 50px; text-align: center; color: #7f8c8d; font-size: 0.9em;">
-        <p>Email me at gabrielpenman@gmail.com • <a href="/api/health">API Status</a></p>
-    </footer>
+        // Photo background controller will handle everything
+        if (window.photoBackground) {
+            window.photoBackground.init(window.pageConfig);
+        }
+    </script>
 </body>
 </html>

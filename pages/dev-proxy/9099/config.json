@@ -1,7 +1,0 @@
-{
-    "title": "Auth Emulator",
-    "slug": "9099",
-    "parent": "dev-proxy",
-    "description": "Firebase Authentication emulator",
-    "hidden": true
-}

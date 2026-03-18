@@ -1,0 +1,76 @@
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --bg:     #080808;
+    --text:   #d4d4d4;
+    --muted:  #5a5a5a;
+    --dim:    #222;
+    --border: #141414;
+    --accent: #c8a87a;
+}
+
+html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+}
+
+.pg-header {
+    padding: 72px 24px 48px;
+    text-align: center;
+}
+.pg-header h1 {
+    font-size: 0.7rem;
+    font-weight: 400;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.back-link {
+    display: inline-block;
+    margin-top: 20px;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--dim);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.back-link:hover { color: var(--muted); }
+
+.embed-wrap {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 0 24px 60px;
+}
+
+.embed-wrap iframe {
+    width: 100%;
+    border: none;
+    display: block;
+}
+
+@media (max-width: 500px) {
+    .pg-header { padding: 48px 16px 32px; }
+    .embed-wrap { padding: 0 16px 40px; }
+}
+</style>
+
+<html>
+
+<div class="pg-header">
+    <h1>Music</h1>
+    <a class="back-link" href="/">← index</a>
+</div>
+
+<div class="embed-wrap">
+    <iframe
+        src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/gabriel-penman&color=%23c8a87a&auto_play=false&hide_related=false&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false"
+        height="450">
+    </iframe>
+</div>
+
+</html>

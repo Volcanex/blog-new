@@ -1,7 +1,0 @@
-{
-    "title": "Nginx Proxy Pattern for Local Services",
-    "slug": "proxy-pattern",
-    "date": "2025-11-17",
-    "description": "Standard pattern for proxying local services (dynmap, etc.) through Nginx for modular, sustainable integrations",
-    "categories": ["architecture", "web-development", "nginx", "deployment"]
-}

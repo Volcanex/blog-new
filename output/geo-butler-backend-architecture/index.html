@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEO-Butler Backend Architecture: A Deep Dive into Serverless Search Analytics</title>
+    <style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
+    line-height: 1.6;
+    color: #291f1e;
+    background: #fffbf0;
+    margin: 0;
+    padding: 24px;
+    font-size: 16px;
+}
+
+.container {
+    max-width: 896px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 25px 50px -12px rgba(41, 31, 30, 0.25);
+    overflow: hidden;
+}
+
+.content {
+    padding: 48px;
+}
+
+h1 {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: #477998;
+    margin: 0 0 12px 0;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+}
+
+h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #291f1e;
+    margin: 48px 0 16px 0;
+}
+
+h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #477998;
+    margin: 32px 0 12px 0;
+}
+
+h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #57534e;
+    margin: 24px 0 12px 0;
+}
+
+p {
+    margin: 16px 0;
+    color: #44403c;
+}
+
+ul, ol {
+    margin: 16px 0;
+    padding-left: 24px;
+}
+
+li {
+    margin: 8px 0;
+    color: #44403c;
+}
+
+strong {
+    font-weight: 600;
+    color: #292524;
+}
+
+code {
+    background: #fef3c7;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 0.9em;
+    color: #92400e;
+}
+
+pre {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 20px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 24px 0;
+}
+
+pre code {
+    background: none;
+    padding: 0;
+    color: inherit;
+    font-size: 0.875rem;
+}
+
+.mermaid {
+    background: #f8fafc;
+    padding: 24px;
+    border-radius: 8px;
+    margin: 32px 0;
+    border: 1px solid #e2e8f0;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+thead {
+    background: #477998;
+    color: white;
+}
+
+th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+}
+
+td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e7e5e4;
+}
+
+tbody tr:hover {
+    background: #fafaf9;
+}
+
+hr {
+    border: none;
+    border-top: 2px solid #e7e5e4;
+    margin: 48px 0;
+}
+
+.meta {
+    color: #78716c;
+    font-size: 0.9rem;
+    margin-bottom: 32px;
+}
+</style>
+</head>
+<body>
+    <div class="container">
+    <div class="content">
+        <h1>GEO-Butler Backend Architecture: A Deep Dive into Serverless Search Analytics</h1>
+        <div class="meta">
+            Gabriel Penman • January 5, 2026
+        </div>
+
+<h2>Introduction</h2>
+
+<p>GEO-Butler is a serverless SEO analytics platform that tracks website visibility across AI-powered search engines like ChatGPT, Gemini, and Perplexity. This post explores the backend architecture that powers real-time search operations, subscription billing, and AI-driven insights.</p>
+
+<p><strong>Tech Stack:</strong></p>
+<ul>
+<li><strong>Backend:</strong> Python 3.12 Cloud Functions (90+ endpoints)</li>
+<li><strong>Database:</strong> Firebase Firestore (20 collections)</li>
+<li><strong>APIs:</strong> DataForSEO, OpenAI, Gemini, Perplexity, Stripe</li>
+<li><strong>Async Processing:</strong> Cloud Pub/Sub</li>
+<li><strong>Region:</strong> europe-west2</li>
+</ul>
+
+<hr>
+
+<h2>System Architecture Overview</h2>
+
+<p>The platform is built entirely on serverless infrastructure, with Firebase Cloud Functions handling all API logic. Here's how the pieces fit together:</p>
+
+<div class="mermaid">
+graph TB
+    subgraph "Client Layer"
+        WEB[Next.js Web App<br/>React 18 + TypeScript]
+    end
+
+    subgraph "CDN & Hosting"
+        HOSTING[Firebase Hosting<br/>Static Assets + SSR]
+    end
+
+    subgraph "Authentication"
+        AUTH[Firebase Auth<br/>Google OAuth]
+    end
+
+    subgraph "API Gateway"
+        CF[Cloud Functions<br/>Python 3.12<br/>90+ Endpoints]
+    end
+
+    subgraph "External APIs"
+        GOOGLE[Google Search<br/>DataForSEO API]
+        GPT[OpenAI GPT<br/>GPT-5-nano]
+        PERP[Perplexity AI]
+        GEMINI[Google Gemini<br/>2.5 Flash]
+        STRIPE[Stripe<br/>Payment Processing]
+    end
+
+    subgraph "Database"
+        FS[(Firestore<br/>20 Collections)]
+    end
+
+    subgraph "Storage"
+        R2[Cloudflare R2<br/>Schema Storage]
+    end
+
+    subgraph "Messaging"
+        PUBSUB[Cloud Pub/Sub<br/>Async Processing]
+    end
+
+    subgraph "Email"
+        EMAIL[SendGrid/Mailgun<br/>Email Delivery]
+    end
+
+    WEB -->|HTTPS| HOSTING
+    WEB -->|OAuth| AUTH
+    WEB -->|API Calls| CF
+    CF -->|Verify Token| AUTH
+    CF -->|Read/Write| FS
+    CF -->|Search| GOOGLE
+    CF -->|AI Search| GPT
+    CF -->|AI Search| PERP
+    CF -->|Schema Gen| GEMINI
+    CF -->|Payments| STRIPE
+    CF -->|Upload Schema| R2
+    CF -->|Publish Tasks| PUBSUB
+    CF -->|Send Email| EMAIL
+    PUBSUB -->|Trigger| CF
+    STRIPE -->|Webhooks| CF
+
+    style WEB fill:#4A90E2
+    style CF fill:#E85D75
+    style FS fill:#F39C12
+    style AUTH fill:#27AE60
+    style STRIPE fill:#635BFF
+</div>
+
+<h3>Key Architectural Decisions</h3>
+
+<ol>
+<li><strong>Serverless-First:</strong> All backend logic runs in Cloud Functions that scale to zero when idle</li>
+<li><strong>Event-Driven:</strong> Pub/Sub decouples long-running operations from API responses</li>
+<li><strong>Multi-Engine:</strong> Abstract search interface supports 5 different search engines</li>
+<li><strong>Atomic Credits:</strong> Credit system uses atomic operations (not transactions) to prevent contention</li>
+<li><strong>Firestore-Native:</strong> NoSQL structure optimized for real-time updates and concurrent writes</li>
+</ol>
+
+<hr>
+
+<h2>Backend Service Breakdown</h2>
+
+<p>Our Python backend is organized into 12 core modules powering 90+ API endpoints:</p>
+
+<div class="mermaid">
+graph TB
+    subgraph "API Layer - Cloud Functions (Python)"
+        direction TB
+
+        subgraph "Auth & User Management"
+            AUTH_EP[settings<br/>get_onboarding_stage<br/>increment_onboarding_stage<br/>subscription_status]
+        end
+
+        subgraph "Billing & Credits"
+            BILLING_EP[get_wallet<br/>update_tokens<br/>adjust_customer_credits]
+        end
+
+        subgraph "Stripe Integration"
+            STRIPE_EP[create_checkout_session<br/>session_status<br/>stripe_webhook]
+        end
+
+        subgraph "Data Management"
+            SAVES_EP[new_save<br/>get_saves<br/>update_save<br/>delete_save]
+            TEMPLATES_EP[create_template<br/>get_templates<br/>update_template<br/>delete_template]
+        end
+
+        subgraph "Search Operations"
+            SEARCH_EP[search<br/>search_template<br/>process_single_search<br/>ranked_keywords]
+        end
+
+        subgraph "Reports"
+            REPORTS_EP[get_reports<br/>get_report_status<br/>get_report_summary<br/>generate_sentiment_analysis]
+        end
+
+        subgraph "AI Features"
+            AI_EP[generate_weekly_check<br/>summarise_for_email<br/>site_chatbot<br/>generate_onboarding_keywords<br/>parse_business_info]
+        end
+
+        subgraph "Schema Generation"
+            SCHEMA_EP[generate_schema<br/>generate_schema_async<br/>get_schemas<br/>upload_schema_to_r2<br/>verify_domain]
+        end
+
+        subgraph "Email Operations"
+            EMAIL_EP[send_email<br/>send_template_email<br/>process_email_queue<br/>contact_form]
+        end
+
+        subgraph "Admin & Monitoring"
+            ADMIN_EP[get_customers<br/>get_errors<br/>report_frontend_error<br/>get_tickets]
+        end
+    end
+
+    subgraph "Function Modules"
+        direction LR
+        BILLING_MOD[billing_functions.py<br/>366 lines<br/>Atomic credit operations]
+        SEARCH_MOD[search_functions.py<br/>~2500 lines<br/>Multi-engine search]
+        REPORT_MOD[report_functions_v2.py<br/>~800 lines<br/>Report management]
+        KEYWORD_MOD[keyword_functions.py<br/>431 lines<br/>Keyword rankings]
+        SCHEMA_MOD[schema_functions.py<br/>518 lines<br/>Schema generation]
+        EMAIL_MOD[email_functions.py<br/>917 lines<br/>Email delivery]
+        SCREENSHOT_MOD[screenshot_functions.py<br/>302 lines<br/>Playwright screenshots]
+        ERROR_MOD[error_logging.py<br/>238 lines<br/>Error tracking]
+        AI_REG[ai_function_registry.py<br/>382 lines<br/>AI function calling]
+    end
+
+    AUTH_EP --> BILLING_MOD
+    BILLING_EP --> BILLING_MOD
+    STRIPE_EP --> BILLING_MOD
+    SEARCH_EP --> SEARCH_MOD
+    SEARCH_MOD --> BILLING_MOD
+    REPORTS_EP --> REPORT_MOD
+    AI_EP --> BILLING_MOD
+    SCHEMA_EP --> SCHEMA_MOD
+    EMAIL_EP --> EMAIL_MOD
+
+    style AUTH_EP fill:#27AE60
+    style BILLING_EP fill:#F39C12
+    style STRIPE_EP fill:#635BFF
+    style SEARCH_EP fill:#E74C3C
+    style AI_EP fill:#9B59B6
+    style SCHEMA_EP fill:#3498DB
+</div>
+
+<h3>Module Responsibilities</h3>
+
+<ul>
+<li><strong>billing_functions.py:</strong> Atomic credit operations with exponential backoff</li>
+<li><strong>search_functions.py:</strong> Multi-engine abstraction (Google, GPT, Perplexity, Gemini)</li>
+<li><strong>report_functions_v2.py:</strong> Lightweight reports with separate query_status for concurrency</li>
+<li><strong>schema_functions.py:</strong> AI-powered schema.org generation with Gemini vision</li>
+<li><strong>email_functions.py:</strong> Queue-based email delivery with template support</li>
+</ul>
+
+<hr>
+
+<h2>Data Flow #1: Single Search Operation</h2>
+
+<p>Let's trace a single search request from user input to final results:</p>
+
+<div class="mermaid">
+sequenceDiagram
+    autonumber
+    participant User
+    participant Frontend
+    participant AuthProvider
+    participant SearchEndpoint
+    participant BillingFunctions
+    participant SearchFunctions
+    participant ExternalAPI
+    participant Firestore
+    participant Frontend as FrontendResult
+
+    User->>Frontend: Enter search query
+    Frontend->>AuthProvider: Get ID token
+    AuthProvider-->>Frontend: Return token
+    Frontend->>SearchEndpoint: POST /search<br/>(query, engine, user_id, token)
+    SearchEndpoint->>BillingFunctions: Check credit balance
+    BillingFunctions->>Firestore: Query wallets collection
+    Firestore-->>BillingFunctions: current_balance: 100
+
+    alt Sufficient Credits
+        BillingFunctions-->>SearchEndpoint: Balance OK (100 >= 6)
+        SearchEndpoint->>SearchFunctions: Execute search
+        SearchFunctions->>ExternalAPI: API call (GPT/Google/etc)
+        ExternalAPI-->>SearchFunctions: Raw results
+        SearchFunctions->>SearchFunctions: Parse & normalize results
+        SearchFunctions->>SearchFunctions: Calculate domain position
+        SearchFunctions->>Firestore: Store in queries collection
+        SearchFunctions-->>SearchEndpoint: Query ID + results
+        SearchEndpoint->>BillingFunctions: Deduct 6 credits
+        BillingFunctions->>Firestore: Atomic update wallet (100-6=94)
+        BillingFunctions->>Firestore: Log to token_transactions
+        BillingFunctions-->>SearchEndpoint: Credits deducted
+        SearchEndpoint-->>Frontend: 200 OK + results
+        Frontend-->>User: Display results
+    else Insufficient Credits
+        BillingFunctions-->>SearchEndpoint: Insufficient credits
+        SearchEndpoint-->>Frontend: 402 Payment Required
+        Frontend-->>User: Show upgrade modal
+    end
+</div>
+
+<h3>Key Implementation Details</h3>
+
+<p><strong>Credit Check Before Execution:</strong></p>
+<pre><code># Check balance BEFORE running expensive operation
+balance = get_wallet_balance(user_id)
+if balance &lt; SEARCH_WEIGHTS[search_engine]:
+    return Response("Insufficient credits", status=402)
+
+# Execute search
+results = execute_search(query, engine)
+
+# Deduct credits AFTER successful execution
+deduct_tokens_for_search(user_id, query_id, search_engine)
+</code></pre>
+
+<p><strong>Atomic Wallet Updates:</strong></p>
+<pre><code>def update_token_balance_atomic(user_id, amount, operation_type):
+    """
+    Atomic operation (NOT transaction) to prevent contention.
+    Allows concurrent credit operations with retry logic.
+    """
+    max_retries = 5
+    for attempt in range(max_retries):
+        try:
+            wallet_doc = get_wallet(user_id)
+            new_balance = wallet_doc['current_balance'] + amount
+
+            # Allow small negative balance (up to -100)
+            if new_balance &lt; -100:
+                return False
+
+            # Atomic update (no transaction lock)
+            wallet_doc.reference.update({
+                'current_balance': new_balance,
+                'last_updated': SERVER_TIMESTAMP
+            })
+
+            # Log transaction
+            log_transaction(user_id, amount, operation_type, new_balance)
+            return True
+        except Exception:
+            # Exponential backoff with jitter
+            time.sleep(0.1 * (2 ** attempt) + random.uniform(0, 0.1))
+
+    return False
+</code></pre>
+
+<p><strong>Why Atomic (Not Transactional)?</strong></p>
+<ul>
+<li>Firestore transactions lock documents, causing contention under load</li>
+<li>Atomic operations allow concurrent credit operations</li>
+<li>Small negative balances (-100) act as buffer for race conditions</li>
+<li>Exponential backoff handles rare collision cases</li>
+</ul>
+
+<hr>
+
+<h2>Data Flow #2: Template Report Generation (Async)</h2>
+
+<p>Templates allow users to run multiple queries across multiple search engines. This generates 10s or 100s of individual searches that must run asynchronously:</p>
+
+<div class="mermaid">
+sequenceDiagram
+    autonumber
+    participant User
+    participant Frontend
+    participant TemplateEndpoint
+    participant ReportFunctions
+    participant PubSub
+    participant SearchWorker
+    participant SearchFunctions
+    participant BillingFunctions
+    participant Firestore
+
+    User->>Frontend: Click "Run Template"
+    Frontend->>TemplateEndpoint: POST /search_template<br/>(template_id, user_id, token)
+    TemplateEndpoint->>Firestore: Get template doc
+    Firestore-->>TemplateEndpoint: Template with 10 queries, 3 engines
+
+    TemplateEndpoint->>ReportFunctions: Create report
+    ReportFunctions->>Firestore: Create report doc (status: in_progress)
+    ReportFunctions->>Firestore: Create 30 query_status docs<br/>(10 queries × 3 engines)
+    ReportFunctions-->>TemplateEndpoint: Report ID created
+
+    TemplateEndpoint->>PubSub: Publish 30 search tasks
+    TemplateEndpoint-->>Frontend: 202 Accepted + report_id
+    Frontend->>Frontend: Start polling /get_report_status
+
+    loop For each search task
+        PubSub->>SearchWorker: Trigger process_single_search_pubsub
+        SearchWorker->>Firestore: Update query_status (processing)
+        SearchWorker->>BillingFunctions: Check & deduct credits
+        SearchWorker->>SearchFunctions: Execute search
+        SearchFunctions->>Firestore: Store query result
+        SearchWorker->>Firestore: Update query_status (completed)
+        SearchWorker->>Firestore: Increment report.completed_queries
+    end
+
+    Frontend->>TemplateEndpoint: Poll GET /get_report_status
+    TemplateEndpoint->>Firestore: Query query_status collection
+    Firestore-->>TemplateEndpoint: 28/30 completed
+    TemplateEndpoint-->>Frontend: Status: in_progress (93%)
+
+    Frontend->>TemplateEndpoint: Poll GET /get_report_status
+    TemplateEndpoint->>Firestore: Query query_status collection
+    Firestore-->>TemplateEndpoint: 30/30 completed
+    TemplateEndpoint->>Firestore: Update report (status: completed)
+    TemplateEndpoint-->>Frontend: Status: completed
+    Frontend-->>User: Redirect to /report-overview
+</div>
+
+<h3>Architectural Patterns</h3>
+
+<p><strong>CQRS (Command Query Responsibility Segregation):</strong></p>
+<ul>
+<li>Separate <code>query_status</code> collection prevents report document contention</li>
+<li>30 concurrent workers can update individual query_status docs</li>
+<li>Report doc only tracks counts, not full results</li>
+</ul>
+
+<p><strong>Pub/Sub for Scale:</strong></p>
+<pre><code>def search_template(template_id, user_id):
+    """
+    Publish search tasks to Pub/Sub instead of processing synchronously.
+    Prevents function timeout and enables parallel execution.
+    """
+    template = get_template(template_id)
+    report_id = create_report(template_id)
+
+    # Create query_status docs (lightweight, no contention)
+    for query in template['queries']:
+        for engine in template['search_engines']:
+            create_query_status(report_id, query, engine)
+
+    # Publish to Pub/Sub for async processing
+    for query in template['queries']:
+        for engine in template['search_engines']:
+            publish_message('search-tasks', {
+                'report_id': report_id,
+                'query': query,
+                'engine': engine,
+                'user_id': user_id
+            })
+
+    return {'report_id': report_id, 'status': 'in_progress'}
+</code></pre>
+
+<p><strong>Why This Works:</strong></p>
+<ul>
+<li>540-second function timeout allows ~60 seconds per search</li>
+<li>30 queries × 3 engines = 90 individual tasks</li>
+<li>Sequential would take 90 × 5s = 450s (near timeout)</li>
+<li>Pub/Sub allows parallel execution: 30 functions × 5s = 5s elapsed</li>
+<li>Frontend polls status every 5 seconds for real-time updates</li>
+</ul>
+
+<hr>
+
+<h2>Data Flow #3: Subscription & Billing with Stripe</h2>
+
+<p>Payment processing is entirely webhook-driven, ensuring reliability even if the user closes their browser:</p>
+
+<div class="mermaid">
+sequenceDiagram
+    autonumber
+    participant User
+    participant Frontend
+    participant CreateCheckout
+    participant Stripe
+    participant StripeWebhook
+    participant BillingFunctions
+    participant Firestore
+
+    User->>Frontend: Select "Classic Plan"
+    Frontend->>CreateCheckout: POST /create_checkout_session<br/>(price_index: 2, user_id)
+    CreateCheckout->>Stripe: Create checkout session
+    Stripe-->>CreateCheckout: session + client_secret
+    CreateCheckout-->>Frontend: Return session data
+    Frontend->>Frontend: Mount Stripe embedded checkout
+    Frontend-->>User: Display payment form
+
+    User->>Stripe: Enter card details & submit
+    Stripe->>Stripe: Process payment
+    Stripe->>StripeWebhook: POST checkout.session.completed
+    StripeWebhook->>Firestore: Create subscription doc
+    Firestore-->>StripeWebhook: Subscription created
+
+    Stripe->>StripeWebhook: POST customer.subscription.created
+    StripeWebhook->>Firestore: Update subscription IDs
+    Firestore-->>StripeWebhook: Updated
+
+    Stripe->>StripeWebhook: POST invoice.paid<br/>(billing_reason: subscription_create)
+    StripeWebhook->>Firestore: Get subscription doc
+    Firestore-->>StripeWebhook: credits_per_cycle: 5000
+    StripeWebhook->>BillingFunctions: Add 5000 credits
+    BillingFunctions->>Firestore: Atomic update wallet (+5000)
+    BillingFunctions->>Firestore: Log to token_transactions
+    BillingFunctions-->>StripeWebhook: Credits added
+    StripeWebhook->>Firestore: Update subscription.last_invoice_paid
+    StripeWebhook-->>Stripe: 200 OK
+
+    Stripe-->>User: Redirect to success page
+    User->>Frontend: Navigate to /classic-success
+    Frontend->>Frontend: Fetch updated wallet balance
+    Frontend-->>User: Show success + 5000 credits
+</div>
+
+<h3>Webhook Implementation</h3>
+
+<p><strong>Signature Verification (Critical):</strong></p>
+<pre><code>@https_fn.on_request()
+def stripe_webhook(req):
+    """Handle all Stripe webhook events with signature verification."""
+    payload = req.get_data()
+    sig_header = req.headers.get('Stripe-Signature')
+
+    try:
+        # Verify webhook signature (prevents spoofing)
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, STRIPE_WEBHOOK_SECRET
+        )
+    except ValueError:
+        return Response("Invalid payload", status=400)
+    except stripe.error.SignatureVerificationError:
+        return Response("Invalid signature", status=400)
+
+    # Route event to appropriate handler
+    if event['type'] == 'checkout.session.completed':
+        handle_checkout_completed(event['data']['object'])
+    elif event['type'] == 'invoice.paid':
+        handle_invoice_paid(event['data']['object'])
+    elif event['type'] == 'customer.subscription.updated':
+        handle_subscription_updated(event['data']['object'])
+
+    return Response("Success", status=200)
+</code></pre>
+
+<p><strong>Idempotent Credit Allocation:</strong></p>
+<pre><code>def handle_invoice_paid(invoice):
+    """
+    Add credits when subscription invoice is paid.
+    Handles both initial subscription and monthly renewals.
+    """
+    subscription_id = invoice['subscription']
+    billing_reason = invoice['billing_reason']
+
+    # Get subscription from Firestore
+    subscription = get_subscription_by_stripe_id(subscription_id)
+    user_id = subscription['user_id']
+    credits = subscription['credits_per_cycle']
+
+    # Determine operation type
+    if billing_reason == 'subscription_create':
+        operation_type = 'subscription_credit'
+    elif billing_reason == 'subscription_cycle':
+        operation_type = 'renewal_credit'
+    else:
+        operation_type = 'subscription_credit'
+
+    # Add credits atomically
+    success = update_token_balance_atomic(
+        user_id=user_id,
+        amount=credits,
+        operation_type=operation_type,
+        description=f"{operation_type}: {credits} credits"
+    )
+
+    if success:
+        # Update subscription metadata
+        update_subscription_payment_details(
+            subscription_id,
+            invoice['amount_paid'],
+            invoice['status']
+        )
+</code></pre>
+
+<p><strong>Credit Cost Structure:</strong></p>
+
+<table>
+<thead>
+<tr>
+<th>Plan</th>
+<th>Price</th>
+<th>Credits/Month</th>
+<th>Cost per Credit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Free</td>
+<td>$0</td>
+<td>100 (one-time)</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Essentials</td>
+<td>$29</td>
+<td>1,000</td>
+<td>$0.029</td>
+</tr>
+<tr>
+<td>Classic</td>
+<td>$99</td>
+<td>5,000</td>
+<td>$0.020</td>
+</tr>
+<tr>
+<td>Select</td>
+<td>$299</td>
+<td>50,000</td>
+<td>$0.006</td>
+</tr>
+</tbody>
+</table>
+
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Credits</th>
+<th>$ (Classic)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Google Search</td>
+<td>2</td>
+<td>$0.04</td>
+</tr>
+<tr>
+<td>GPT Search</td>
+<td>6</td>
+<td>$0.12</td>
+</tr>
+<tr>
+<td>Gemini Search</td>
+<td>35</td>
+<td>$0.70</td>
+</tr>
+<tr>
+<td>Schema Generation</td>
+<td>14</td>
+<td>$0.28</td>
+</tr>
+</tbody>
+</table>
+
+<hr>
+
+<h2>Data Flow #4: AI Schema Generation with Gemini</h2>
+
+<p>One of our most complex features is AI-powered schema.org markup generation using multimodal analysis:</p>
+
+<div class="mermaid">
+sequenceDiagram
+    autonumber
+    participant User
+    participant Frontend
+    participant SchemaEndpoint
+    participant ScreenshotFunctions
+    participant SchemaFunctions
+    participant Gemini
+    participant BillingFunctions
+    participant R2Storage
+    participant Firestore
+
+    User->>Frontend: Request schema generation
+    Frontend->>SchemaEndpoint: POST /generate_schema<br/>(domain, schema_type, user_id)
+    SchemaEndpoint->>BillingFunctions: Check credits (14 needed)
+    BillingFunctions-->>SchemaEndpoint: Balance OK
+
+    SchemaEndpoint->>ScreenshotFunctions: Capture website screenshot
+    ScreenshotFunctions->>ScreenshotFunctions: Launch Playwright
+    ScreenshotFunctions->>ScreenshotFunctions: Navigate to domain
+    ScreenshotFunctions->>ScreenshotFunctions: Remove cookie banners
+    ScreenshotFunctions->>ScreenshotFunctions: Capture full-page PNG
+    ScreenshotFunctions-->>SchemaEndpoint: screenshot_base64 + html_content
+
+    SchemaEndpoint->>SchemaFunctions: Generate schema
+    SchemaFunctions->>Gemini: Multimodal prompt<br/>(screenshot + HTML + instructions)
+    Gemini->>Gemini: Process with gemini-2.5-flash
+    Gemini-->>SchemaFunctions: Generated schema JSON-LD
+    SchemaFunctions->>SchemaFunctions: Validate against vocabulary
+    SchemaFunctions->>SchemaFunctions: Calculate validation score
+
+    SchemaFunctions->>Firestore: Save to schemas collection
+    Firestore-->>SchemaFunctions: Schema ID
+
+    SchemaFunctions->>BillingFunctions: Deduct 14 credits
+    BillingFunctions->>Firestore: Update wallet & log transaction
+    BillingFunctions-->>SchemaFunctions: Credits deducted
+
+    alt User requests R2 upload
+        SchemaFunctions->>R2Storage: Upload schema JSON
+        R2Storage-->>SchemaFunctions: Public URL
+        SchemaFunctions->>Firestore: Update schema with R2 URL
+    end
+
+    SchemaFunctions-->>SchemaEndpoint: Schema data + validation
+    SchemaEndpoint-->>Frontend: Return schema
+    Frontend-->>User: Display schema + validation results
+</div>
+
+<h3>Multimodal AI Implementation</h3>
+
+<p><strong>Gemini Vision Prompt:</strong></p>
+<pre><code>def generate_schema_with_gemini(domain, schema_type, screenshot_base64, html_content):
+    """
+    Generate schema.org JSON-LD using Gemini's multimodal capabilities.
+    Analyzes both visual appearance and HTML structure.
+    """
+    model = genai.GenerativeModel('gemini-2.5-flash')
+
+    # Prepare multimodal input
+    image_part = {
+        'mime_type': 'image/png',
+        'data': screenshot_base64
+    }
+
+    prompt = f"""
+    Analyze this website and generate comprehensive schema.org JSON-LD markup.
+
+    Domain: {domain}
+    Requested Schema Type: {schema_type}
+
+    Use the screenshot to understand:
+    - Visual branding and design
+    - Layout and structure
+    - Key content placement
+
+    Use the HTML to extract:
+    - Structured data
+    - Metadata
+    - Content hierarchy
+
+    Generate verbose, detailed schema with all relevant properties.
+    Follow schema.org vocabulary strictly.
+
+    HTML Content:
+    {html_content[:10000]}  # First 10KB
+    """
+
+    # Call Gemini with multimodal input
+    response = model.generate_content([prompt, image_part])
+    schema_json = extract_json_from_response(response.text)
+
+    # Validate against schema.org vocabulary
+    validation_results = validate_schema(schema_json)
+
+    return {
+        'schema_json': schema_json,
+        'validation_score': validation_results['score'],
+        'validation_errors': validation_results['errors']
+    }
+</code></pre>
+
+<p><strong>Schema Validation:</strong></p>
+<pre><code>def validate_schema_against_vocabulary(schema_json):
+    """
+    Validate generated schema against official schema.org vocabulary.
+    Loaded from 1.5MB schemaorg-current.jsonld file.
+    """
+    vocabulary = load_schema_org_vocabulary()  # Cached in memory
+
+    errors = []
+    warnings = []
+    score = 100
+
+    # Check type exists
+    if schema_json['@type'] not in vocabulary['types']:
+        errors.append(f"Invalid type: {schema_json['@type']}")
+        score -= 50
+
+    # Check properties
+    for prop, value in schema_json.items():
+        if prop.startswith('@'):
+            continue
+
+        if prop not in vocabulary['properties']:
+            warnings.append(f"Non-standard property: {prop}")
+            score -= 5
+
+    return {
+        'score': max(0, score),
+        'errors': errors,
+        'warnings': warnings
+    }
+</code></pre>
+
+<hr>
+
+<h2>Database Architecture</h2>
+
+<p>Our Firestore database uses 20 collections optimized for real-time updates and concurrent access:</p>
+
+<div class="mermaid">
+erDiagram
+    USERS ||--o{ USER_SETTINGS : has
+    USERS ||--|| WALLETS : has
+    USERS ||--o{ SUBSCRIPTIONS : has
+    USERS ||--o{ SAVES : owns
+    USERS ||--o{ TEMPLATES : creates
+    USERS ||--o{ QUERIES : executes
+    USERS ||--o{ TOKEN_TRANSACTIONS : has
+
+    SAVES ||--o{ SITES : analyzes
+    SAVES ||--o{ TEMPLATES : contains
+    SAVES ||--o{ REPORTS : generates
+
+    TEMPLATES ||--o{ REPORTS : executes
+    TEMPLATES }o--o{ QUERIES : includes
+
+    REPORTS ||--o{ QUERY_STATUS : tracks
+    REPORTS }o--o{ QUERIES : contains
+
+    QUERIES }o--|| SITES : mentions
+
+    WALLETS ||--o{ TOKEN_TRANSACTIONS : logs
+
+    SUBSCRIPTIONS }o--|| STRIPE_CUSTOMER : linked
+
+    USERS {
+        string id PK
+        string firebase_uid
+        string email
+        timestamp created_at
+    }
+
+    WALLETS {
+        string user_id FK
+        int current_balance
+        string status
+        timestamp last_updated
+    }
+
+    TOKEN_TRANSACTIONS {
+        string id PK
+        string user_id FK
+        string wallet_id FK
+        string type
+        int amount
+        string operation_type
+        timestamp created_at
+    }
+
+    SUBSCRIPTIONS {
+        string user_id FK
+        string stripe_customer_id
+        string stripe_subscription_id
+        string plan_id
+        int credits_per_cycle
+        string status
+    }
+
+    REPORTS {
+        string id PK
+        string template_id FK
+        string save_id FK
+        string user_id FK
+        string status
+        int total_queries
+        int completed_queries
+    }
+
+    QUERY_STATUS {
+        string id PK
+        string report_id FK
+        string query_text
+        string search_engine
+        string status
+        string query_id FK
+    }
+
+    QUERIES {
+        string id PK
+        string user_id FK
+        string save_id FK
+        string query_text
+        string search_type
+        array formatted_results
+        int credits_charged
+    }
+</div>
+
+<h3>Key Design Decisions</h3>
+
+<p><strong>Separate query_status Collection:</strong></p>
+<ul>
+<li>Prevents report document contention during concurrent updates</li>
+<li>Each query×engine combination gets its own lightweight document</li>
+<li>Workers update individual status docs in parallel</li>
+<li>Report doc only tracks aggregate counts</li>
+</ul>
+
+<p><strong>User-Scoped user_data Maps:</strong></p>
+<pre><code>interface Site {
+  domain: string;
+  public_data: {
+    title: string;
+    screenshot_base64: string;
+    // Shared across all users
+  };
+  user_data: {
+    [user_id: string]: {
+      private_data: {
+        competitors: string[];
+        custom_notes: string;
+        // Private to each user
+      }
+    }
+  }
+}
+</code></pre>
+
+<p><strong>Atomic Wallet Updates:</strong></p>
+<ul>
+<li>No transactions = no lock contention</li>
+<li>Small negative balance buffer (-100 credits) handles race conditions</li>
+<li>Every operation logged in token_transactions for audit trail</li>
+</ul>
+
+<hr>
+
+<h2>External API Integration</h2>
+
+<p>GEO-Butler integrates with 8 external services:</p>
+
+<div class="mermaid">
+graph LR
+    subgraph "GEO-Butler Backend"
+        SF[Search Functions]
+        KF[Keyword Functions]
+        SCF[Schema Functions]
+        EF[Email Functions]
+        BF[Billing Functions]
+    end
+
+    subgraph "Search APIs"
+        DF[DataForSEO<br/>Google Search<br/>Keyword Rankings]
+        OA[OpenAI<br/>GPT-5-nano<br/>AI Search & Summaries]
+        PA[Perplexity AI<br/>AI Search]
+        GM[Google Gemini<br/>2.5 Flash<br/>Schema Generation]
+    end
+
+    subgraph "Infrastructure APIs"
+        ST[Stripe<br/>Payment Processing<br/>Subscription Management]
+        SG[SendGrid/Mailgun<br/>Email Delivery]
+        R2[Cloudflare R2<br/>Schema Storage]
+    end
+
+    subgraph "Google Cloud"
+        FA[Firebase Auth<br/>OAuth & JWT]
+        FS[(Firestore<br/>NoSQL Database)]
+        PS[Cloud Pub/Sub<br/>Async Messaging]
+    end
+
+    SF -->|Search Requests| DF
+    SF -->|AI Search| OA
+    SF -->|AI Search| PA
+    SF -->|AI Search| GM
+    KF -->|Ranking Data| DF
+    SCF -->|Schema Generation| GM
+    SCF -->|Upload Schema| R2
+    EF -->|Send Email| SG
+    BF -->|Payments| ST
+    BF -->|Webhooks| ST
+
+    SF -->|Read/Write| FS
+    KF -->|Read/Write| FS
+    SCF -->|Read/Write| FS
+    EF -->|Read/Write| FS
+    BF -->|Read/Write| FS
+
+    SF -->|Publish Tasks| PS
+    SCF -->|Publish Tasks| PS
+    PS -->|Trigger Functions| SF
+    PS -->|Trigger Functions| SCF
+
+    SF -->|Verify Tokens| FA
+    KF -->|Verify Tokens| FA
+    SCF -->|Verify Tokens| FA
+
+    style DF fill:#4285F4
+    style OA fill:#412991
+    style PA fill:#20808D
+    style GM fill:#4285F4
+    style ST fill:#635BFF
+    style SG fill:#1A82E2
+    style R2 fill:#F38020
+    style FA fill:#FFCA28
+    style FS fill:#F57C00
+    style PS fill:#4285F4
+</div>
+
+<h3>Multi-Engine Search Abstraction</h3>
+
+<pre><code>class SearchEngine:
+    """Abstract base class for all search engines."""
+
+    @abstractmethod
+    def search(self, query: str, location: str, language: str) -&gt; dict:
+        pass
+
+    @abstractmethod
+    def get_cost(self) -&gt; int:
+        pass
+
+class GoogleSearchEngine(SearchEngine):
+    """Google Search via DataForSEO API."""
+    def search(self, query, location, language):
+        response = requests.post(
+            'https://api.dataforseo.com/v3/serp/google/organic/live/advanced',
+            auth=(DATAFORSEO_LOGIN, DATAFORSEO_PASSWORD),
+            json=[{
+                'keyword': query,
+                'location_code': location,
+                'language_code': language
+            }]
+        )
+        return self.parse_results(response.json())
+
+    def get_cost(self):
+        return 2  # credits
+
+class GPTSearchEngine(SearchEngine):
+    """GPT-powered search (Google + AI analysis)."""
+    def search(self, query, location, language):
+        # First get Google results
+        google_results = GoogleSearchEngine().search(query, location, language)
+
+        # Then analyze with GPT
+        analysis = openai.chat.completions.create(
+            model='gpt-5-nano',
+            messages=[{
+                'role': 'system',
+                'content': 'Analyze these search results and provide insights.'
+            }, {
+                'role': 'user',
+                'content': f"Query: {query}\n\nResults: {google_results}"
+            }]
+        )
+
+        return {
+            'google_results': google_results,
+            'ai_analysis': analysis.choices[0].message.content
+        }
+
+    def get_cost(self):
+        return 6  # credits (2 for Google + 4 for GPT)
+</code></pre>
+
+<hr>
+
+<h2>Security Architecture</h2>
+
+<p>Four layers of security protect every API call:</p>
+
+<div class="mermaid">
+graph TB
+    subgraph "Security Layers"
+        direction TB
+
+        subgraph "1. Authentication"
+            A1[Firebase Auth<br/>Google OAuth]
+            A2[ID Token Generation<br/>JWT with 1hr expiry]
+            A3[Auto Token Refresh]
+        end
+
+        subgraph "2. Authorization"
+            B1[Token Verification<br/>Every API call]
+            B2[User ID Validation<br/>Token UID = Header user-id]
+            B3[Resource Ownership<br/>Check user_id in docs]
+            B4[Admin Privilege Check<br/>users.is_admin flag]
+        end
+
+        subgraph "3. API Security"
+            C1[CORS Configuration<br/>Allowed origins only]
+            C2[Stripe Webhook Signature<br/>Verify all webhooks]
+            C3[Rate Limiting<br/>Per user/endpoint]
+            C4[Input Validation<br/>All user inputs]
+        end
+
+        subgraph "4. Data Security"
+            D1[Firestore Security Rules]
+            D2[Private user_data Maps<br/>Per-user isolation]
+            D3[Public/Private Mode<br/>Magic link tokens]
+            D4[Sensitive Data<br/>Environment variables]
+        end
+    end
+
+    A1 --> A2 --> A3
+    A3 --> B1 --> B2 --> B3 --> B4
+    B4 --> C1 --> C2 --> C3 --> C4
+    C4 --> D1 --> D2 --> D3 --> D4
+
+    style A1 fill:#27AE60
+    style B2 fill:#E74C3C
+    style C2 fill:#F39C12
+    style D1 fill:#3498DB
+</div>
+
+<h3>Token Verification Pattern</h3>
+
+<p>Every Cloud Function starts with this:</p>
+
+<pre><code>def verify_user(request):
+    """Verify Firebase ID token and extract user_id."""
+    user_id = request.headers.get('user-id')
+    auth_header = request.headers.get('Authorization')
+
+    if not user_id or not auth_header:
+        raise ValueError("Missing authentication")
+
+    # Extract token from "Bearer &lt;token&gt;"
+    token = auth_header.split('Bearer ')[1]
+
+    try:
+        # Verify with Firebase Admin SDK
+        decoded_token = firebase_auth.verify_id_token(token)
+
+        # Ensure user_id matches token
+        if decoded_token['uid'] != user_id:
+            raise ValueError("User ID mismatch")
+
+        return user_id, decoded_token
+    except Exception as e:
+        raise ValueError(f"Invalid token: {e}")
+
+@https_fn.on_request()
+def my_endpoint(req):
+    try:
+        user_id, token = verify_user(req)
+
+        # Process request for verified user
+        data = get_user_data(user_id)
+        return Response(json.dumps(data), status=200)
+
+    except ValueError as e:
+        return Response(str(e), status=401)
+</code></pre>
+
+<hr>
+
+<h2>Performance & Scalability</h2>
+
+<h3>Current Configuration</h3>
+
+<p><strong>Cloud Functions:</strong></p>
+<ul>
+<li>Runtime: Python 3.12</li>
+<li>Memory: 256MB - 2048MB (function-specific)</li>
+<li>Timeout: 30s - 540s</li>
+<li>Concurrency: 20 per instance</li>
+<li>Max Instances: 50</li>
+<li>Min Instances: 0 (scale to zero)</li>
+</ul>
+
+<p><strong>Firestore:</strong></p>
+<ul>
+<li>Write Rate: 10,000/sec per database</li>
+<li>Read Rate: 100,000/sec per database</li>
+<li>Document Limit: 1 MB</li>
+<li>Collections: 20</li>
+</ul>
+
+<h3>Scaling Strategies</h3>
+
+<ol>
+<li><strong>Horizontal Scaling:</strong> Functions auto-scale based on load</li>
+<li><strong>Async Processing:</strong> Pub/Sub prevents function timeouts</li>
+<li><strong>CQRS Pattern:</strong> Separate query_status reduces contention</li>
+<li><strong>Atomic Operations:</strong> No transaction locks = better concurrency</li>
+<li><strong>Efficient Indexing:</strong> Composite indexes for common queries</li>
+<li><strong>Caching:</strong> Schema.org vocabulary cached in memory (1.5MB)</li>
+</ol>
+
+<h3>Cost Optimization</h3>
+
+<ul>
+<li>Scale to zero when idle (no minimum instances)</li>
+<li>Efficient Firestore queries (indexed properly)</li>
+<li>Minimal data in report documents (references, not full results)</li>
+<li>Batch API calls where possible</li>
+</ul>
+
+<hr>
+
+<h2>Lessons Learned</h2>
+
+<h3>1. Transactions vs. Atomic Operations</h3>
+
+<p><strong>Problem:</strong> Initial implementation used Firestore transactions for credit updates, causing contention under load (concurrent template reports).</p>
+
+<p><strong>Solution:</strong> Switched to atomic operations with exponential backoff. Small negative balance buffer (-100 credits) handles rare race conditions.</p>
+
+<p><strong>Result:</strong> 10x improvement in concurrent report execution.</p>
+
+<h3>2. Report Document Contention</h3>
+
+<p><strong>Problem:</strong> Storing all query results in report document caused timeouts when 30+ workers tried to update simultaneously.</p>
+
+<p><strong>Solution:</strong> Created separate <code>query_status</code> collection. Report doc only tracks counts, not full results.</p>
+
+<p><strong>Result:</strong> Reports with 100+ queries now complete reliably.</p>
+
+<h3>3. Function Timeouts on Large Templates</h3>
+
+<p><strong>Problem:</strong> Processing 50 queries × 3 engines = 150 searches sequentially would timeout at 540 seconds.</p>
+
+<p><strong>Solution:</strong> Immediate Pub/Sub publish with 202 Accepted response. Frontend polls status.</p>
+
+<p><strong>Result:</strong> Templates of any size complete successfully.</p>
+
+<h3>4. Webhook Reliability</h3>
+
+<p><strong>Problem:</strong> User closing browser during payment caused missed subscription credits.</p>
+
+<p><strong>Solution:</strong> 100% webhook-driven billing. Credits added asynchronously after payment confirmation.</p>
+
+<p><strong>Result:</strong> Zero missed credit allocations.</p>
+
+<hr>
+
+<h2>Conclusion</h2>
+
+<p>Building GEO-Butler taught us that serverless architecture requires different thinking than traditional backends:</p>
+
+<ul>
+<li><strong>Embrace async:</strong> Don't try to complete everything in one request</li>
+<li><strong>Avoid locks:</strong> Atomic operations &gt; transactions for high concurrency</li>
+<li><strong>Separate concerns:</strong> CQRS pattern prevents document contention</li>
+<li><strong>Trust webhooks:</strong> Don't wait for synchronous responses from payment providers</li>
+<li><strong>Monitor everything:</strong> Firestore operations, function execution times, error rates</li>
+</ul>
+
+<p>The result is a platform that scales effortlessly from zero to thousands of concurrent searches, with sub-second API responses and reliable billing.</p>
+
+<hr>
+
+<p><strong>Project:</strong> GEO-Butler<br>
+<strong>Stack:</strong> Next.js + Firebase + Python<br>
+<strong>Architecture:</strong> Serverless Microservices<br>
+<strong>Database:</strong> Firestore (20 collections)<br>
+<strong>API Endpoints:</strong> 90+<br>
+<strong>External APIs:</strong> 8<br>
+<strong>Region:</strong> europe-west2</p>
+
+<p><strong>Documentation Repository:</strong> <a href="https://github.com/Volcanex/ai-seo-two">GitHub</a></p>
+
+<hr>
+
+<p><em>Want to learn more? Check out the <a href="https://github.com/Volcanex/ai-seo-two/tree/main/DocsJan5">full architecture documentation</a> for detailed API references, database schemas, and component architecture.</em></p>
+    </div>
+</div>
+</html>
+
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'base',
+        themeVariables: {
+            primaryColor: '#477998',
+            primaryTextColor: '#291f1e',
+            primaryBorderColor: '#477998',
+            lineColor: '#477998',
+            secondaryColor: '#f39c12',
+            tertiaryColor: '#f8fafc',
+            background: '#ffffff',
+            mainBkg: '#ffffff',
+            secondBkg: '#f8fafc',
+            border1: '#e2e8f0',
+            border2: '#cbd5e1'
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,7 +1,0 @@
-{
-    "title": "Firestore Emulator",
-    "slug": "8081",
-    "parent": "dev-proxy",
-    "description": "Firestore database emulator",
-    "hidden": true
-}

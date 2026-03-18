@@ -1,0 +1,753 @@
+"""
+Photography API - serves master photo list with EXIF and on-demand thumbnails.
+
+Admin auth uses the DEV_ADMIN_TOKEN env var (same as the rest of the blog),
+defaulting to 'Lasshamster5!01022366' if not set.
+
+State persisted via SimpleNoSQLDB in data/photography/:
+  hidden.json    - list of hidden filenames
+  rotations.json - {filename: degrees_ccw}  (0/90/180/270)
+  metadata.json  - {filename: {description, location, country}}
+"""
+
+import os
+from flask import Blueprint, jsonify, send_file, request, abort
+from PIL import Image
+from PIL.ExifTags import TAGS
+from pathlib import Path
+from fractions import Fraction
+from shared.database import get_db
+
+bp = Blueprint('photography', __name__, url_prefix='/api/photography')
+
+MASTERS_DIR = Path('/home/gabriel/photo-sync-server/storage/photos/masters')
+RAW_DIR = Path('/home/gabriel/photo-sync-server/storage/photos/raw')
+THUMB_DIR = Path('/home/gabriel/blog-new/data/photography-thumbnails')
+THUMB_DIR.mkdir(parents=True, exist_ok=True)
+
+MIN_PHOTO_BYTES = 50_000
+ADMIN_TOKEN = os.environ.get('DEV_ADMIN_TOKEN', 'Lasshamster5!01022366')
+
+# RAW file extensions
+RAW_EXTENSIONS = {'.arw', '.cr2', '.cr3', '.nef', '.orf', '.raf', '.rw2', '.dng', '.raw'}
+
+
+# ── Auth ──────────────────────────────────────────────────────────────────────
+
+def is_admin():
+    return request.headers.get('X-Admin-Password', '') == ADMIN_TOKEN
+
+def require_admin():
+    if not is_admin():
+        abort(401)
+
+
+# ── Persistent state helpers ──────────────────────────────────────────────────
+
+def get_hidden():
+    return set(get_db().get_page_data('photography', 'hidden', []))
+
+def save_hidden(s):
+    get_db().set_page_data('photography', 'hidden', sorted(s))
+
+def get_rotations():
+    return dict(get_db().get_page_data('photography', 'rotations', {}))
+
+def save_rotations(d):
+    get_db().set_page_data('photography', 'rotations', d)
+
+def get_metadata():
+    """Return {filename: {description, location, country}} dict."""
+    return dict(get_db().get_page_data('photography', 'metadata', {}))
+
+def save_metadata(d):
+    get_db().set_page_data('photography', 'metadata', d)
+
+# RAW file state helpers (separate from masters)
+def get_hidden_raw():
+    return set(get_db().get_page_data('photography', 'hidden_raw', []))
+
+def save_hidden_raw(s):
+    get_db().set_page_data('photography', 'hidden_raw', sorted(s))
+
+def get_rotations_raw():
+    return dict(get_db().get_page_data('photography', 'rotations_raw', {}))
+
+def save_rotations_raw(d):
+    get_db().set_page_data('photography', 'rotations_raw', d)
+
+def get_metadata_raw():
+    """Return {filename: {description, location, country}} dict for RAW files."""
+    return dict(get_db().get_page_data('photography', 'metadata_raw', {}))
+
+def save_metadata_raw(d):
+    get_db().set_page_data('photography', 'metadata_raw', d)
+
+
+# ── EXIF helpers ──────────────────────────────────────────────────────────────
+
+def shutter_str(exposure_time):
+    try:
+        et = float(exposure_time)
+        if et >= 1:
+            return f"{et:.1f}s"
+        frac = Fraction(et).limit_denominator(10000)
+        return f"1/{frac.denominator}"
+    except Exception:
+        return str(exposure_time)
+
+
+def extract_exif(path):
+    try:
+        img = Image.open(path)
+        raw = img._getexif()
+        if not raw:
+            return {}
+        exif = {TAGS.get(tag_id, str(tag_id)): val for tag_id, val in raw.items()}
+        result = {}
+
+        dt = exif.get('DateTimeOriginal', '')
+        if dt:
+            result['date_taken'] = dt[:10].replace(':', '-')
+            result['datetime_sort'] = dt.replace(':', '-', 2)
+
+        if 'Model' in exif:
+            result['camera'] = exif['Model'].strip()
+        if 'LensModel' in exif:
+            result['lens'] = exif['LensModel'].strip()
+
+        fl = exif.get('FocalLength')
+        if fl is not None:
+            result['focal_length'] = f"{int(float(fl))}mm"
+
+        fn = exif.get('FNumber')
+        if fn is not None:
+            result['aperture'] = f"f/{float(fn):.1f}"
+
+        et = exif.get('ExposureTime')
+        if et is not None:
+            result['shutter'] = shutter_str(et)
+
+        iso = exif.get('ISOSpeedRatings')
+        if iso is not None:
+            result['iso'] = f"ISO {iso}"
+
+        return result
+    except Exception:
+        return {}
+
+
+# ── Routes ────────────────────────────────────────────────────────────────────
+
+@bp.route('/auth', methods=['POST'])
+def auth():
+    data = request.get_json(silent=True) or {}
+    if data.get('password', '') == ADMIN_TOKEN:
+        return jsonify({'ok': True})
+    return jsonify({'ok': False, 'error': 'Invalid password'}), 401
+
+
+@bp.route('/photos')
+def list_photos():
+    """
+    Return photos with EXIF + metadata, sorted newest-first.
+    Public: non-hidden only. Admin: all, with hidden:bool.
+    Both get rotation, description, location, country.
+    """
+    admin = is_admin()
+    hidden = get_hidden()
+    rotations = get_rotations()
+    metadata = get_metadata()
+    photos = []
+
+    for f in MASTERS_DIR.iterdir():
+        if not f.is_file():
+            continue
+        if f.suffix.lower() not in ('.jpg', '.jpeg'):
+            continue
+        if f.name.startswith('.'):
+            continue
+        if f.stat().st_size < MIN_PHOTO_BYTES:
+            continue
+
+        is_hidden = f.name in hidden
+        if is_hidden and not admin:
+            continue
+
+        exif = extract_exif(f)
+        meta = metadata.get(f.name, {})
+
+        photo = {
+            'filename': f.name,
+            'size_mb': round(f.stat().st_size / (1024 ** 2), 1),
+            'rotation': rotations.get(f.name, 0),
+            'description': meta.get('description', ''),
+            'location': meta.get('location', ''),
+            'city': meta.get('city', ''),
+            'country': meta.get('country', ''),
+            **exif
+        }
+        if admin:
+            photo['hidden'] = is_hidden
+
+        photos.append(photo)
+
+    photos.sort(
+        key=lambda p: p.get('datetime_sort') or p['filename'],
+        reverse=True
+    )
+    for p in photos:
+        p.pop('datetime_sort', None)
+
+    # ── Country + city interpolation ──────────────────────
+    # Photos are sorted newest-first.  Walk forward carrying the most recent
+    # explicitly-set value so that gaps are filled with "assumed" values.
+    # A photo with its own explicit value is never marked assumed.
+    current_country = ''
+    current_city = ''
+    for p in photos:
+        if p.get('country'):
+            current_country = p['country']
+            p['country_assumed'] = False
+        elif current_country:
+            p['country'] = current_country
+            p['country_assumed'] = True
+        else:
+            p['country_assumed'] = False
+
+        if p.get('city'):
+            current_city = p['city']
+            p['city_assumed'] = False
+        elif current_city:
+            p['city'] = current_city
+            p['city_assumed'] = True
+        else:
+            p['city_assumed'] = False
+
+    return jsonify({'photos': photos, 'count': len(photos)})
+
+
+# RAW ENDPOINTS - Commented out until rawpy is installed (sudo pip3 install rawpy)
+# Uncomment these 3 endpoints to enable RAW viewing in admin mode
+
+# @bp.route('/photos/raw')
+# def list_raw_photos():
+    """
+    Return RAW photos with EXIF + metadata, sorted newest-first.
+    Public: non-hidden only. Admin: all, with hidden:bool.
+    Both get rotation, description, location, country.
+    """
+    admin = is_admin()
+    hidden = get_hidden_raw()
+    rotations = get_rotations_raw()
+    metadata = get_metadata_raw()
+    photos = []
+
+    for f in RAW_DIR.iterdir():
+        if not f.is_file():
+            continue
+        if f.suffix.lower() not in RAW_EXTENSIONS:
+            continue
+        if f.name.startswith('.'):
+            continue
+        if f.stat().st_size < MIN_PHOTO_BYTES:
+            continue
+
+        is_hidden = f.name in hidden
+        if is_hidden and not admin:
+            continue
+
+        # For RAW files, we can try to extract EXIF but it might not work
+        # Let's just provide basic file info for now
+        exif = {}
+        meta = metadata.get(f.name, {})
+
+        photo = {
+            'filename': f.name,
+            'size_mb': round(f.stat().st_size / (1024 ** 2), 1),
+            'rotation': rotations.get(f.name, 0),
+            'description': meta.get('description', ''),
+            'location': meta.get('location', ''),
+            'city': meta.get('city', ''),
+            'country': meta.get('country', ''),
+            **exif
+        }
+        if admin:
+            photo['hidden'] = is_hidden
+
+        photos.append(photo)
+
+    # Sort by filename since RAW files might not have EXIF
+    photos.sort(key=lambda p: p['filename'], reverse=True)
+
+    # Country + city interpolation (same as masters)
+    current_country = ''
+    current_city = ''
+    for p in photos:
+        if p.get('country'):
+            current_country = p['country']
+            p['country_assumed'] = False
+        elif current_country:
+            p['country'] = current_country
+            p['country_assumed'] = True
+        else:
+            p['country_assumed'] = False
+
+        if p.get('city'):
+            current_city = p['city']
+            p['city_assumed'] = False
+        elif current_city:
+            p['city'] = current_city
+            p['city_assumed'] = True
+        else:
+            p['city_assumed'] = False
+
+    return jsonify({'photos': photos, 'count': len(photos)})
+
+
+@bp.route('/hide', methods=['POST'])
+def hide_photo():
+    require_admin()
+    data = request.get_json(silent=True) or {}
+    filename = Path(data.get('filename', '')).name
+    if not filename:
+        return jsonify({'error': 'filename required'}), 400
+    hidden = get_hidden()
+    hidden.add(filename)
+    save_hidden(hidden)
+    return jsonify({'ok': True, 'hidden_count': len(hidden)})
+
+
+@bp.route('/unhide', methods=['POST'])
+def unhide_photo():
+    require_admin()
+    data = request.get_json(silent=True) or {}
+    filename = Path(data.get('filename', '')).name
+    if not filename:
+        return jsonify({'error': 'filename required'}), 400
+    hidden = get_hidden()
+    hidden.discard(filename)
+    save_hidden(hidden)
+    return jsonify({'ok': True, 'hidden_count': len(hidden)})
+
+
+@bp.route('/rotate', methods=['POST'])
+def rotate_photo():
+    """
+    Admin: rotate a photo 90° at a time.
+    Body: { filename, direction: "cw"|"ccw" }
+    Rotation stored as degrees CCW. Cached thumbnails are deleted on change.
+    """
+    require_admin()
+    data = request.get_json(silent=True) or {}
+    filename = Path(data.get('filename', '')).name
+    direction = data.get('direction', 'cw')
+
+    if not filename:
+        return jsonify({'error': 'filename required'}), 400
+    if direction not in ('cw', 'ccw'):
+        return jsonify({'error': 'direction must be cw or ccw'}), 400
+
+    rotations = get_rotations()
+    current = rotations.get(filename, 0)
+    new_rotation = (current - 90) % 360 if direction == 'cw' else (current + 90) % 360
+
+    if new_rotation == 0:
+        rotations.pop(filename, None)
+    else:
+        rotations[filename] = new_rotation
+    save_rotations(rotations)
+
+    # Bust disk cache for all sizes
+    for cached in THUMB_DIR.glob(f"{filename}_*.jpg"):
+        cached.unlink(missing_ok=True)
+
+    return jsonify({'ok': True, 'rotation': new_rotation})
+
+
+@bp.route('/update-metadata', methods=['POST'])
+def update_metadata():
+    """
+    Admin: set description, location, and/or country for a photo.
+    Body: { filename, description?, location?, country? }
+    Omitted fields are left unchanged.
+    """
+    require_admin()
+    data = request.get_json(silent=True) or {}
+    filename = Path(data.get('filename', '')).name
+    if not filename:
+        return jsonify({'error': 'filename required'}), 400
+
+    metadata = get_metadata()
+    entry = metadata.get(filename, {})
+
+    for field in ('description', 'location', 'city', 'country'):
+        if field in data:
+            value = str(data[field]).strip()
+            if value:
+                entry[field] = value
+            else:
+                entry.pop(field, None)  # remove if blank
+
+    if entry:
+        metadata[filename] = entry
+    else:
+        metadata.pop(filename, None)
+
+    save_metadata(metadata)
+    return jsonify({'ok': True, 'metadata': entry})
+
+
+# ── RAW file admin operations ─────────────────────────────────────────────────
+
+@bp.route('/raw/hide', methods=['POST'])
+def hide_raw_photo():
+    require_admin()
+    data = request.get_json(silent=True) or {}
+    filename = Path(data.get('filename', '')).name
+    if not filename:
+        return jsonify({'error': 'filename required'}), 400
+    hidden = get_hidden_raw()
+    hidden.add(filename)
+    save_hidden_raw(hidden)
+    return jsonify({'ok': True, 'hidden_count': len(hidden)})
+
+
+@bp.route('/raw/unhide', methods=['POST'])
+def unhide_raw_photo():
+    require_admin()
+    data = request.get_json(silent=True) or {}
+    filename = Path(data.get('filename', '')).name
+    if not filename:
+        return jsonify({'error': 'filename required'}), 400
+    hidden = get_hidden_raw()
+    hidden.discard(filename)
+    save_hidden_raw(hidden)
+    return jsonify({'ok': True, 'hidden_count': len(hidden)})
+
+
+@bp.route('/raw/rotate', methods=['POST'])
+def rotate_raw_photo():
+    """
+    Admin: rotate a RAW photo 90° at a time.
+    Body: { filename, direction: "cw"|"ccw" }
+    Rotation stored as degrees CCW. Cached thumbnails are deleted on change.
+    """
+    require_admin()
+    data = request.get_json(silent=True) or {}
+    filename = Path(data.get('filename', '')).name
+    direction = data.get('direction', 'cw')
+
+    if not filename:
+        return jsonify({'error': 'filename required'}), 400
+    if direction not in ('cw', 'ccw'):
+        return jsonify({'error': 'direction must be cw or ccw'}), 400
+
+    rotations = get_rotations_raw()
+    current = rotations.get(filename, 0)
+    new_rotation = (current - 90) % 360 if direction == 'cw' else (current + 90) % 360
+
+    if new_rotation == 0:
+        rotations.pop(filename, None)
+    else:
+        rotations[filename] = new_rotation
+    save_rotations_raw(rotations)
+
+    # Bust disk cache for all sizes
+    for cached in THUMB_DIR.glob(f"raw_{filename}_*.jpg"):
+        cached.unlink(missing_ok=True)
+
+    return jsonify({'ok': True, 'rotation': new_rotation})
+
+
+@bp.route('/raw/update-metadata', methods=['POST'])
+def update_raw_metadata():
+    """
+    Admin: set description, location, and/or country for a RAW photo.
+    Body: { filename, description?, location?, country? }
+    Omitted fields are left unchanged.
+    """
+    require_admin()
+    data = request.get_json(silent=True) or {}
+    filename = Path(data.get('filename', '')).name
+    if not filename:
+        return jsonify({'error': 'filename required'}), 400
+
+    metadata = get_metadata_raw()
+    entry = metadata.get(filename, {})
+
+    for field in ('description', 'location', 'city', 'country'):
+        if field in data:
+            value = str(data[field]).strip()
+            if value:
+                entry[field] = value
+            else:
+                entry.pop(field, None)  # remove if blank
+
+    if entry:
+        metadata[filename] = entry
+    else:
+        metadata.pop(filename, None)
+
+    save_metadata_raw(metadata)
+    return jsonify({'ok': True, 'metadata': entry})
+
+
+WEBFULL_QUALITY = 85  # re-encode masters at 85% — barely perceptible vs 95%+ but ~50% smaller
+
+@bp.route('/full/<path:filename>')
+def full_photo(filename):
+    """
+    Serve a web-optimised full-resolution JPEG (quality=85, progressive).
+    Re-encodes the master on first request and caches to disk; subsequent
+    requests are served straight from the cache.
+    Cache key: {filename}_webfull.jpg or {filename}_webfull_r{rotation}.jpg
+    (same glob pattern as thumbnails, so rotation changes bust this cache too).
+    """
+    filename = Path(filename).name
+    source = MASTERS_DIR / filename
+
+    if not source.exists():
+        abort(404)
+
+    hidden = get_hidden()
+    if filename in hidden and not is_admin():
+        abort(404)
+
+    try:
+        r_param = request.args.get('r')
+        if r_param is not None:
+            rotation = int(r_param)
+            rotation = rotation if rotation in (0, 90, 180, 270) else 0
+        else:
+            rotation = get_rotations().get(filename, 0)
+    except (ValueError, TypeError):
+        rotation = 0
+
+    suffix = f'_webfull_r{rotation}.jpg' if rotation else '_webfull.jpg'
+    cache_path = THUMB_DIR / f'{filename}{suffix}'
+
+    if not cache_path.exists():
+        try:
+            img = Image.open(source)
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            if rotation:
+                img = img.rotate(rotation, expand=True)
+            img.save(cache_path, 'JPEG', quality=WEBFULL_QUALITY,
+                     optimize=True, progressive=True)
+        except Exception:
+            abort(500)
+
+    response = send_file(cache_path, mimetype='image/jpeg')
+    response.headers['Cache-Control'] = 'public, max-age=86400'
+    return response
+
+
+@bp.route('/thumbnail/<path:filename>')
+def thumbnail(filename):
+    """
+    Serve a resized JPEG thumbnail, cached to disk.
+    ?size=<int>   max dimension (default 800, max 1600)
+    ?r=<int>      rotation degrees CCW (0/90/180/270); reads from DB if omitted
+    Cache key: {filename}_{size}_r{rotation}.jpg
+    """
+    filename = Path(filename).name
+    source = MASTERS_DIR / filename
+
+    if not source.exists():
+        abort(404)
+
+    hidden = get_hidden()
+    if filename in hidden and not is_admin():
+        abort(404)
+
+    try:
+        size = int(request.args.get('size', 800))
+        size = max(200, min(size, 1600))
+    except (ValueError, TypeError):
+        size = 800
+
+    try:
+        r_param = request.args.get('r')
+        if r_param is not None:
+            rotation = int(r_param)
+            rotation = rotation if rotation in (0, 90, 180, 270) else 0
+        else:
+            rotation = get_rotations().get(filename, 0)
+    except (ValueError, TypeError):
+        rotation = 0
+
+    cache_path = THUMB_DIR / f"{filename}_{size}_r{rotation}.jpg"
+
+    if not cache_path.exists():
+        try:
+            img = Image.open(source)
+            img.thumbnail((size, size), Image.Resampling.LANCZOS)
+
+            if img.mode in ('RGBA', 'LA', 'P'):
+                bg = Image.new('RGB', img.size, (255, 255, 255))
+                if img.mode == 'P':
+                    img = img.convert('RGBA')
+                mask = img.split()[-1] if img.mode in ('RGBA', 'LA') else None
+                bg.paste(img, mask=mask)
+                img = bg
+            elif img.mode != 'RGB':
+                img = img.convert('RGB')
+
+            if rotation:
+                img = img.rotate(rotation, expand=True)
+
+            img.save(cache_path, 'JPEG', quality=88, optimize=True)
+        except Exception:
+            abort(500)
+
+    response = send_file(cache_path, mimetype='image/jpeg')
+    response.headers['Cache-Control'] = 'public, max-age=86400'
+    return response
+
+
+@bp.route('/raw/thumbnail/<path:filename>')
+def raw_thumbnail(filename):
+    """
+    Serve a resized JPEG thumbnail for RAW files, cached to disk.
+    Uses rawpy to extract embedded preview or process RAW.
+    ?size=<int>   max dimension (default 800, max 1600)
+    ?r=<int>      rotation degrees CCW (0/90/180/270); reads from DB if omitted
+    Cache key: raw_{filename}_{size}_r{rotation}.jpg
+    """
+    try:
+        import rawpy
+        import io
+    except ImportError:
+        abort(503, description="RAW file support not available - install rawpy: pip3 install rawpy")
+
+    filename = Path(filename).name
+    source = RAW_DIR / filename
+
+    if not source.exists():
+        abort(404)
+
+    hidden = get_hidden_raw()
+    if filename in hidden and not is_admin():
+        abort(404)
+
+    try:
+        size = int(request.args.get('size', 800))
+        size = max(200, min(size, 1600))
+    except (ValueError, TypeError):
+        size = 800
+
+    try:
+        r_param = request.args.get('r')
+        if r_param is not None:
+            rotation = int(r_param)
+            rotation = rotation if rotation in (0, 90, 180, 270) else 0
+        else:
+            rotation = get_rotations_raw().get(filename, 0)
+    except (ValueError, TypeError):
+        rotation = 0
+
+    cache_path = THUMB_DIR / f"raw_{filename}_{size}_r{rotation}.jpg"
+
+    if not cache_path.exists():
+        try:
+            # Try to extract thumbnail from RAW file
+            with rawpy.imread(str(source)) as raw:
+                try:
+                    # Try embedded thumbnail first (fastest)
+                    thumb = raw.extract_thumb()
+                    if thumb.format == rawpy.ThumbFormat.JPEG:
+                        img = Image.open(io.BytesIO(thumb.data))
+                    else:
+                        # Process RAW if no JPEG thumbnail
+                        rgb = raw.postprocess(use_camera_wb=True, half_size=True)
+                        img = Image.fromarray(rgb)
+                except:
+                    # Fallback to processing RAW
+                    rgb = raw.postprocess(use_camera_wb=True, half_size=True)
+                    img = Image.fromarray(rgb)
+
+            # Resize to thumbnail
+            img.thumbnail((size, size), Image.Resampling.LANCZOS)
+
+            if img.mode in ('RGBA', 'LA', 'P'):
+                bg = Image.new('RGB', img.size, (255, 255, 255))
+                if img.mode == 'P':
+                    img = img.convert('RGBA')
+                mask = img.split()[-1] if img.mode in ('RGBA', 'LA') else None
+                bg.paste(img, mask=mask)
+                img = bg
+            elif img.mode != 'RGB':
+                img = img.convert('RGB')
+
+            if rotation:
+                img = img.rotate(rotation, expand=True)
+
+            img.save(cache_path, 'JPEG', quality=88, optimize=True)
+        except Exception as e:
+            print(f"Error generating RAW thumbnail: {e}")
+            abort(500)
+
+    response = send_file(cache_path, mimetype='image/jpeg')
+    response.headers['Cache-Control'] = 'public, max-age=86400'
+    return response
+
+
+@bp.route('/raw/full/<path:filename>')
+def raw_full_photo(filename):
+    """
+    Serve a web-optimised full-resolution JPEG from RAW file.
+    Processes RAW on first request and caches to disk.
+    Cache key: raw_{filename}_webfull.jpg or raw_{filename}_webfull_r{rotation}.jpg
+    """
+    try:
+        import rawpy
+    except ImportError:
+        abort(503, description="RAW file support not available - install rawpy: pip3 install rawpy")
+
+    filename = Path(filename).name
+    source = RAW_DIR / filename
+
+    if not source.exists():
+        abort(404)
+
+    hidden = get_hidden_raw()
+    if filename in hidden and not is_admin():
+        abort(404)
+
+    try:
+        r_param = request.args.get('r')
+        if r_param is not None:
+            rotation = int(r_param)
+            rotation = rotation if rotation in (0, 90, 180, 270) else 0
+        else:
+            rotation = get_rotations_raw().get(filename, 0)
+    except (ValueError, TypeError):
+        rotation = 0
+
+    suffix = f'_webfull_r{rotation}.jpg' if rotation else '_webfull.jpg'
+    cache_path = THUMB_DIR / f'raw_{filename}{suffix}'
+
+    if not cache_path.exists():
+        try:
+            # Process RAW to RGB
+            with rawpy.imread(str(source)) as raw:
+                rgb = raw.postprocess(use_camera_wb=True, no_auto_bright=False)
+                img = Image.fromarray(rgb)
+
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+
+            if rotation:
+                img = img.rotate(rotation, expand=True)
+
+            img.save(cache_path, 'JPEG', quality=WEBFULL_QUALITY,
+                     optimize=True, progressive=True)
+        except Exception as e:
+            print(f"Error processing RAW file: {e}")
+            abort(500)
+
+    response = send_file(cache_path, mimetype='image/jpeg')
+    response.headers['Cache-Control'] = 'public, max-age=86400'
+    return response

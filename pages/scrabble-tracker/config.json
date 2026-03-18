@@ -1,0 +1,7 @@
+{
+    "title": "Scrabble Game Tracker",
+    "slug": "scrabble-tracker",
+    "date": "2026-03-13",
+    "description": "Track Scrabble games with automatic word validation and score keeping",
+    "categories": ["games", "scrabble", "tracker"]
+}

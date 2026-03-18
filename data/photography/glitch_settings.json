@@ -1,0 +1,47 @@
+{
+  "background": {
+    "intensity": 0.9,
+    "pixelation": {
+      "enabled": true,
+      "pixelSize": 4
+    },
+    "crt": {
+      "enabled": true,
+      "preset": "vga-monitor",
+      "scanlineIntensity": 0.6,
+      "scanlineThickness": 1.2,
+      "scanlineCount": 250,
+      "brightness": 0.7,
+      "phosphorGlow": 0.6,
+      "curvature": 5,
+      "chromaticAberration": 0.8,
+      "flicker": true,
+      "flickerIntensity": 0.15
+    },
+    "glitch": {
+      "enabled": true,
+      "rgbShift": 1,
+      "digitalNoise": 0.2,
+      "lineDisplacement": 0.2
+    }
+  },
+  "title": {
+    "intensity": 0.9,
+    "pixelation": {
+      "enabled": true,
+      "pixelSize": 4
+    },
+    "crt": {
+      "enabled": true,
+      "scanlineIntensity": 0.24,
+      "curvature": 0,
+      "chromaticAberration": 0.4,
+      "phosphorGlow": 0.48
+    },
+    "glitch": {
+      "enabled": true,
+      "rgbShift": 0.12,
+      "digitalNoise": 0.04000000000000001
+    }
+  }
+}

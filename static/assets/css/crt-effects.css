@@ -1,0 +1,171 @@
+/**
+ * CRT CSS Effects - Based on D3nn7/crt-css
+ * Simple chromatic aberration and scanline effects
+ */
+
+/* Chromatic aberration text effect */
+#page-content {
+    animation: textflicker 0.01s infinite;
+}
+
+@keyframes textflicker {
+    0% {
+        text-shadow:
+            0.06rem 0 0.06rem #ea36af,
+            -0.125rem 0 0.06rem #75fa69;
+    }
+    100% {
+        text-shadow:
+            -0.06rem 0 0.06rem #ea36af,
+            0.125rem 0 0.06rem #75fa69;
+    }
+}
+
+/* Scanlines overlay */
+#page-content::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 9998;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.15),
+        rgba(0, 0, 0, 0.15) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+}
+
+/* Screen flicker */
+#page-content::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 9997;
+    background: rgba(18, 16, 16, 0.1);
+    opacity: 0;
+    animation: flicker 0.15s infinite;
+}
+
+@keyframes flicker {
+    0% {
+        opacity: 0.27861;
+    }
+    5% {
+        opacity: 0.34769;
+    }
+    10% {
+        opacity: 0.23604;
+    }
+    15% {
+        opacity: 0.90626;
+    }
+    20% {
+        opacity: 0.18128;
+    }
+    25% {
+        opacity: 0.83891;
+    }
+    30% {
+        opacity: 0.65583;
+    }
+    35% {
+        opacity: 0.67807;
+    }
+    40% {
+        opacity: 0.26559;
+    }
+    45% {
+        opacity: 0.84693;
+    }
+    50% {
+        opacity: 0.96019;
+    }
+    55% {
+        opacity: 0.08594;
+    }
+    60% {
+        opacity: 0.20313;
+    }
+    65% {
+        opacity: 0.71988;
+    }
+    70% {
+        opacity: 0.53455;
+    }
+    75% {
+        opacity: 0.37288;
+    }
+    80% {
+        opacity: 0.71428;
+    }
+    85% {
+        opacity: 0.70419;
+    }
+    90% {
+        opacity: 0.7003;
+    }
+    95% {
+        opacity: 0.36108;
+    }
+    100% {
+        opacity: 0.24387;
+    }
+}
+
+/* Vignette effect */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 9996;
+    background: radial-gradient(
+        ellipse at center,
+        transparent 0%,
+        rgba(0, 0, 0, 0.3) 100%
+    );
+}
+
+/* Subtle mode - less intense effects */
+#page-content.crt-subtle {
+    animation: textflicker-subtle 0.02s infinite;
+}
+
+@keyframes textflicker-subtle {
+    0% {
+        text-shadow:
+            0.03rem 0 0.03rem #ea36af,
+            -0.06rem 0 0.03rem #75fa69;
+    }
+    100% {
+        text-shadow:
+            -0.03rem 0 0.03rem #ea36af,
+            0.06rem 0 0.03rem #75fa69;
+    }
+}
+
+#page-content.crt-subtle::before {
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.05),
+        rgba(0, 0, 0, 0.05) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+}
+
+#page-content.crt-subtle::after {
+    animation: flicker 0.3s infinite;
+}
