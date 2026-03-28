@@ -2,6 +2,10 @@
     "title": "Music",
     "slug": "music",
     "date": "2026-02-16",
-    "description": "Music I've made.",
-    "categories": ["music", "creative"]
+    "description": "Made using my residual music production skills from the six months I wanted to be a producer from 17-18.",
+    "categories": [
+        "music",
+        "creative"
+    ],
+    "preview_video": "/assets/videos/music-preview.webm"
 }

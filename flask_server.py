@@ -9,7 +9,7 @@ import os
 import sys
 import importlib.util
 from pathlib import Path
-from flask import Flask, jsonify, send_from_directory, request
+from flask import Flask, jsonify, send_from_directory, send_file, request
 from flask_cors import CORS
 from flask_socketio import SocketIO
 import psutil
@@ -28,6 +28,7 @@ class BlogFlaskServer:
         self.static_dir = Path(static_dir)
         self.port = port
         self.app = Flask(__name__)
+        self.app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024 * 1024  # 2GB upload limit
 
         # Enable CORS for API endpoints
         CORS(self.app)
@@ -40,6 +41,12 @@ class BlogFlaskServer:
 
         # Setup basic routes
         self._setup_basic_routes()
+
+        # Register artist admin API
+        self._register_artist_admin_api()
+
+        # Register per-artist feature blueprints
+        self._register_artist_features()
 
         # Auto-register page API endpoints and WebSocket handlers
         self._register_page_apis()
@@ -142,12 +149,63 @@ class BlogFlaskServer:
             # Always release the lock
             self.compile_lock.release()
 
+    def _get_artist_by_domain(self, domain):
+        """
+        Get artist slug by domain.
+        Returns (artist_slug, base_path) or (None, None)
+        """
+        artists_dir = Path('pages/artists')
+
+        if not artists_dir.exists():
+            return None, None
+
+        for item in artists_dir.iterdir():
+            if item.is_dir() and not item.name.startswith('_'):
+                config_file = item / 'config.json'
+                if config_file.exists():
+                    try:
+                        with open(config_file, 'r', encoding='utf-8') as f:
+                            config = json.load(f)
+                            if config.get('domain') == domain:
+                                return item.name, f"artists/{item.name}"
+                    except (json.JSONDecodeError, IOError):
+                        continue
+
+        return None, None
+
     def _setup_basic_routes(self):
         """Setup basic Flask routes"""
-        
+
         @self.app.route('/')
         def serve_homepage():
-            """Serve the homepage"""
+            """Serve the homepage - supports domain-based routing for artist sites"""
+            # Check if request is for an artist domain
+            host = request.headers.get('Host', '').split(':')[0]  # Remove port if present
+            artist_slug, artist_base = self._get_artist_by_domain(host)
+
+            if artist_slug:
+                # Serve artist's homepage (usually their 'home' page)
+                try:
+                    # Try to serve home/index.html
+                    home_path = self.static_dir / artist_base / 'home' / 'index.html'
+                    if home_path.exists():
+                        return send_from_directory(str(self.static_dir / artist_base / 'home'), 'index.html')
+
+                    # Fallback: try first available page
+                    artist_dir = self.static_dir / artist_base
+                    if artist_dir.exists():
+                        for subdir in artist_dir.iterdir():
+                            if subdir.is_dir():
+                                index = subdir / 'index.html'
+                                if index.exists():
+                                    return send_from_directory(str(subdir), 'index.html')
+
+                    return jsonify({'error': f'Artist homepage not found. Create a "home" page for {artist_slug}.'}), 404
+
+                except FileNotFoundError:
+                    return jsonify({'error': 'Artist homepage not found. Run compile.py first.'}), 404
+
+            # Default blog homepage
             try:
                 return send_from_directory(self.static_dir, 'index.html')
             except FileNotFoundError:
@@ -155,11 +213,11 @@ class BlogFlaskServer:
         
         @self.app.route('/<path:filename>')
         def serve_static(filename):
-            """Serve static HTML files (assets handled by nginx in production)"""
+            """Serve static HTML files (assets handled by nginx in production) - supports artist domains"""
             # Skip API routes (they're handled by blueprints)
             if filename.startswith('api/'):
                 return jsonify({'error': f'File {filename} not found'}), 404
-            
+
             # In production, assets are served by nginx directly
             # Only allow Flask to serve assets in development (when nginx not present)
             if filename.startswith('assets/'):
@@ -168,25 +226,143 @@ class BlogFlaskServer:
                 if is_production:
                     return jsonify({'error': 'Assets should be served by nginx in production'}), 404
                 # Development mode - allow Flask to serve assets for convenience
-            
+
+            # Check if request is for an artist domain
+            host = request.headers.get('Host', '').split(':')[0]  # Remove port if present
+            artist_slug, artist_base = self._get_artist_by_domain(host)
+
+            if artist_slug:
+                # Try to serve from artist's directory
+                # First try exact file in artist's base directory
+                artist_file_path = self.static_dir / artist_base / filename
+                if artist_file_path.exists() and artist_file_path.is_file():
+                    return send_from_directory(str(self.static_dir / artist_base), filename)
+
+                # If no extension, try as a page (directory with index.html)
+                if '.' not in filename:
+                    artist_index_path = self.static_dir / artist_base / filename / "index.html"
+                    if artist_index_path.exists():
+                        return send_from_directory(str(self.static_dir / artist_base / filename), "index.html")
+
+                return jsonify({'error': f'File {filename} not found for artist {artist_slug}'}), 404
+
+            # Default blog behavior
             # First try the exact filename (must be a file, not directory)
             file_path = self.static_dir / filename
             if file_path.exists() and file_path.is_file():
                 return send_from_directory(str(self.static_dir), filename)
-            
+
             # If not found and no extension, try looking for directory/index.html
             if '.' not in filename:
                 index_path = self.static_dir / filename / "index.html"
                 if index_path.exists():
                     return send_from_directory(str(self.static_dir / filename), "index.html")
-            
+
             return jsonify({'error': f'File {filename} not found'}), 404
-        
+
+    def _register_artist_admin_api(self):
+        """Register the shared artist admin API blueprint"""
+        admin_api_path = Path('pages/artists/_shared/admin_api.py')
+
+        if not admin_api_path.exists():
+            return
+
+        try:
+            # Load the admin API module
+            spec = importlib.util.spec_from_file_location(
+                "pages.artists._shared.admin_api",
+                str(admin_api_path)
+            )
+            admin_module = importlib.util.module_from_spec(spec)
+
+            # Add current directory to path so imports work
+            if str(Path.cwd()) not in sys.path:
+                sys.path.insert(0, str(Path.cwd()))
+
+            spec.loader.exec_module(admin_module)
+
+            # Register the blueprint if it exists
+            if hasattr(admin_module, 'bp'):
+                self.app.register_blueprint(admin_module.bp)
+                print(f"Registered artist admin API endpoints")
+            else:
+                print(f"Warning: admin_api.py doesn't have a 'bp' blueprint")
+
+        except Exception as e:
+            print(f"Error loading artist admin API: {e}")
+
+    def _register_artist_features(self):
+        """Register per-artist feature blueprints based on config.json features list."""
+        artists_dir = Path('pages/artists')
+        features_dir = Path('pages/artists/_shared/features')
+
+        if not artists_dir.exists() or not features_dir.exists():
+            return
+
+        # Add features dir to path so imports work
+        features_parent = str(features_dir.parent)
+        if features_parent not in sys.path:
+            sys.path.insert(0, features_parent)
+
+        registered = []
+
+        for artist_dir in artists_dir.iterdir():
+            if not artist_dir.is_dir() or artist_dir.name.startswith('_'):
+                continue
+
+            config_file = artist_dir / 'config.json'
+            if not config_file.exists():
+                continue
+
+            try:
+                with open(config_file) as f:
+                    config = json.load(f)
+            except (json.JSONDecodeError, IOError):
+                continue
+
+            features = config.get('features', [])
+            artist_slug = artist_dir.name
+
+            for feature_name in features:
+                feature_file = features_dir / f'{feature_name}.py'
+                if not feature_file.exists():
+                    print(f"Warning: feature '{feature_name}' not found for artist '{artist_slug}'")
+                    continue
+
+                try:
+                    spec = importlib.util.spec_from_file_location(
+                        f"features.{feature_name}",
+                        str(feature_file)
+                    )
+                    module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(module)
+
+                    if hasattr(module, 'create_blueprint'):
+                        bp = module.create_blueprint(artist_slug)
+                        self.app.register_blueprint(bp)
+                        registered.append(f"{artist_slug}/{feature_name}")
+                        print(f"  Registered feature '{feature_name}' for artist '{artist_slug}' -> {bp.url_prefix}")
+                    else:
+                        print(f"Warning: feature '{feature_name}' has no create_blueprint()")
+
+                except Exception as e:
+                    print(f"Error loading feature '{feature_name}' for artist '{artist_slug}': {e}")
+
+        if registered:
+            print(f"Registered {len(registered)} artist features: {', '.join(registered)}")
+
         @self.app.route('/test-asset')
         def test_asset():
             """Test route to check if routing works"""
             return jsonify({'message': 'Asset routing test successful'})
             
+        @self.app.route('/api/artist-admin/dashboard')
+        @self.app.route('/api/sandbox/dashboard')
+        def old_dashboard_redirect():
+            """Redirect old dashboard URLs to new one"""
+            from flask import redirect
+            return redirect('/api/adze/dashboard', code=301)
+
         @self.app.route('/api/health')
         def health_check():
             """Health check endpoint"""
@@ -289,12 +465,22 @@ class BlogFlaskServer:
                         import json
                         with open(config_file, 'r') as f:
                             config = json.load(f)
+                            # Compute slug from directory path for artist pages
+                            config_slug = config.get('slug', page_dir.name)
+                            try:
+                                rel = page_dir.relative_to(self.pages_dir)
+                                parts = rel.parts
+                                if len(parts) >= 3 and parts[0] == 'artists' and not config_slug.startswith('artists/'):
+                                    config_slug = str(rel)
+                            except ValueError:
+                                pass
                             pages.append({
-                                'slug': config.get('slug', page_dir.name),
+                                'slug': config_slug,
                                 'title': config.get('title', page_dir.name),
                                 'description': config.get('description', ''),
                                 'categories': config.get('categories', []),
                                 'date': config.get('date', ''),
+                                'hidden': config.get('hidden', False),
                                 'has_api': (page_dir / 'api.py').exists(),
                                 'has_assets': (page_dir / 'assets').exists()
                             })
@@ -304,6 +490,49 @@ class BlogFlaskServer:
             # Sort by date (newest first)
             pages.sort(key=lambda x: x.get('date', ''), reverse=True)
             return jsonify({'pages': pages})
+
+        @self.app.route('/api/widgets')
+        def list_widgets():
+            """List all permanent widgets and blocks from widgets.json"""
+            widgets_path = Path(__file__).parent / 'widgets.json'
+            if not widgets_path.exists():
+                return jsonify({'widgets': [], 'blocks': []})
+            try:
+                import json
+                with open(widgets_path, 'r') as f:
+                    data = json.load(f)
+                return jsonify(data)
+            except (json.JSONDecodeError, IOError):
+                return jsonify({'widgets': [], 'blocks': []})
+
+        @self.app.route('/api/layout', methods=['GET'])
+        def get_layout():
+            """Get the homepage layout order"""
+            layout_path = Path(__file__).parent / 'layout.json'
+            if not layout_path.exists():
+                return jsonify({'order': []})
+            try:
+                import json
+                with open(layout_path, 'r') as f:
+                    data = json.load(f)
+                return jsonify(data)
+            except (json.JSONDecodeError, IOError):
+                return jsonify({'order': []})
+
+        @self.app.route('/api/layout', methods=['PUT'])
+        def save_layout():
+            """Save the homepage layout order"""
+            import json
+            data = request.get_json()
+            if not data or 'order' not in data:
+                return jsonify({'error': 'Missing order array'}), 400
+            layout_path = Path(__file__).parent / 'layout.json'
+            try:
+                with open(layout_path, 'w') as f:
+                    json.dump({'order': data['order']}, f, indent=2)
+                return jsonify({'success': True})
+            except IOError as e:
+                return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/posts/create', methods=['POST'])
         def create_post():
@@ -381,7 +610,7 @@ class BlogFlaskServer:
 
             try:
                 # Update config.json if metadata provided
-                if any(key in data for key in ['title', 'date', 'description', 'categories']):
+                if any(key in data for key in ['title', 'date', 'description', 'categories', 'hidden']):
                     config_file = post_dir / 'config.json'
                     if config_file.exists():
                         with open(config_file, 'r') as f:
@@ -398,6 +627,8 @@ class BlogFlaskServer:
                         config['description'] = data['description']
                     if 'categories' in data:
                         config['categories'] = data['categories']
+                    if 'hidden' in data:
+                        config['hidden'] = bool(data['hidden'])
 
                     with open(config_file, 'w') as f:
                         json.dump(config, f, indent=4)
@@ -464,6 +695,14 @@ class BlogFlaskServer:
                 return jsonify(result)
             else:
                 return jsonify(result), 500
+
+        @self.app.route('/api/manage')
+        def site_management_portal():
+            """Serve the site management portal"""
+            portal_path = Path(__file__).parent / 'pages' / 'artists' / '_shared' / 'portal.html'
+            if portal_path.exists():
+                return send_file(str(portal_path), mimetype='text/html')
+            return 'Portal not found', 404
 
         @self.app.route('/api/dev/restart-services', methods=['POST'])
         def restart_dev_services():
@@ -561,7 +800,12 @@ class BlogFlaskServer:
                 'trading': 3005,
                 'depopper': 5123,
                 'wta': 6767,
-                'jupyter': 8888
+                'jupyter': 8888,
+                'titansar': 8889,
+                'xpvnc': 6080,
+                'templeos': 6081,
+                'geopolmarkets': 8890,
+                'geopolweb': 8891
             }
 
             status = {}
@@ -578,15 +822,25 @@ class BlogFlaskServer:
             })
 
     def _get_page_directories(self):
-        """Get all page directories"""
+        """Get all page directories (including artist subdirectories)"""
         if not self.pages_dir.exists():
             return []
-        
+
         page_dirs = []
         for item in self.pages_dir.iterdir():
             if item.is_dir() and (item / 'config.json').exists():
                 page_dirs.append(item)
-        
+            # Also scan artist subdirectories
+            if item.is_dir() and item.name == 'artists':
+                for artist_dir in item.iterdir():
+                    if artist_dir.is_dir() and not artist_dir.name.startswith('_'):
+                        # Check for artist-level api.py (central backend per artist)
+                        if (artist_dir / 'api.py').exists():
+                            page_dirs.append(artist_dir)
+                        for sub in artist_dir.iterdir():
+                            if sub.is_dir() and (sub / 'config.json').exists():
+                                page_dirs.append(sub)
+
         return page_dirs
     
     def _register_page_apis(self):

@@ -73,9 +73,6 @@ class PhotoBackgroundController {
         // Initialize glitchGL on the photo
         this.initGlitchGL();
 
-        // Initialize glitchGL on the title
-        this.initTitleGlitch();
-
         // Hide loading screen
         this.hideLoadingScreen();
 
@@ -110,49 +107,7 @@ class PhotoBackgroundController {
         `;
         document.body.insertBefore(this.backgroundImage, document.body.firstChild);
 
-        // Create glitched title overlay
-        this.glitchedTitle = document.createElement('h1');
-        this.glitchedTitle.id = 'glitched-title';
-        this.glitchedTitle.className = 'glitchGL-title';
-        this.glitchedTitle.textContent = 'GABRIELPENMAN.COM';
-        this.glitchedTitle.style.cssText = `
-            position: fixed;
-            top: 1ch;
-            left: 0;
-            right: 0;
-            width: 100%;
-            text-align: center;
-            font-size: 2.5em;
-            color: #00FFFF;
-            font-family: 'VT323', monospace;
-            font-weight: normal;
-            letter-spacing: 0.2ch;
-            z-index: 0.5;
-            margin: 0;
-            padding: 0 1ch;
-            text-shadow: 2px 2px 0 #000000;
-        `;
-
-        // Make title responsive on mobile
-        if (window.innerWidth <= 768) {
-            this.glitchedTitle.style.fontSize = '1.5em';
-        }
-
-        // Update on resize
-        window.addEventListener('resize', () => {
-            if (window.innerWidth <= 768) {
-                this.glitchedTitle.style.fontSize = '1.5em';
-            } else {
-                this.glitchedTitle.style.fontSize = '2.5em';
-            }
-        });
-        document.body.appendChild(this.glitchedTitle);
-
-        // Hide the original title (we'll keep it for structure but make it invisible)
-        const originalTitle = document.querySelector('#page-content h1');
-        if (originalTitle) {
-            originalTitle.style.opacity = '0';
-        }
+        // No glitched title overlay — removed gabrielpenman.com text
 
         // Make sure page content is above background but below glitched title
         const pageContent = document.getElementById('page-content');
@@ -424,10 +379,10 @@ class PhotoBackgroundController {
 
     hideLoadingScreen() {
         const loadingScreen = document.getElementById('loading-screen');
-        if (loadingScreen) {
-            loadingScreen.classList.add('hidden');
-            setTimeout(() => loadingScreen.remove(), 500);
-        }
+        if (!loadingScreen) return;
+
+        loadingScreen.classList.add('hidden');
+        setTimeout(() => loadingScreen.remove(), 500);
     }
 
     // ── Admin Mode ────────────────────────────────────────────────────────────

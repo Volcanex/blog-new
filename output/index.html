@@ -43,31 +43,44 @@
     }
 
     h1 {
-        text-align: center;
+        text-align: left;
         font-size: 2.5em;
-        margin: 0 0 1ch 0;
+        margin: 0 auto 1ch auto;
         color: #00FFFF;
         letter-spacing: 0.2ch;
         flex-shrink: 0;
         font-weight: normal;
-        font-family: 'VT323', monospace;
+        font-family: 'Courier New', Courier, monospace;
         text-shadow: 2px 2px 0 #000000;
         padding: 0 1ch;
+        width: 100%;
+        max-width: 1400px;
+        box-sizing: border-box;
     }
 
-    /* Mosaic container - blocks flow and wrap naturally */
+    /* Preview video in blog blocks */
+    .ascii-block.blog-post .preview-video {
+        width: 100%;
+        max-height: 65%;
+        object-fit: contain;
+        display: block;
+        margin: 0.5ch auto;
+        border-radius: 0;
+        pointer-events: none;
+    }
+
+    /* Mosaic container - CSS grid with small cells, big blocks span 2x2 */
     .grid-container {
-        display: flex;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(6, 16.5ch);
         gap: 2ch;
         width: 100%;
         max-width: 1400px;
         margin: 0 auto;
         min-height: calc(100vh - 12ch);
         position: relative;
-        align-content: flex-start;
-        align-items: flex-start;
-        justify-content: center;
+        grid-auto-rows: 16.5ch;
+        grid-auto-flow: dense;
         overflow: visible;
     }
 
@@ -80,7 +93,6 @@
         position: relative;
         font-family: 'VT323', 'Courier New', monospace;
         border: none;
-        flex-shrink: 0;
         box-sizing: border-box;
         font-size: 20px;
         font-weight: bold;
@@ -91,10 +103,10 @@
             inset -2px -2px 0px rgba(0, 0, 0, 0.5);
     }
 
-    /* Blog post blocks - SQUARE */
+    /* Blog post blocks - big 2x2 */
     .ascii-block.blog-post {
-        width: 35ch;
-        height: 35ch;
+        grid-column: span 2;
+        grid-row: span 2;
         cursor: pointer;
         overflow: hidden;
         display: flex;
@@ -119,6 +131,16 @@
         font-size: 0.9em;
     }
 
+    .block-preview-video {
+        width: 100%;
+        max-height: 16ch;
+        object-fit: contain;
+        border-radius: 2px;
+        pointer-events: none;
+        display: block;
+        margin: 0.5ch 0;
+    }
+
     .ascii-block.blog-post a {
         display: block;
         margin-top: auto;
@@ -127,10 +149,10 @@
         text-decoration: underline;
     }
 
-    /* System status - SQUARE - Green background */
+    /* System status - big 2x2 - Green background */
     .ascii-block.system-status {
-        width: 35ch;
-        height: 35ch;
+        grid-column: span 2;
+        grid-row: span 2;
         background-color: #00AA00;
         color: #FFFF00;
     }
@@ -146,10 +168,10 @@
         font-size: 0.9em;
     }
 
-    /* Dev ports - SQUARE - Cyan background */
+    /* Dev ports - big 2x2 - Cyan background */
     .ascii-block.dev-ports {
-        width: 35ch;
-        height: 35ch;
+        grid-column: span 2;
+        grid-row: span 2;
         background-color: #00AAAA;
         color: #FFFF00;
     }
@@ -161,12 +183,99 @@
     }
 
     .ascii-block.dev-ports a {
-        display: block;
+        display: flex;
+        align-items: center;
+        gap: 0.8ch;
         margin: 0.5ch 0;
         font-size: 0.9em;
         color: #FFFF00;
         font-weight: bold;
     }
+
+    svg.port-icon {
+        width: 1.2em;
+        height: 1.2em;
+        fill: #FFFF00;
+        flex-shrink: 0;
+    }
+
+    /* ── Individual widgets (1x1 grid cells) ── */
+    .widget {
+        grid-column: span 1;
+        grid-row: span 1;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        gap: 0.4ch;
+        font-family: 'VT323', 'Courier New', monospace;
+        font-size: 20px;
+        font-weight: bold;
+        padding: 1ch;
+        box-sizing: border-box;
+        text-decoration: none;
+        color: #FFFF00;
+        opacity: 0.85;
+        box-shadow:
+            inset 2px 2px 0px rgba(255, 255, 255, 0.3),
+            inset -2px -2px 0px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+    }
+    .widget:hover {
+        opacity: 1;
+    }
+    .widget h3 {
+        font-size: 0.9em;
+        margin: 0;
+        color: #FFFFFF;
+        font-family: inherit;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+    .widget .widget-icon {
+        line-height: 1;
+        color: #FFFFFF;
+    }
+    .widget .widget-icon svg {
+        width: 32px;
+        height: 32px;
+        fill: #FFFFFF;
+    }
+    .widget .widget-label {
+        font-size: 0.6em;
+        color: #FFFF00;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+    .widget .widget-status {
+        font-size: 0.55em;
+        color: #00FF00;
+    }
+
+    /* Empty gap slot - 1x1 invisible spacer */
+    .layout-gap {
+        grid-column: span 1;
+        grid-row: span 1;
+        visibility: hidden;
+    }
+
+    .widget.wg-github { background-color: #333333; }
+    .widget.wg-linkedin { background-color: #0055AA; }
+    .widget.wg-instagram { background-color: #AA3377; }
+    .widget.wg-soundcloud { background-color: #FF5500; }
+    .widget.wg-email { background-color: #AA5500; }
+    .widget.wg-bluemap { background-color: #00AA00; }
+    .widget.wg-portal { background-color: #AA00AA; }
+    .widget.wg-mgmt { background-color: #005500; }
+    .widget.wg-templeos { background-color: #AA00AA; }
+    .widget.wg-xp { background-color: #0055AA; }
+    .widget.wg-default { background-color: #0000AA; }
 
     /* CPU grid styling - 4 rows of 4 characters */
     #cpu-grid {
@@ -227,7 +336,7 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        color: #4dd0e1;
+        color: #FFFFFF;
         font-family: 'Courier New', monospace;
         transition: opacity 0.5s ease-out;
     }
@@ -247,6 +356,11 @@
         font-size: 2em;
     }
 
+    .loading-status {
+        font-size: 1.5em;
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+
     @keyframes pulse {
         0%, 100% { opacity: 0.4; }
         50% { opacity: 1; }
@@ -254,13 +368,32 @@
 
     @media (max-width: 768px) {
         .grid-container {
-            flex-direction: column;
+            grid-template-columns: repeat(2, 1fr);
+            grid-auto-rows: auto;
         }
 
-        .ascii-block {
-            width: 100% !important;
-            height: auto !important;
+        .ascii-block.blog-post,
+        .ascii-block.system-status,
+        .ascii-block.dev-ports {
+            grid-column: span 2;
+            grid-row: span 1;
             min-height: 20ch;
+        }
+
+        .widget {
+            grid-column: span 1;
+            grid-row: span 1;
+            min-height: 8ch;
+            font-size: 12px;
+        }
+
+        .preview-video,
+        .block-preview-video {
+            display: none;
+        }
+
+        .layout-gap {
+            display: none;
         }
 
         body {
@@ -458,14 +591,13 @@
 <body>
     <!-- Loading Screen -->
     <div id="loading-screen">
-        <div class="loading-text">INITIALIZING</div>
-        <div class="loading-dots">...</div>
+        <div class="loading-status">Loading...</div>
     </div>
 
     <div id="page-content" class="crt">
     <h1>GABRIELPENMAN.COM</h1>
     <div class="grid-container" id="grid-container">
-        <div class="ascii-block system-status">
+        <div class="ascii-block system-status" data-block-id="system-status">
             <h3>SYSTEM</h3>
             <div>MC:  <span id="minecraft-status">OFF</span></div>
             <div>API: <span id="api-status">OFF</span></div>
@@ -475,100 +607,104 @@
             <div>RAM: <span id="ram-usage">0%</span></div>
             <div id="ram-grid"></div>
         </div>
-        <div class="ascii-block blog-post color-red" onclick="window.location.href='/photography'">
+        <a href="https://github.com/volcanex" target="_blank" class="widget wg-github" data-block-id="widget-github"><div class="widget-icon"><svg viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></div><h3>GITHUB</h3><div class="widget-label">volcanex</div></a>
+        <a href="https://www.linkedin.com/in/john-gabriel-penman-241853298/" target="_blank" class="widget wg-linkedin" data-block-id="widget-linkedin"><div class="widget-icon"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></div><h3>LINKEDIN</h3><div class="widget-label">gabriel penman</div></a>
+        <a href="https://www.instagram.com/gabrielpenman/" target="_blank" class="widget wg-instagram" data-block-id="widget-instagram"><div class="widget-icon"><svg viewBox="0 0 24 24"><path d="M7.03.084c-1.277.06-2.149.264-2.911.563-.789.308-1.458.72-2.123 1.388-.665.668-1.075 1.337-1.38 2.127-.295.764-.496 1.637-.552 2.914-.056 1.278-.069 1.689-.063 4.947.007 3.259.021 3.668.083 4.948.06 1.276.264 2.148.563 2.91.308.789.72 1.457 1.388 2.123.668.665 1.337 1.074 2.129 1.38.763.295 1.636.496 2.913.552 1.278.057 1.689.069 4.947.063 3.257-.007 3.668-.021 4.947-.082 1.28-.06 2.147-.265 2.91-.563.789-.309 1.458-.72 2.123-1.388.665-.668 1.074-1.337 1.38-2.127.296-.765.497-1.636.552-2.914.057-1.278.069-1.689.063-4.948-.006-3.258-.02-3.667-.082-4.947-.06-1.28-.264-2.148-.563-2.912-.309-.789-.72-1.457-1.388-2.123C21.298 1.33 20.628.921 19.838.616c-.764-.296-1.636-.497-2.913-.552C15.647.009 15.236-.005 11.977.001 8.718.008 8.31.022 7.03.084m.14 21.693c-1.17-.05-1.805-.245-2.228-.408-.561-.216-.96-.477-1.382-.895-.422-.418-.681-.819-.9-1.378-.165-.424-.363-1.058-.417-2.228-.06-1.265-.072-1.645-.079-4.849-.007-3.204.005-3.583.061-4.848.05-1.169.245-1.805.408-2.228.216-.561.476-.96.895-1.382.418-.422.818-.681 1.378-.9.424-.165 1.057-.362 2.227-.417 1.266-.06 1.645-.072 4.848-.079 3.204-.007 3.584.005 4.85.061 1.17.05 1.805.245 2.228.408.56.216.96.475 1.382.895.421.419.681.819.9 1.378.164.424.362 1.057.417 2.227.06 1.265.074 1.645.079 4.848.006 3.203-.006 3.583-.061 4.848-.051 1.17-.245 1.805-.408 2.23-.216.56-.476.96-.895 1.38-.419.422-.819.682-1.378.9-.424.166-1.058.363-2.227.418-1.265.06-1.645.072-4.849.079-3.204.007-3.583-.006-4.848-.06M16.953 5.587A1.44 1.44 0 1018.39 4.144a1.44 1.44 0 00-1.437 1.443M5.838 12.012a6.174 6.174 0 1012.324-.024 6.174 6.174 0 00-12.324.024M8 12.008A4 4 0 1112.008 16 4 4 0 018 12.008"/></svg></div><h3>INSTAGRAM</h3><div class="widget-label">@gabrielpenman</div></a>
+        <a href="https://soundcloud.com/gabriel-penman/tracks" target="_blank" class="widget wg-soundcloud" data-block-id="widget-soundcloud"><div class="widget-icon"></div><h3>SOUNDCLOUD</h3><div class="widget-label">gabriel penman</div></a>
+        <a href="mailto:gabrielpenman@gmail.com" class="widget wg-email" data-block-id="widget-email"><div class="widget-icon"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></div><h3>EMAIL</h3><div class="widget-label">gabrielpenman@gmail.com</div></a>
+        <a href="/dev/8100/" class="widget wg-bluemap" data-block-id="widget-bluemap"><div class="widget-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg></div><h3>BLUEMAP</h3><div class="widget-label">minecraft map</div><div class="widget-status" id="bluemap-port-status">OFF</div></a>
+        <a href="/api/sandbox/dashboard" class="widget wg-portal" data-block-id="widget-portal"><div class="widget-icon"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div><h3>ARTIST PORTAL</h3><div class="widget-label">dashboard</div></a>
+        <a href="/api/manage" class="widget wg-mgmt" data-block-id="widget-mgmt"><div class="widget-icon"><svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.6 3.6 0 0112 15.6z"/></svg></div><h3>SITE MGMT</h3><div class="widget-label">manage</div></a>
+        <a href="/dev/6081/" class="widget wg-templeos" data-block-id="widget-templeos"><div class="widget-icon"><svg viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg></div><h3>TEMPLE OS</h3><div class="widget-label">:6081</div><div class="widget-status" id="templeos-port-status">OFF</div></a>
+        <a href="/dev/6080/" class="widget wg-xp" data-block-id="widget-xp"><div class="widget-icon"><svg viewBox="0 0 24 24"><path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7l-2 3v1h8v-1l-2-3h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 12H3V4h18v10z"/></svg></div><h3>WINDOWS XP</h3><div class="widget-label">:6080</div><div class="widget-status" id="xpvnc-port-status">OFF</div></a>
+        <div class="ascii-block dev-ports" data-block-id="dev-ports">
+            <h3>DEV PORTS</h3>
+            <div><a href="/dev/3005/"><svg class="port-icon" viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>Trading :3005</a> <span id="trading-port-status">OFF</span></div>
+            <div><a href="/dev/5123/"><svg class="port-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>Depopper :5123</a> <span id="depopper-port-status">OFF</span></div>
+            <div><a href="/dev/8888/"><svg class="port-icon" viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>Jupyter :8888</a> <span id="jupyter-port-status">OFF</span></div>
+            <div><a href="/dev/8889/lab"><svg class="port-icon" viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>Titan SAR :8889</a> <span id="titansar-port-status">OFF</span></div>
+            <div><a href="/dev/8890/"><svg class="port-icon" viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>Geopolitical :8890</a> <span id="geopolmarkets-port-status">OFF</span></div>
+            <div><a href="/dev/8891/"><svg class="port-icon" viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>Geopol Web :8891</a> <span id="geopolweb-port-status">OFF</span></div>
+        </div>
+        <div class="ascii-block blog-post color-red" data-categories="photography,art" data-block-id="post-photography" onclick="window.location.href='/photography'">
             <h3>Photography</h3>
-            <div class="description">Photos shot on my Nikon D610</div>
+            <div class="description">Photos I've taken whilst travelling around with my Nikon D610 (Ruth). Mostly focused on nightlife, street photography and the odd landscape.</div>
+            <video class="preview-video" src="/assets/videos/photography-preview.webm" autoplay muted loop playsinline></video>
             <a href="/photography">/photography</a>
         </div>
-        <div class="ascii-block dev-ports">
-            <h3>DEV PORTS</h3>
-            <div><a href="/dev/8100/">→ BlueMap:8100</a> <span id="bluemap-port-status">OFF</span></div>
-            <div><a href="/dev/3005/">→ Trading:3005</a> <span id="trading-port-status">OFF</span></div>
-            <div><a href="/dev/5123/">→ Depopper:5123</a> <span id="depopper-port-status">OFF</span></div>
-            <div><a href="/dev/6767/">→ WTA:6767</a> <span id="wta-port-status">OFF</span></div>
-            <div><a href="/dev/8888/">→ Jupyter:8888</a> <span id="jupyter-port-status">OFF</span></div>
-        </div>
-        <div class="ascii-block blog-post color-blue" onclick="window.location.href='/music'">
+        <div class="ascii-block blog-post color-blue" data-categories="music,creative" data-block-id="post-music" onclick="window.location.href='/music'">
             <h3>Music</h3>
-            <div class="description">Music I've made.</div>
+            <div class="description">Made using my residual music production skills from the six months I wanted to be a producer from 17-18.</div>
+            <video class="preview-video" src="/assets/videos/music-preview.webm" autoplay muted loop playsinline></video>
             <a href="/music">/music</a>
         </div>
-        <div class="ascii-block blog-post color-yellow" onclick="window.location.href='/site-editor'">
-            <h3>Site Editor</h3>
-            <div class="description">Live HTML/CSS/JS editor with preset themes - the tool used to build the WTA site.</div>
-            <a href="/site-editor">/site-editor</a>
+        <div class="ascii-block blog-post color-yellow" data-categories="games,dating,comedy" data-block-id="post-red-flag-dating-game" onclick="window.location.href='/red-flag-dating-game'">
+            <h3>Red Flag Dating Game</h3>
+            <div class="description">The ultimate dating simulation - navigate 5 stages from First Date to Honeymoon, picking red and green flags along the way</div>
+            
+            <a href="/red-flag-dating-game">/red-flag-dating-game</a>
         </div>
-        <div class="ascii-block blog-post color-cyan" onclick="window.location.href='/red-flag-game'">
+        <div class="ascii-block blog-post color-cyan" data-categories="games,dating,comedy" data-block-id="post-red-flag-game" onclick="window.location.href='/red-flag-game'">
             <h3>Red Flag Generator</h3>
             <div class="description">Discover random dating red flags - from mild to absolutely terrifying</div>
+            
             <a href="/red-flag-game">/red-flag-game</a>
         </div>
-        <div class="ascii-block blog-post color-magenta" onclick="window.location.href='/coffee-hormones'">
-            <h3>Why Coffee Makes You Tired</h3>
-            <div class="description">Interactive visualization showing how coffee timing affects cortisol, adenosine, and energy levels throughout the day</div>
-            <a href="/coffee-hormones">/coffee-hormones</a>
-        </div>
-        <div class="ascii-block blog-post color-green" onclick="window.location.href='/party-rooms'">
+        <div class="ascii-block blog-post color-magenta" data-categories="games,multiplayer,websockets,party" data-block-id="post-party-rooms" onclick="window.location.href='/party-rooms'">
             <h3>Party Rooms - Multiplayer Game Hub</h3>
             <div class="description">Create or join real-time multiplayer rooms for pub games with friends</div>
+            
             <a href="/party-rooms">/party-rooms</a>
         </div>
-        <div class="ascii-block blog-post color-red" onclick="window.location.href='/mafia-game'">
+        <div class="ascii-block blog-post color-green" data-categories="games,party,mafia" data-block-id="post-mafia-game" onclick="window.location.href='/mafia-game'">
             <h3>Mafia Game - Role Assigner</h3>
             <div class="description">Interactive Mafia game role assignment for playing with friends at the pub</div>
+            
             <a href="/mafia-game">/mafia-game</a>
         </div>
-        <div class="ascii-block blog-post color-blue" onclick="window.location.href='/flight-planner'">
-            <h3>Flight Path Optimizer</h3>
-            <div class="description">Find optimal flight paths using A* search algorithm with real-time flight data from Google Flights</div>
-            <a href="/flight-planner">/flight-planner</a>
-        </div>
-        <div class="ascii-block blog-post color-yellow" onclick="window.location.href='/geo-butler-backend-architecture'">
-            <h3>GEO-Butler Backend Architecture: A Deep Dive into Serverless Search Analytics</h3>
-            <div class="description">How we built a multi-engine search platform with Firebase, Python, and AI. Exploring serverless architecture, data flows, and lessons learned building GEO-Butler.</div>
-            <a href="/geo-butler-backend-architecture">/geo-butler-backend-architecture</a>
-        </div>
-        <div class="ascii-block blog-post color-cyan" onclick="window.location.href='/server-networking-overview'">
+        <div class="ascii-block blog-post color-red" data-categories="architecture,networking,devops,infrastructure" data-block-id="post-server-networking-overview" onclick="window.location.href='/server-networking-overview'">
             <h3>Server Networking Overview - Current State</h3>
             <div class="description">A comprehensive overview of all running services, microservices, and networking architecture on my development server</div>
+            
             <a href="/server-networking-overview">/server-networking-overview</a>
         </div>
-        <div class="ascii-block blog-post color-magenta" onclick="window.location.href='/collaborative-canvas'">
+        <div class="ascii-block blog-post color-blue" data-categories="games,interactive,collaborative,websockets" data-block-id="post-collaborative-canvas" onclick="window.location.href='/collaborative-canvas'">
             <h3>Collaborative Canvas</h3>
             <div class="description">Real-time collaborative black and white drawing canvas for up to 8 players</div>
+            
             <a href="/collaborative-canvas">/collaborative-canvas</a>
         </div>
-        <div class="ascii-block blog-post color-green" onclick="window.location.href='/gpu-value-analysis'">
+        <div class="ascii-block blog-post color-yellow" data-categories="machine learning,gpu,visualization,analysis" data-block-id="post-gpu-value-analysis" onclick="window.location.href='/gpu-value-analysis'">
             <h3>GPU Value Analysis for Machine Learning</h3>
             <div class="description">Interactive analysis of GPU price/performance for ML workloads with changeable axes and CUDA support visualization</div>
+            
             <a href="/gpu-value-analysis">/gpu-value-analysis</a>
         </div>
-        <div class="ascii-block blog-post color-red" onclick="window.location.href='/llm-compression-gap'">
-            <h3>The LLM Compression Gap</h3>
-            <div class="description">Exploring why LLM-based compression achieves superior results but can't compete in the Hutter Prize due to computational constraints</div>
-            <a href="/llm-compression-gap">/llm-compression-gap</a>
-        </div>
-        <div class="ascii-block blog-post color-blue" onclick="window.location.href='/ideal-carry-on-bag-size'">
+        <div class="ascii-block blog-post color-cyan" data-categories="travel,data-visualization,airlines" data-block-id="post-ideal-carry-on-bag-size" onclick="window.location.href='/ideal-carry-on-bag-size'">
             <h3>What's the Ideal Carry-On Bag Size?</h3>
             <div class="description">Interactive visualization of airline carry-on bag size restrictions worldwide to find the perfect bag dimensions</div>
+            
             <a href="/ideal-carry-on-bag-size">/ideal-carry-on-bag-size</a>
         </div>
-        <div class="ascii-block blog-post color-yellow" onclick="window.location.href='/conway-immigration'">
+        <div class="ascii-block blog-post color-magenta" data-categories="games,simulation,interactive" data-block-id="post-conway-immigration" onclick="window.location.href='/conway-immigration'">
             <h3>Conway's Game of Life Immigration</h3>
             <div class="description">Interactive Immigration Game based on Conway's Game of Life where two populations compete with colored organisms</div>
+            
             <a href="/conway-immigration">/conway-immigration</a>
         </div>
-        <div class="ascii-block blog-post color-cyan" onclick="window.location.href='/first-post'">
+        <div class="ascii-block blog-post color-green" data-categories="architecture,web-development,technical" data-block-id="post-first-post" onclick="window.location.href='/first-post'">
             <h3>Modular Blog Architecture</h3>
             <div class="description">How this blog works - each page is self-contained with its own styling and functionality.</div>
+            
             <a href="/first-post">/first-post</a>
         </div>
-        <div class="ascii-block blog-post color-magenta" onclick="window.location.href='/pool-leaderboard'">
+        <div class="ascii-block blog-post color-red" data-categories="games,leaderboard,pool" data-block-id="post-pool-leaderboard" onclick="window.location.href='/pool-leaderboard'">
             <h3>Pool Leaderboard</h3>
             <div class="description">Live pool ELO leaderboard and game tracking system</div>
+            
             <a href="/pool-leaderboard">/pool-leaderboard</a>
         </div>
-        <div class="ascii-block blog-post color-magenta" onclick="window.photoBackground && window.photoBackground.toggleAdminMode();" style="cursor: pointer;">
+        <div class="ascii-block blog-post color-magenta" data-block-id="admin" onclick="window.photoBackground && window.photoBackground.toggleAdminMode();" style="cursor: pointer;">
             <h3>ADMIN</h3>
             <div class="description">Configure glitchGL effects for background and title</div>
             <a href="#" onclick="window.photoBackground && window.photoBackground.toggleAdminMode(); return false;">→ Settings Panel</a>
@@ -691,6 +827,36 @@
                         if (jupyterStatus) {
                             jupyterStatus.textContent = portData.services.jupyter.running ? 'ON' : 'OFF';
                         }
+
+                        const titansarStatus = document.getElementById('titansar-port-status');
+                        if (titansarStatus) {
+                            titansarStatus.textContent = portData.services.titansar.running ? 'ON' : 'OFF';
+                        }
+
+                        const bluemapPortStatus = document.getElementById('bluemap-port-status');
+                        if (bluemapPortStatus) {
+                            bluemapPortStatus.textContent = portData.services.bluemap.running ? 'ON' : 'OFF';
+                        }
+
+                        const xpvncStatus = document.getElementById('xpvnc-port-status');
+                        if (xpvncStatus) {
+                            xpvncStatus.textContent = portData.services.xpvnc.running ? 'ON' : 'OFF';
+                        }
+
+                        const templeosStatus = document.getElementById('templeos-port-status');
+                        if (templeosStatus) {
+                            templeosStatus.textContent = portData.services.templeos.running ? 'ON' : 'OFF';
+                        }
+
+                        const geopolmarketsStatus = document.getElementById('geopolmarkets-port-status');
+                        if (geopolmarketsStatus) {
+                            geopolmarketsStatus.textContent = portData.services.geopolmarkets.running ? 'ON' : 'OFF';
+                        }
+
+                        const geopolwebStatus = document.getElementById('geopolweb-port-status');
+                        if (geopolwebStatus) {
+                            geopolwebStatus.textContent = portData.services.geopolweb.running ? 'ON' : 'OFF';
+                        }
                     })
                     .catch(error => {
                         console.error('Failed to fetch port status:', error);
@@ -706,6 +872,7 @@
     setInterval(refreshStatus, 500);
     </script>
 
+
     <!-- glitchGL Photo Background - ENABLED -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lil-gui@0.21"></script>
@@ -718,7 +885,7 @@
             photo_background: true        // Enable photo background system
         };
 
-        // Photo background controller will handle everything
+        // Always start loading background immediately
         if (window.photoBackground) {
             window.photoBackground.init(window.pageConfig);
         }

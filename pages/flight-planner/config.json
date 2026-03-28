@@ -1,7 +1,12 @@
 {
-    "title": "Flight Path Optimizer",
+    "title": "Flight Path Optimizer (Unfinished)",
     "slug": "flight-planner",
     "date": "2026-01-11",
-    "description": "Find optimal flight paths using A* search algorithm with real-time flight data from Google Flights",
-    "categories": ["tools", "travel", "optimization"]
+    "description": "(Unfinished) I had a pretty great Tkinter based flight tool last year, helped me bum my way through India and to Vietnam for a couple hundred quid. It didn't fully port correctly to the web via vibe coding, so I'll come back to it. The principle though is cover distance economically by waiting for cheap flights. A lot of flight search tools only take 24h (Max) layovers into account. All about the opportunism!",
+    "categories": [
+        "tools",
+        "travel",
+        "optimization"
+    ],
+    "hidden": true
 }

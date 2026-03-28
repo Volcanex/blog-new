@@ -1,26 +1,26 @@
 {
   "background": {
-    "intensity": 0.9,
+    "intensity": 0,
     "pixelation": {
       "enabled": true,
-      "pixelSize": 4
+      "pixelSize": 5
     },
     "crt": {
       "enabled": true,
       "preset": "vga-monitor",
-      "scanlineIntensity": 0.6,
+      "scanlineIntensity": 0.9,
       "scanlineThickness": 1.2,
       "scanlineCount": 250,
       "brightness": 0.7,
-      "phosphorGlow": 0.6,
+      "phosphorGlow": 1,
       "curvature": 5,
-      "chromaticAberration": 0.8,
+      "chromaticAberration": 2,
       "flicker": true,
       "flickerIntensity": 0.15
     },
     "glitch": {
-      "enabled": true,
-      "rgbShift": 1,
+      "enabled": false,
+      "rgbShift": 0.4,
       "digitalNoise": 0.2,
       "lineDisplacement": 0.2
     }

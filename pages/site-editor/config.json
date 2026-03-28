@@ -3,5 +3,10 @@
     "slug": "site-editor",
     "date": "2026-03-17",
     "description": "Live HTML/CSS/JS editor with preset themes - the tool used to build the WTA site.",
-    "categories": ["tools", "interactive", "web-development"]
+    "categories": [
+        "tools",
+        "interactive",
+        "web-development"
+    ],
+    "hidden": true
 }

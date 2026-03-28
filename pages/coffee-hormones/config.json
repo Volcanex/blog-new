@@ -3,5 +3,10 @@
     "slug": "coffee-hormones",
     "date": "2026-02-25",
     "description": "Interactive visualization showing how coffee timing affects cortisol, adenosine, and energy levels throughout the day",
-    "categories": ["health", "science", "interactive"]
+    "categories": [
+        "health",
+        "science",
+        "interactive"
+    ],
+    "hidden": true
 }

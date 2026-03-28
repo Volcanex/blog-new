@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Server Networking Overview - Current State</title>
+    <link rel="icon" href="../favicon.svg">
     <style>
 /* Clean Technical Theme - Tailwind Inspired */
 * {
@@ -203,6 +204,11 @@ graph TB
         phpMyAdmin[phpMyAdmin :8080]
     end
 
+    subgraph Emulators["Shared Desktops"]
+        WinXP[Windows XP :6080]
+        TempleOS[TempleOS :6081]
+    end
+
     subgraph Other["Other Services"]
         Minecraft[Minecraft Server :25565]
         BlueMap[BlueMap :8100]
@@ -220,6 +226,8 @@ graph TB
     NginxCore -->|/dev/4000, /dev/5001, etc| Firebase
     NginxCore -->|/dev/8100| BlueMap
     NginxCore -->|/dev/5123| Depopper
+    NginxCore -->|/dev/6080| WinXP
+    NginxCore -->|/dev/6081| TempleOS
 
     NextJS --> FB_Functions
     NextJS --> FB_Firestore
@@ -244,6 +252,8 @@ graph TB
     style Flask fill:#22c55e,color:#fff
     style NextJS fill:#06b6d4,color:#fff
     style MongoDB fill:#10b981,color:#fff
+    style WinXP fill:#8b5cf6,color:#fff
+    style TempleOS fill:#8b5cf6,color:#fff
     style Minecraft fill:#f59e0b,color:#fff
         </div>
 
@@ -457,7 +467,25 @@ graph TB
 
         <p>Many services are exposed through Nginx using <code>/dev/*</code> paths, allowing web access to internal services without direct port exposure:</p>
 
-        <table>
+        <style>
+            .dev-port-icon {
+                width: 18px;
+                height: 18px;
+                vertical-align: middle;
+                margin-right: 6px;
+                display: inline-block;
+                opacity: 0.7;
+            }
+            .dev-ports td:first-child {
+                white-space: nowrap;
+            }
+            .dev-ports td:first-child code {
+                display: inline-flex;
+                align-items: center;
+            }
+        </style>
+
+        <table class="dev-ports">
             <thead>
                 <tr>
                     <th>Public Path</th>
@@ -467,47 +495,57 @@ graph TB
             </thead>
             <tbody>
                 <tr>
-                    <td><code>/dev/3000</code></td>
+                    <td><code><svg class="dev-port-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>/dev/3000</code></td>
                     <td>localhost:3000</td>
                     <td>Next.js geo-butler development site</td>
                 </tr>
                 <tr>
-                    <td><code>/dev/3005</code></td>
+                    <td><code><svg class="dev-port-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>/dev/3005</code></td>
                     <td>localhost:3005</td>
                     <td>Arbitrage webapp dashboard</td>
                 </tr>
                 <tr>
-                    <td><code>/dev/4000</code></td>
+                    <td><code><svg class="dev-port-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>/dev/4000</code></td>
                     <td>localhost:4000</td>
                     <td>Firebase Emulator UI</td>
                 </tr>
                 <tr>
-                    <td><code>/dev/5001</code></td>
+                    <td><code><svg class="dev-port-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-4V4a2 2 0 0 0-4 0v6H6l6 8 6-8z"/></svg>/dev/5001</code></td>
                     <td>localhost:5001</td>
                     <td>Firebase Cloud Functions</td>
                 </tr>
                 <tr>
-                    <td><code>/dev/5123</code></td>
+                    <td><code><svg class="dev-port-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>/dev/5123</code></td>
                     <td>localhost:5123</td>
                     <td>Depopper research playground</td>
                 </tr>
                 <tr>
-                    <td><code>/dev/8081</code></td>
+                    <td><code><svg class="dev-port-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>/dev/6080</code></td>
+                    <td>localhost:6080</td>
+                    <td>Windows XP shared desktop (QEMU + noVNC)</td>
+                </tr>
+                <tr>
+                    <td><code><svg class="dev-port-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>/dev/6081</code></td>
+                    <td>localhost:6081</td>
+                    <td>TempleOS shared desktop (QEMU + noVNC)</td>
+                </tr>
+                <tr>
+                    <td><code><svg class="dev-port-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>/dev/8081</code></td>
                     <td>localhost:8081</td>
                     <td>Firebase Firestore emulator</td>
                 </tr>
                 <tr>
-                    <td><code>/dev/8100</code></td>
+                    <td><code><svg class="dev-port-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>/dev/8100</code></td>
                     <td>[::1]:8100</td>
                     <td>BlueMap (Minecraft live map)</td>
                 </tr>
                 <tr>
-                    <td><code>/dev/9099</code></td>
+                    <td><code><svg class="dev-port-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>/dev/9099</code></td>
                     <td>localhost:9099</td>
                     <td>Firebase Authentication emulator</td>
                 </tr>
                 <tr>
-                    <td><code>/dev/api/</code></td>
+                    <td><code><svg class="dev-port-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>/dev/api/</code></td>
                     <td>localhost:3005/api/</td>
                     <td>Arbitrage API endpoints</td>
                 </tr>
@@ -581,11 +619,12 @@ Firebase Emulators: 4000, 5001, 5002, 8081, 9099
 Arbitrage Services: 3005, 7500, 7503-7505, 8888-8889
 Databases:          3306, 8080, 27017
 Gaming:             25565, 8100 (Minecraft + BlueMap)
+Shared Desktops:    6080, 6081 (Windows XP + TempleOS via QEMU/noVNC)
 Research:           5123 (Depopper playground)
 Infrastructure:     21, 53, 2222
 Docker Swarm:       2377, 7946
 
-Proxied via Nginx:  3000, 3005, 4000, 5001, 5123, 8081, 8100, 9099
+Proxied via Nginx:  3000, 3005, 4000, 5001, 5123, 6080, 6081, 8081, 8100, 9099
 Direct Access Only: 7500, 7503-7505, 8888-8889 (microservices)</code></pre>
 
         <h2>Next Steps</h2>

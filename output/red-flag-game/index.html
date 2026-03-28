@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Red Flag Generator</title>
+    <link rel="icon" href="../favicon.svg">
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
@@ -41,6 +42,11 @@ h1 {
     text-shadow: 0 2px 20px rgba(255, 68, 68, 0.5);
 }
 
+h1.green-mode {
+    color: #44ff88;
+    text-shadow: 0 2px 20px rgba(68, 255, 136, 0.5);
+}
+
 .subtitle {
     text-align: center;
     color: #a0a0a0;
@@ -62,6 +68,11 @@ h1 {
     justify-content: center;
     align-items: center;
     transition: all 0.3s;
+}
+
+.flag-card.green-mode {
+    background: rgba(68, 255, 136, 0.1);
+    border: 2px solid rgba(68, 255, 136, 0.3);
 }
 
 .flag-emoji {
@@ -91,16 +102,25 @@ h1 {
     font-weight: 500;
 }
 
-.generate-button {
+.button-group {
+    display: flex;
+    gap: 1rem;
     width: 100%;
-    max-width: 400px;
-    margin: 0 auto;
-    padding: 20px 40px;
+    max-width: 600px;
+    margin: 0 auto 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.generate-button {
+    flex: 1;
+    min-width: 150px;
+    padding: 20px 30px;
     border: none;
     border-radius: 16px;
     background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
     color: white;
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     font-weight: 800;
     cursor: pointer;
     transition: all 0.3s;
@@ -109,9 +129,27 @@ h1 {
     letter-spacing: 1px;
 }
 
+.generate-button.green {
+    background: linear-gradient(135deg, #44ff88 0%, #00cc55 100%);
+    box-shadow: 0 8px 30px rgba(68, 255, 136, 0.4);
+}
+
+.generate-button.both {
+    background: linear-gradient(135deg, #ff4444 0%, #44ff88 100%);
+    box-shadow: 0 8px 30px rgba(255, 136, 102, 0.4);
+}
+
 .generate-button:hover {
     transform: translateY(-3px);
     box-shadow: 0 12px 40px rgba(255, 68, 68, 0.6);
+}
+
+.generate-button.green:hover {
+    box-shadow: 0 12px 40px rgba(68, 255, 136, 0.6);
+}
+
+.generate-button.both:hover {
+    box-shadow: 0 12px 40px rgba(255, 136, 102, 0.6);
 }
 
 .generate-button:active {
@@ -178,24 +216,28 @@ h1 {
 </head>
 <body>
     <div class="container">
-    <h1>🚩 Red Flag Generator</h1>
-    <p class="subtitle">Discover what you're probably ignoring in your dating life</p>
+    <h1 id="mainTitle">🚩 Flag Generator</h1>
+    <p class="subtitle" id="subtitle">Discover what you're probably ignoring (or celebrating) in your dating life</p>
 
     <div class="flag-card" id="flagCard">
-        <div class="flag-emoji">🚩</div>
+        <div class="flag-emoji" id="flagEmoji">🚩</div>
         <div class="flag-text initial" id="flagText">
-            Click below to reveal a random red flag
+            Click below to reveal a random flag
         </div>
     </div>
 
-    <button class="generate-button" id="generateBtn">Generate Red Flag</button>
+    <div class="button-group">
+        <button class="generate-button" id="redBtn">Red Flags</button>
+        <button class="generate-button green" id="greenBtn">Green Flags</button>
+        <button class="generate-button both" id="bothBtn">Both</button>
+    </div>
 
     <div class="share-section">
-        <button class="share-button" id="shareBtn">Share This Red Flag</button>
+        <button class="share-button" id="shareBtn">Share This Flag</button>
     </div>
 
     <div class="counter" id="counter">
-        Red flags generated: 0
+        Flags generated: 0
     </div>
 </div>
 
@@ -553,17 +595,17 @@ const RED_FLAGS = [
     // Kink & Sexual Compatibility
     "Has a foot fetish but makes it everyone's problem",
     "Wants you to call them daddy but gets mad if you laugh",
-    "Into age play but doesn't understand boundaries",
+    "Into age play but brings it up at family dinner",
     "Has a mommy kink and actually calls you mommy in public",
     "Wants to be dominated but won't communicate what they like",
     "Into pet play but expects you to be their pet 24/7",
     "Has a breeding kink but no desire for actual kids",
     "Lactation fetish and keeps asking when you'll get pregnant",
     "Into financial domination and actually expects you to pay their bills",
-    "Has a piss kink and doesn't ask first",
+    "Has unusual kinks but refuses to discuss boundaries first",
     "Wants threesomes but gets jealous immediately",
     "Into choking but learned everything from porn",
-    "Has a rape fantasy but doesn't understand consent negotiation",
+    "Has intense fantasies but won't discuss safety or consent",
     "Wants to try pegging but makes it weird and awkward",
     "Into furry stuff and expects you to participate",
     "Has a vore fetish and won't stop talking about it",
@@ -576,9 +618,9 @@ const RED_FLAGS = [
     "Has a cuckold fantasy but would actually be devastated",
     "Into impact play but doesn't believe in aftercare",
     "Has a diaper fetish and leaves them around the house",
-    "Wants you to pretend to be their step-sibling during sex",
+    "Wants roleplay scenarios but makes them uncomfortable",
     "Into latex but doesn't clean any of their gear",
-    "Has an impregnation kink and pokes holes in condoms",
+    "Has breeding kink and tries to stealth during sex",
     "Wants to do rope bondage but watched one YouTube video",
     "Into blood play with zero understanding of safety",
     "Has a tickle fetish and won't stop even when you're clearly uncomfortable",
@@ -587,8 +629,8 @@ const RED_FLAGS = [
     "Has a clown fetish and owns a full costume",
     "Wants to film everything but won't discuss consent",
     "Into exhibitionism and doesn't care if you're comfortable",
-    "Has a teacher/student fantasy and takes it way too far",
-    "Wants to do consensual non-consent but skips the negotiation",
+    "Has fantasy scenarios and takes them way too far",
+    "Wants to explore power dynamics but skips negotiation",
     "Into orgasm denial but actually just doesn't make you finish",
     "Has a food fetish and wastes so much food",
     "Wants you to wear fursuit in bed",
@@ -680,45 +722,45 @@ const RED_FLAGS = [
     "Has a medical fetish but uses actual medical equipment wrong",
     "Statue fetish and wants you to freeze mid-activity",
     "Into hypnosis kink but actually thinks they can control minds",
-    "Has a sneezing fetish and pepper-sprays you to trigger it",
+    "Has unusual trigger fetishes and won't stop trying to activate them",
     "Muscle worship but only talks about themselves at the gym",
     "Into feederism and gets upset when you try to eat healthy",
     "Has a burping/farting fetish and encourages it constantly",
     "Inflation fetish taken to dangerous levels with pumps",
     "Into tentacle porn and owns way too many tentacle dildos",
     "Has a giantess fetish and photoshops you crushing cities",
-    "Vomit fetish and tries to trigger your gag reflex",
-    "Into scat play without proper safety discussions",
+    "Has extreme fetishes but won't discuss safety or boundaries",
+    "Into unusual play without proper safety discussions",
     "Has a fart fetish and wants you to fart on command",
     "Pregnancy fetish and fake cries when you get your period",
     "Into insect play and brings actual bugs into bed",
     "Has a hair fetish and steals your hairbrush bristles",
-    "Wants to be a human toilet for real",
+    "Wants extreme bathroom play for real",
     "Into cake sitting and wastes so much food",
     "Has a smoking fetish but you don't smoke",
     "Dental fetish and gets hard at the dentist office",
-    "Into race play with zero understanding of why it's problematic",
+    "Into controversial roleplay without understanding the issues",
     "Has a hiccup fetish and tries to scare you constantly",
-    "Wants to be turned into a sissy but makes it transphobic",
+    "Wants sissy play but makes it offensive",
     "Into mind control hypnosis and genuinely thinks it works",
     "Has a mermaid fetish and wants you in a tail 24/7",
-    "Drowning fetish with zero safety precautions",
-    "Into puppy play but shits on the floor",
-    "Has a snuff fantasy and doesn't understand it should stay fantasy",
-    "Wants extreme age gap roleplay that's way too realistic",
-    "Into raceplay and says actually racist shit",
+    "Has breath control interests with zero safety precautions",
+    "Into puppy play but takes it too literally",
+    "Has dark fantasies and doesn't understand they should stay fantasy",
+    "Wants intense roleplay that crosses comfort lines",
+    "Into taboo scenarios without proper discussion",
     "Has a fisting fetish but won't use lube",
     "Wants to do shibari but uses hardware store rope",
     "Into edge play with no safe words or limits",
     "Has a sweat fetish and smells your gym clothes",
     "Lactation kink and tries to induce it without consent",
-    "Into erotic asphyxiation alone with no safety",
+    "Into breath play alone with no safety",
     "Has a wedgie fetish from childhood",
     "Wants to do knifeplay with actual kitchen knives",
     "Into medical play and bought a speculum off Amazon",
     "Has a vore fetish and their art folder is concerning",
     "Wants you to trample them but doesn't understand weight distribution",
-    "Into necro roleplay and makes it way too realistic",
+    "Into intense roleplay and makes it way too realistic",
     "Has a robot fetish and wants you to be emotionless",
     "Wants gang bang but gets jealous of everyone there",
 
@@ -730,26 +772,26 @@ const RED_FLAGS = [
     "Wants TPE but has never discussed it properly",
     "Thinks being a brat means being actually disrespectful",
     "Uses degradation but it's just their real opinion",
-    "Wants CNC but skips all the consent negotiation",
+    "Wants power exchange but skips all the consent negotiation",
     "Claims to be a master but has never studied BDSM",
     "Punishes for real mistakes not agreed-upon infractions",
     "Wants 24/7 dynamic after one week of dating",
     "Thinks subspace means you consent to anything",
-    "Does breath play with zero safety training",
+    "Does intense play with zero safety training",
     "Leaves marks in visible places without permission",
     "Uses pain as actual punishment not sensation play",
     "Wants to collar you without understanding the commitment",
     "Does rope bondage but never learned about nerve damage",
     "Thinks aftercare is optional",
-    "Wants to brand you on the first date",
+    "Wants permanent marks on the first date",
     "Uses degrading language outside negotiated scenes",
     "Demands submission without earning trust",
-    "Thinks BDSM means they can hit you whenever",
+    "Thinks BDSM means they can do whatever they want",
     "Wants to be worshipped but gives nothing in return",
     "Does wax play with regular candles not body-safe wax",
     "Thinks hard limits are just suggestions",
     "Ignores yellow safewords",
-    "Wants blood play with no bloodborne pathogen knowledge",
+    "Wants intense play with no safety knowledge",
     "Uses bondage but doesn't check circulation",
     "Does temperature play with frozen/boiling items",
     "Wants to do needle play with sewing needles",
@@ -821,46 +863,295 @@ const RED_FLAGS = [
     "Makes you feel bad for having boundaries"
 ];
 
+const GREEN_FLAGS = [
+    // Sweet Green Flags
+    "Remembers small details about things you mentioned weeks ago",
+    "Brings you soup when you're sick without being asked",
+    "Texts you they got home safe",
+    "Asks about your day and actually listens",
+    "Respects your boundaries without making it weird",
+    "Celebrates your wins like they're their own",
+    "Admits when they're wrong and apologizes sincerely",
+    "Makes you coffee/tea exactly how you like it",
+    "Lets you sleep in and brings you breakfast in bed",
+    "Defends you when you're not around",
+    "Notices when you're quiet and checks if you're okay",
+    "Remembers your allergies without you having to remind them",
+    "Keeps your favorite snacks stocked",
+    "Watches shows you like even if they're not into them",
+    "Holds your hand in public proudly",
+    "Introduces you to everyone as their partner with excitement",
+    "Supports your hobbies even if they don't understand them",
+    "Gives you space when you need it without taking it personally",
+    "Remembers important dates (not just birthdays)",
+    "Leaves you cute notes randomly",
+    "Actually helps with chores without being asked",
+    "Plans thoughtful dates, not just dinner and a movie",
+    "Compliments you on things beyond your appearance",
+    "Makes you laugh when you're stressed",
+    "Respects your sleep schedule",
+    "Shares the last bite of their favorite food with you",
+    "Tells their family and friends about you warmly",
+    "Gets excited about your interests",
+    "Remembers your comfort order at restaurants",
+    "Checks in during the day just because",
+    "Actually listens to your feedback and makes changes",
+    "Hypes you up to other people",
+    "Sends you memes they think you'll like",
+    "Comfortable with comfortable silence",
+    "Respects your relationship with your family",
+    "Makes an effort with your friends",
+    "Plans for a future that includes you",
+    "Supports your career goals",
+    "Doesn't make you feel guilty for having alone time",
+    "Shows affection in your love language",
+    "Compromises without keeping score",
+    "Makes you feel safe, physically and emotionally",
+    "Never makes you question if they're into you",
+    "Trusts you without being controlling",
+    "Communicates openly about feelings",
+    "Takes care of you when you're drunk/high",
+    "Doesn't hold grudges over small things",
+    "Makes you feel like the only person in the room",
+    "Surprised you with something you mentioned wanting",
+    "Respects your 'no' immediately",
+
+    // Impressive Green Flags
+    "Goes to therapy and actually works on themselves",
+    "Has close friendships they maintain",
+    "Tips service workers generously",
+    "Handles conflict maturely without yelling",
+    "Takes accountability for their mistakes",
+    "Has healthy boundaries with exes",
+    "Financially responsible and talks about money openly",
+    "Supports your independence",
+    "Can cook an actual meal from scratch",
+    "Cleans up after themselves without being asked",
+    "Handles your emotions with care and patience",
+    "Has hobbies and passions outside of you",
+    "Encourages you to pursue your goals",
+    "Never makes you feel bad for your mental health struggles",
+    "Actually changes behavior after you express concerns",
+    "Treats service workers with respect",
+    "Has a good relationship with their family",
+    "Takes 'no' gracefully without pouting",
+    "Splits costs fairly or takes turns paying",
+    "Communicates their needs clearly",
+    "Validates your feelings even when they don't understand",
+    "Has dealt with their trauma in healthy ways",
+    "Respects your career as much as their own",
+    "Can admit 'I don't know' instead of making things up",
+    "Actually reads books (not just says they do)",
+    "Maintains good hygiene consistently",
+    "Has follow-through on promises",
+    "Shows up when they say they will",
+    "Can handle constructive criticism",
+    "Apologizes to service workers when wrong",
+    "Doesn't need to be drunk to be affectionate",
+    "Respects all your identities",
+    "Actively anti-racist/anti-bigotry",
+    "Believes and supports survivors",
+    "Votes and stays politically informed",
+    "Checks their privilege",
+    "Listens to feedback about being offensive",
+    "Calls out their friends' bad behavior",
+    "Financially independent",
+    "Has a passport and uses it",
+    "Reads the news beyond headlines",
+    "Can navigate conflict without running away",
+    "Makes major decisions together with you",
+    "Respects your pronouns and corrects others",
+    "Knows how to genuinely apologize (no 'but')",
+    "Takes initiative in planning and household tasks",
+    "Has emotional intelligence",
+    "Can regulate their emotions",
+    "Understands consent is enthusiastic and ongoing",
+    "Makes you feel heard and valued",
+
+    // Wild/Exotic Green Flags
+    "Willing to try new foods and cuisines",
+    "Down for spontaneous adventures",
+    "Has a valid passport and wants to use it",
+    "Can handle spicy food",
+    "Knows how to parallel park",
+    "Has taken a solo trip before",
+    "Can name all 50 states",
+    "Knows basic first aid/CPR",
+    "Has changed a tire before",
+    "Can swim and isn't afraid of the ocean",
+    "Comfortable camping/being in nature",
+    "Has been to therapy and recommends it",
+    "Knows how to use tools/fix basic things",
+    "Can handle bugs without freaking out",
+    "Has a skincare routine",
+    "Drinks water regularly",
+    "Actually uses sunscreen",
+    "Can dance and doesn't care who's watching",
+    "Speaks multiple languages",
+    "Has traveled solo internationally",
+    "Can read a map without GPS",
+    "Knows how to start a fire (safely)",
+    "Has done psychedelics responsibly",
+    "Comfortable with karaoke",
+    "Can drive stick shift",
+    "Has gone skinny dipping",
+    "Down for road trips with no fixed plan",
+    "Comfortable being naked around you",
+    "Has interesting stories from past adventures",
+    "Will try your weird food combinations",
+    "Can handle their alcohol",
+    "Has done something that scared them",
+    "Comfortable with public speaking",
+    "Has performed or done stand-up",
+    "Can handle rollercoasters",
+    "Has been in a mosh pit",
+    "Knows how to surf/ski/skate",
+    "Has jumped off something high into water",
+    "Comfortable with their sexuality",
+    "Has gone to music festivals",
+    "Can pitch a tent",
+    "Has been backpacking",
+    "Comfortable with nudist beaches",
+    "Has done an open mic night",
+    "Can shotgun a beer",
+    "Has done karaoke sober",
+    "Willing to try new kinks/explore sexually",
+    "Has definedpersonal boundaries and kinks",
+    "Communicates desires clearly in bed",
+    "Enthusiastic about foreplay",
+    "Asks what you like sexually",
+    "Wants you to orgasm as much as they do",
+    "Comfortable talking about sex",
+    "Has invested in quality sex toys",
+    "Believes in aftercare",
+    "Knows that consent is sexy",
+    "Can take sexual feedback without ego",
+    "Has read actual books about sex",
+    "Understands anatomy (including the clitoris)",
+    "Gets tested for STIs regularly",
+    "Carries condoms and doesn't complain about using them",
+    "Open to trying new positions",
+    "Doesn't shame your kinks or fantasies",
+    "Makes sex fun and playful, not just serious",
+    "Can laugh during sex when things get awkward",
+    "Initiates in creative ways",
+    "Pays attention to your body language",
+    "Respects your boundaries during sex",
+    "Wants to learn what makes you feel good",
+    "Doesn't treat porn as a manual",
+    "Understands sex isn't just penetration",
+    "Actually enjoys giving oral",
+    "Has a safeword and respects it",
+    "Checks in during intense moments",
+    "Can separate kink from real life",
+    "Understands aftercare is important",
+    "Has researched safe BDSM practices",
+    "Respects hard limits without questioning",
+    "Communicates their limits clearly too",
+    "Knows the difference between BDSM and abuse",
+    "Takes your pleasure seriously",
+    "Doesn't finish and immediately ignore you",
+    "Willing to experiment but respects 'no'",
+    "Can handle toys without feeling threatened",
+    "Understands that lube is essential",
+    "Knows that bigger isn't always better",
+    "Communicates when something doesn't feel good",
+    "Can be dominant OR submissive depending on mood",
+    "Respects that you're not always in the mood",
+    "Makes you feel sexy and desired",
+    "Puts effort into seduction",
+    "Understands sexual compatibility matters",
+    "Willing to explore your fantasies",
+    "Has their own fantasies they share",
+    "Knows that sex changes and evolves in relationships",
+    "Doesn't pressure you into anything",
+    "Makes STI testing a normal conversation",
+    "Actually knows where the clit is",
+    "Understands that 'no' can happen at any point",
+    "Respects your body autonomy completely",
+    "Makes you feel comfortable being vulnerable",
+];
+
 let currentFlag = null;
 let flagCount = 0;
+let currentMode = 'red'; // 'red', 'green', or 'both'
 
 const flagText = document.getElementById('flagText');
-const generateBtn = document.getElementById('generateBtn');
+const redBtn = document.getElementById('redBtn');
+const greenBtn = document.getElementById('greenBtn');
+const bothBtn = document.getElementById('bothBtn');
 const shareBtn = document.getElementById('shareBtn');
 const counter = document.getElementById('counter');
+const mainTitle = document.getElementById('mainTitle');
+const subtitle = document.getElementById('subtitle');
+const flagCard = document.getElementById('flagCard');
+const flagEmoji = document.getElementById('flagEmoji');
 
-function generateFlag() {
-    // Get random flag
-    const randomIndex = Math.floor(Math.random() * RED_FLAGS.length);
-    currentFlag = RED_FLAGS[randomIndex];
+function generateFlag(mode) {
+    currentMode = mode;
+    let selectedFlag;
+    let isGreen;
 
-    // Update display
-    flagText.textContent = currentFlag;
+    if (mode === 'red') {
+        const randomIndex = Math.floor(Math.random() * RED_FLAGS.length);
+        selectedFlag = RED_FLAGS[randomIndex];
+        isGreen = false;
+    } else if (mode === 'green') {
+        const randomIndex = Math.floor(Math.random() * GREEN_FLAGS.length);
+        selectedFlag = GREEN_FLAGS[randomIndex];
+        isGreen = true;
+    } else { // both
+        const useGreen = Math.random() > 0.5;
+        if (useGreen) {
+            const randomIndex = Math.floor(Math.random() * GREEN_FLAGS.length);
+            selectedFlag = GREEN_FLAGS[randomIndex];
+            isGreen = true;
+        } else {
+            const randomIndex = Math.floor(Math.random() * RED_FLAGS.length);
+            selectedFlag = RED_FLAGS[randomIndex];
+            isGreen = false;
+        }
+    }
+
+    currentFlag = selectedFlag;
+
+    // Update UI based on flag type
+    if (isGreen) {
+        flagCard.classList.add('green-mode');
+        mainTitle.classList.add('green-mode');
+        flagEmoji.textContent = '✅';
+        flagText.textContent = selectedFlag;
+    } else {
+        flagCard.classList.remove('green-mode');
+        mainTitle.classList.remove('green-mode');
+        flagEmoji.textContent = '🚩';
+        flagText.textContent = selectedFlag;
+    }
+
     flagText.classList.remove('initial');
-
-    // Show share button
     shareBtn.classList.add('visible');
 
     // Update counter
     flagCount++;
-    counter.textContent = `Red flags generated: ${flagCount}`;
+    counter.textContent = `Flags generated: ${flagCount}`;
 
     // Small animation
-    const card = document.getElementById('flagCard');
-    card.style.transform = 'scale(0.98)';
+    flagCard.style.transform = 'scale(0.98)';
     setTimeout(() => {
-        card.style.transform = 'scale(1)';
+        flagCard.style.transform = 'scale(1)';
     }, 100);
 }
 
 function shareFlag() {
     if (!currentFlag) return;
 
-    const shareText = `🚩 Red Flag: ${currentFlag}`;
+    const isGreen = flagCard.classList.contains('green-mode');
+    const flagType = isGreen ? '✅ Green Flag' : '🚩 Red Flag';
+    const shareText = `${flagType}: ${currentFlag}`;
 
     if (navigator.share) {
         navigator.share({
-            title: 'Red Flag Generator',
+            title: 'Flag Generator',
             text: shareText,
             url: window.location.href
         }).catch(() => {
@@ -877,13 +1168,15 @@ function copyToClipboard(text) {
         navigator.clipboard.writeText(text).then(() => {
             shareBtn.textContent = '✓ Copied to Clipboard!';
             setTimeout(() => {
-                shareBtn.textContent = 'Share This Red Flag';
+                shareBtn.textContent = 'Share This Flag';
             }, 2000);
         });
     }
 }
 
-generateBtn.addEventListener('click', generateFlag);
+redBtn.addEventListener('click', () => generateFlag('red'));
+greenBtn.addEventListener('click', () => generateFlag('green'));
+bothBtn.addEventListener('click', () => generateFlag('both'));
 shareBtn.addEventListener('click', shareFlag);
 </script>
 </html>

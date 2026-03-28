@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red Flag Dating Game</title>
+    <link rel="icon" href="../favicon.svg">
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cardo:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root {
+    --primary: #2a2a28;
+    --accent: #7a8a6e;
+    --accent-hover: #5d7050;
+    --bg: #f5f2ed;
+    --border: #e5e0d8;
+    --text-muted: #6b6860;
+    --text-light: #9a958c;
+    --red: #c44;
+    --red-bg: rgba(204,68,68,0.08);
+    --red-border: rgba(204,68,68,0.2);
+    --green: #5a8a5a;
+    --green-bg: rgba(90,138,90,0.08);
+    --green-border: rgba(90,138,90,0.2);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--primary);
+    margin: 0; padding: 0;
+    min-height: 100vh;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+/* Subtle grain overlay */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 256px 256px;
+}
+
+.app { max-width: 640px; margin: 0 auto; padding: 20px 16px; min-height: 100vh; }
+
+/* Header */
+.header { text-align: center; padding: 28px 0 20px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+.header h1 {
+    font-family: 'Cardo', serif; font-size: 2rem; font-weight: 700;
+    color: var(--primary); letter-spacing: -0.02em;
+}
+.header .tagline { color: var(--text-light); font-size: 0.85rem; margin-top: 6px; letter-spacing: 0.02em; }
+
+/* Views */
+.view { display: none; }
+.view.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── Player Hub ── */
+.player-hub { padding: 0; }
+.add-player-bar { display: flex; gap: 10px; margin-bottom: 24px; }
+.add-player-bar input {
+    flex: 1; padding: 12px 16px; border-radius: 8px;
+    border: 1px solid var(--border); background: #fff;
+    color: var(--primary); font-size: 0.95rem; outline: none;
+    font-family: inherit; transition: border-color 0.2s;
+}
+.add-player-bar input:focus { border-color: var(--accent); }
+.add-player-bar input::placeholder { color: var(--text-light); }
+
+.btn {
+    padding: 12px 20px; border: none; border-radius: 8px;
+    font-size: 0.9rem; font-weight: 600; cursor: pointer;
+    transition: all 0.2s; white-space: nowrap; font-family: inherit;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--primary); color: var(--bg); }
+.btn-primary:hover { background: #3a3a38; }
+.btn-green { background: var(--accent); color: #fff; }
+.btn-green:hover { background: var(--accent-hover); }
+.btn-secondary { background: #fff; color: var(--primary); border: 1px solid var(--border); }
+.btn-secondary:hover { border-color: var(--text-light); }
+.btn-small { padding: 8px 14px; font-size: 0.8rem; }
+.btn-tiny { padding: 5px 12px; font-size: 0.75rem; border-radius: 6px; }
+.btn-danger { background: #fff; color: var(--red); border: 1px solid var(--red-border); }
+.btn-danger:hover { background: var(--red-bg); }
+
+.player-list { display: flex; flex-direction: column; gap: 8px; }
+.player-card {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 18px;
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; transition: all 0.2s;
+}
+.player-card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.player-avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; font-weight: 700; color: var(--bg); flex-shrink: 0;
+}
+.player-info { flex: 1; min-width: 0; }
+.player-name { font-weight: 600; font-size: 1rem; color: var(--primary); }
+.player-meta { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+.player-stage {
+    font-size: 0.7rem; font-weight: 600; padding: 4px 10px;
+    border-radius: 20px; background: rgba(122,138,110,0.12);
+    color: var(--accent-hover); white-space: nowrap; text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+.player-remove {
+    background: none; border: none; color: var(--text-light); font-size: 1.2rem;
+    cursor: pointer; padding: 4px 8px; transition: color 0.2s;
+}
+.player-remove:hover { color: var(--red); }
+
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-light); }
+.empty-icon { font-size: 2rem; margin-bottom: 12px; }
+.empty-state p { font-size: 0.95rem; }
+
+/* ── Stage View ── */
+.stage-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 0; margin-bottom: 12px;
+}
+.back-btn {
+    background: none; border: none; color: var(--text-muted); font-size: 1.3rem;
+    cursor: pointer; padding: 4px; transition: color 0.2s;
+}
+.back-btn:hover { color: var(--primary); }
+.stage-title {
+    font-family: 'Cardo', serif; font-size: 1.2rem;
+    font-weight: 700; color: var(--primary); flex: 1;
+}
+
+/* Stage Progress */
+.stage-progress { display: flex; gap: 5px; margin-bottom: 20px; padding: 0 2px; }
+.stage-dot {
+    flex: 1; height: 4px; border-radius: 2px;
+    background: var(--border); cursor: pointer;
+    transition: all 0.2s; position: relative;
+}
+.stage-dot.active { background: var(--primary); }
+.stage-dot.completed { background: var(--accent); }
+.stage-dot:hover { opacity: 0.7; }
+.stage-label {
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    font-size: 0.6rem; color: var(--text-muted); white-space: nowrap; pointer-events: none;
+    opacity: 0; transition: opacity 0.2s;
+}
+.stage-dot:hover .stage-label { opacity: 1; }
+
+/* Tabs - single row */
+.tab-bar {
+    display: flex; gap: 0; margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+}
+.tab {
+    flex: 1; padding: 10px 0; border: none;
+    background: transparent; color: var(--text-light); font-size: 0.8rem;
+    font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    font-family: inherit;
+}
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+.tab:hover { color: var(--text-muted); }
+
+/* Identity Picker */
+.identity-section { margin-bottom: 20px; }
+.identity-card {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px; text-align: center; margin-bottom: 10px;
+}
+.identity-label {
+    font-size: 0.7rem; color: var(--text-light); text-transform: uppercase;
+    letter-spacing: 0.1em; margin-bottom: 8px; font-weight: 600;
+}
+.identity-value {
+    font-family: 'Cardo', serif; font-size: 1.5rem; font-weight: 700;
+    color: var(--primary); margin-bottom: 14px;
+    min-height: 2em; display: flex; align-items: center; justify-content: center;
+}
+.identity-nav { display: flex; gap: 8px; justify-content: center; align-items: center; }
+.nav-btn {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 1px solid var(--border); background: #fff;
+    color: var(--primary); font-size: 1.1rem; cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+}
+.nav-btn:hover { background: var(--bg); border-color: var(--text-light); }
+.shuffle-btn {
+    width: auto; padding: 0 14px; border-radius: 20px;
+    font-size: 0.8rem; gap: 4px; font-family: inherit;
+}
+.lock-btn {
+    padding: 8px 20px; border: none; border-radius: 6px;
+    font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    font-family: inherit;
+}
+.lock-btn.unlocked { background: rgba(122,138,110,0.1); color: var(--accent-hover); }
+.lock-btn.unlocked:hover { background: rgba(122,138,110,0.18); }
+.lock-btn.locked { background: var(--accent); color: #fff; }
+
+/* Flag Swiper */
+.flag-swiper { margin-bottom: 20px; }
+.swiper-card {
+    background: var(--red-bg); border: 1px solid var(--red-border);
+    border-radius: 12px; padding: 32px 24px; text-align: center;
+    min-height: 180px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; margin-bottom: 14px;
+    transition: all 0.3s;
+}
+.swiper-card.green { background: var(--green-bg); border-color: var(--green-border); }
+.swiper-icon { margin-bottom: 14px; }
+.swiper-icon svg { width: 36px; height: 36px; }
+.swiper-text {
+    font-family: 'Cardo', serif; font-size: 1.2rem;
+    font-weight: 400; font-style: italic;
+    color: var(--primary); line-height: 1.5;
+}
+
+.swiper-controls { display: flex; gap: 10px; justify-content: center; align-items: center; }
+.swipe-btn {
+    padding: 12px 24px; border: none; border-radius: 8px;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    font-family: inherit;
+}
+.swipe-pass { background: #fff; color: var(--text-muted); border: 1px solid var(--border); }
+.swipe-pass:hover { border-color: var(--text-light); color: var(--primary); }
+.swipe-save { background: var(--primary); color: var(--bg); }
+.swipe-save:hover { background: #3a3a38; }
+.swipe-save.green-save { background: var(--accent); color: #fff; }
+.swipe-save.green-save:hover { background: var(--accent-hover); }
+
+.flag-mode-toggle { display: flex; gap: 6px; justify-content: center; margin-bottom: 14px; }
+.mode-btn {
+    padding: 7px 16px; border: 1px solid var(--border); border-radius: 20px;
+    background: #fff; color: var(--text-light); font-size: 0.78rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; font-family: inherit;
+    text-transform: uppercase; letter-spacing: 0.04em;
+}
+.mode-btn.active-red { background: var(--red-bg); color: var(--red); border-color: var(--red-border); }
+.mode-btn.active-green { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
+
+/* Saved Flags */
+.saved-section { margin-bottom: 20px; }
+.saved-stage-group { margin-bottom: 20px; }
+.saved-stage-title {
+    font-size: 0.72rem; font-weight: 700; color: var(--text-light);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 8px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+}
+.saved-flag {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px; margin-bottom: 4px;
+    background: #fff; border-radius: 6px; border: 1px solid var(--border);
+    transition: background 0.2s;
+}
+.saved-flag:hover { background: var(--bg); }
+.saved-flag-icon { flex-shrink: 0; }
+.saved-flag-icon svg { width: 14px; height: 14px; }
+.saved-flag-text { flex: 1; font-size: 0.85rem; color: var(--primary); }
+.saved-flag-remove {
+    background: none; border: none; color: var(--text-light); font-size: 0.9rem;
+    cursor: pointer; padding: 2px 6px; transition: color 0.2s;
+}
+.saved-flag-remove:hover { color: var(--red); }
+.no-flags { text-align: center; padding: 24px; color: var(--text-light); font-size: 0.85rem; }
+.locked-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 0.7rem; font-weight: 600; color: var(--text-light);
+    background: var(--border); padding: 2px 8px; border-radius: 4px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+}
+
+/* Profile Card */
+.profile-summary {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px 18px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 14px;
+}
+.profile-avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; font-weight: 700; color: var(--bg); flex-shrink: 0;
+    font-family: 'Cardo', serif;
+}
+.profile-details { flex: 1; }
+.profile-name { font-family: 'Cardo', serif; font-size: 1.15rem; font-weight: 700; color: var(--primary); }
+.profile-occupation { font-size: 0.82rem; color: var(--accent-hover); margin-top: 2px; }
+.profile-nationality { font-size: 0.78rem; color: var(--text-muted); margin-top: 1px; }
+.profile-player-name { font-size: 0.7rem; color: var(--text-light); margin-top: 3px; font-style: italic; }
+
+/* Stage advance area */
+.stage-advance { text-align: center; padding: 16px 0; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+/* Discard button */
+.discard-section { text-align: center; margin-top: 12px; }
+
+/* Toast notification */
+.toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--primary); color: var(--bg); padding: 10px 24px;
+    border-radius: 8px; font-size: 0.85rem; font-weight: 500;
+    opacity: 0; transition: all 0.3s ease; z-index: 10000;
+    pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+/* Responsive */
+@media (max-width: 640px) {
+    .header h1 { font-size: 1.6rem; }
+    .identity-value { font-size: 1.3rem; }
+    .swiper-text { font-size: 1.05rem; }
+    .swiper-card { padding: 24px 16px; min-height: 150px; }
+    .add-player-bar { flex-direction: column; }
+    .add-player-bar .btn { width: 100%; }
+    .app { padding: 16px 12px; }
+}
+</style>
+</head>
+<body>
+    <div class="app">
+    <div class="header">
+        <h1>Red Flag Dating Game</h1>
+        <p class="tagline">Five dates. Infinite red flags. One true love?</p>
+    </div>
+
+    <!-- VIEW: Player Hub -->
+    <div class="view active" id="viewHub">
+        <div class="player-hub">
+            <div class="add-player-bar">
+                <input type="text" id="playerNameInput" placeholder="Enter a player name..." maxlength="30">
+                <button class="btn btn-primary" onclick="addPlayer()">Add</button>
+            </div>
+            <div class="player-list" id="playerList">
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="12" y1="11" x2="12" y2="14"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+                    </div>
+                    <p>Add players to begin</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW: Stage / Game -->
+    <div class="view" id="viewStage">
+        <div class="stage-header">
+            <button class="back-btn" onclick="goHome()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <span class="stage-title" id="stageTitle">First Date</span>
+        </div>
+
+        <div class="profile-summary" id="profileSummary">
+            <div class="profile-avatar" id="profileAvatar">?</div>
+            <div class="profile-details">
+                <div class="profile-name" id="profileName">Pick a name...</div>
+                <div class="profile-occupation" id="profileOccupation"></div>
+                <div class="profile-nationality" id="profileNationality"></div>
+                <div class="profile-player-name" id="profilePlayerName"></div>
+            </div>
+        </div>
+
+        <div class="stage-progress" id="stageProgress"></div>
+
+        <div class="tab-bar">
+            <button class="tab active" data-tab="identity" onclick="switchTab('identity')">Identity</button>
+            <button class="tab" data-tab="flags" onclick="switchTab('flags')">Flags</button>
+            <button class="tab" data-tab="saved" onclick="switchTab('saved')">Saved</button>
+        </div>
+
+        <!-- Tab: Identity -->
+        <div class="tab-content" id="tabIdentity">
+            <div class="identity-section">
+                <div class="identity-card">
+                    <div class="identity-label">Name</div>
+                    <div class="identity-value" id="idName">&mdash;</div>
+                    <div class="identity-nav">
+                        <button class="nav-btn" onclick="prevIdentity('name')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                        </button>
+                        <button class="nav-btn shuffle-btn" onclick="shuffleIdentity('name')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+                            Shuffle
+                        </button>
+                        <button class="nav-btn" onclick="nextIdentity('name')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                        </button>
+                    </div>
+                    <button class="lock-btn unlocked" id="lockName" onclick="toggleLock('name')" style="margin-top:12px">Lock in</button>
+                </div>
+                <div class="identity-card">
+                    <div class="identity-label">Occupation</div>
+                    <div class="identity-value" id="idOccupation">&mdash;</div>
+                    <div class="identity-nav">
+                        <button class="nav-btn" onclick="prevIdentity('occupation')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                        </button>
+                        <button class="nav-btn shuffle-btn" onclick="shuffleIdentity('occupation')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+                            Shuffle
+                        </button>
+                        <button class="nav-btn" onclick="nextIdentity('occupation')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                        </button>
+                    </div>
+                    <button class="lock-btn unlocked" id="lockOccupation" onclick="toggleLock('occupation')" style="margin-top:12px">Lock in</button>
+                </div>
+                <div class="identity-card">
+                    <div class="identity-label">Nationality</div>
+                    <div class="identity-value" id="idNationality">&mdash;</div>
+                    <div class="identity-nav">
+                        <button class="nav-btn" onclick="prevIdentity('nationality')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                        </button>
+                        <button class="nav-btn shuffle-btn" onclick="shuffleIdentity('nationality')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+                            Shuffle
+                        </button>
+                        <button class="nav-btn" onclick="nextIdentity('nationality')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                        </button>
+                    </div>
+                    <button class="lock-btn unlocked" id="lockNationality" onclick="toggleLock('nationality')" style="margin-top:12px">Lock in</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Flags -->
+        <div class="tab-content" id="tabFlags" style="display:none">
+            <div class="flag-mode-toggle">
+                <button class="mode-btn active-red" id="modeRed" onclick="setFlagMode('red')">Red Flags</button>
+                <button class="mode-btn" id="modeGreen" onclick="setFlagMode('green')">Green Flags</button>
+            </div>
+            <div class="flag-swiper">
+                <div class="swiper-card" id="swiperCard">
+                    <div class="swiper-icon" id="swiperIcon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#c44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                    </div>
+                    <div class="swiper-text" id="swiperText">Tap Next to start swiping flags</div>
+                </div>
+                <div class="swiper-controls">
+                    <button class="swipe-btn swipe-pass" onclick="nextFlag()">Next</button>
+                    <button class="swipe-btn swipe-save" id="saveBtn" onclick="saveFlag()">Save to Stage</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Saved -->
+        <div class="tab-content" id="tabSaved" style="display:none">
+            <div class="saved-section" id="savedSection">
+                <div class="no-flags">No flags saved yet</div>
+            </div>
+            <div class="stage-advance" id="stageAdvanceArea">
+                <button class="btn btn-green" id="advanceBtn" onclick="advanceStage()">Keep Seeing Them</button>
+                <button class="btn btn-danger" id="discardBtn" onclick="discardAndRestart()">Discard &amp; Start Over</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── SVG ICONS ──
+const SVG_FLAG_RED = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>';
+const SVG_FLAG_GREEN = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5a8a5a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>';
+const SVG_FLAG_RED_BIG = '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#c44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>';
+const SVG_FLAG_GREEN_BIG = '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#5a8a5a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>';
+const SVG_LOCK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+const SVG_CHECK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5a8a5a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+
+// ── DATA ──
+
+const STAGES = [
+    { id: 'first-date', name: 'First Date' },
+    { id: 'fifth-date', name: '5th Date' },
+    { id: 'girlfriend-boyfriend', name: 'Girlfriend / Boyfriend' },
+    { id: 'proposal', name: 'Proposal Night' },
+    { id: 'marriage', name: 'Marriage' },
+    { id: 'honeymoon', name: 'Honeymoon' }
+];
+
+const NATIONALITIES_AND_NAMES = {
+    "British": { m: ["James","Oliver","Harry","George","William","Edward","Charlie","Thomas","Alfie","Jack","Arthur","Henry","Freddie","Oscar","Archie","Leo","Rupert","Hugo","Sebastian","Felix"], f: ["Charlotte","Amelia","Olivia","Emily","Florence","Isla","Sophia","Grace","Poppy","Daisy","Phoebe","Rosie","Freya","Imogen","Eleanor","Harriet","Beatrice","Arabella","Millie","Georgia"] },
+    "American": { m: ["Liam","Noah","Ethan","Mason","Logan","Jackson","Aiden","Lucas","Caleb","Wyatt","Hunter","Dylan","Brayden","Chase","Cooper","Austin","Tyler","Brandon","Jake","Cody"], f: ["Emma","Ava","Harper","Madison","Brooklyn","Savannah","Riley","Paisley","Kennedy","Addison","Aubrey","Kaylee","Skylar","Mackenzie","Peyton","Taylor","Morgan","Bailey","Jordyn","Destiny"] },
+    "French": { m: ["Louis","Jules","Gabriel","Raphael","Leo","Hugo","Lucas","Arthur","Theo","Nathan","Etienne","Maxime","Antoine","Adrien","Baptiste","Clement","Romain","Bastien","Quentin","Tristan"], f: ["Camille","Lea","Manon","Chloe","Ines","Louise","Jade","Emma","Zoe","Lina","Juliette","Margot","Anais","Celine","Elodie","Noemie","Oceane","Aurore","Mathilde","Colette"] },
+    "Italian": { m: ["Matteo","Leonardo","Alessandro","Lorenzo","Andrea","Marco","Luca","Francesco","Giuseppe","Antonio","Davide","Riccardo","Filippo","Tommaso","Stefano","Giovanni","Fabio","Simone","Federico","Enrico"], f: ["Giulia","Sofia","Aurora","Ginevra","Beatrice","Francesca","Chiara","Alessia","Martina","Valentina","Elisa","Giorgia","Elena","Serena","Lucia","Arianna","Federica","Bianca","Isabella","Carlotta"] },
+    "Spanish": { m: ["Mateo","Santiago","Diego","Alejandro","Carlos","Javier","Pablo","Adrian","Hugo","Daniel","Alvaro","Sergio","Andres","Rafael","Fernando","Miguel","Gonzalo","Rodrigo","Nicolas","Inigo"], f: ["Lucia","Sofia","Martina","Paula","Valentina","Alba","Carmen","Daniela","Claudia","Adriana","Elena","Isabel","Natalia","Valeria","Andrea","Lola","Ximena","Alejandra","Marina","Pilar"] },
+    "German": { m: ["Maximilian","Felix","Lukas","Leon","Jonas","Elias","Finn","Niklas","Moritz","Florian","Tobias","Julian","Bastian","Henrik","Klaus","Stefan","Wolfgang","Konrad","Matthias","Dieter"], f: ["Emma","Hannah","Mia","Lena","Sophia","Leonie","Johanna","Katharina","Frieda","Greta","Annika","Heidi","Marlene","Liesel","Ingrid","Brigitte","Petra","Anja","Sabine","Franziska"] },
+    "Japanese": { m: ["Haruto","Yuto","Sota","Riku","Hayato","Minato","Kaito","Ren","Takumi","Kota","Shota","Yuki","Kenji","Daiki","Ryota","Naoki","Akira","Shinji","Tatsuya","Kazuki"], f: ["Hina","Yui","Aoi","Sakura","Koharu","Riko","Mei","Yuna","Mio","Honoka","Rin","Saki","Akari","Ayaka","Nanami","Haruka","Misaki","Kaori","Yuki","Emi"] },
+    "Korean": { m: ["Minjun","Seohan","Hajun","Dohyun","Jiwoo","Junwoo","Siwoo","Yejun","Jiho","Hyunwoo","Taeyang","Sungho","Dongwook","Jaehyun","Woojin","Seojun","Kyungho","Minsoo","Jihoon","Taehyung"], f: ["Seo-yeon","Ha-eun","Ji-woo","Seo-yun","Ha-yoon","Min-seo","Ji-yoo","Ye-eun","Chae-won","So-yeon","Yuna","Dahyun","Jisoo","Nayeon","Soojin","Eunji","Hyejin","Minji","Seulgi","Chaeyoung"] },
+    "Brazilian": { m: ["Miguel","Arthur","Bernardo","Heitor","Davi","Lorenzo","Theo","Pedro","Gabriel","Enzo","Matheus","Lucas","Rafael","Gustavo","Leonardo","Caio","Felipe","Thiago","Vinicius","Bruno"], f: ["Maria","Alice","Helena","Valentina","Laura","Isabella","Manuela","Julia","Sophia","Luisa","Beatriz","Leticia","Mariana","Camila","Fernanda","Yasmin","Larissa","Gabriela","Rafaela","Bianca"] },
+    "Indian": { m: ["Aarav","Vihaan","Aditya","Arjun","Reyansh","Krishna","Rohan","Vivaan","Ishaan","Dhruv","Kabir","Pranav","Samar","Dev","Rishi","Aniket","Siddharth","Vikram","Anand","Karan"], f: ["Aadhya","Ananya","Diya","Myra","Sara","Priya","Aisha","Kavya","Riya","Meera","Ishita","Avani","Navya","Sanya","Neha","Shreya","Pooja","Tanvi","Divya","Isha"] },
+    "Nigerian": { m: ["Chinedu","Emeka","Oluwaseun","Adebayo","Ifeanyi","Obiora","Tunde","Kola","Yemi","Dayo","Obinna","Chukwuma","Segun","Femi","Bankole","Ikenna","Nnamdi","Uche","Adekunle","Babatunde"], f: ["Chidinma","Ngozi","Adaeze","Yetunde","Folake","Oluwadamilola","Funke","Titilayo","Abimbola","Kemi","Amara","Chiamaka","Abiodun","Bisi","Nneka","Ifeoma","Sade","Oluchi","Eniola","Tola"] },
+    "Australian": { m: ["Jack","Lachlan","Cooper","Finn","Archer","Hudson","Hamish","Riley","Angus","Kai","Levi","Fletcher","Heath","Bodhi","Jasper","Dustin","Shane","Brody","Darcy","Mitchell"], f: ["Charlotte","Isla","Mia","Willow","Ivy","Matilda","Harper","Ella","Zara","Sienna","Billie","Wren","Georgia","Piper","Frankie","Tilly","Summer","Indiana","Tahlia","Mackenzie"] },
+    "Mexican": { m: ["Mateo","Santiago","Sebastian","Leonardo","Emiliano","Diego","Daniel","Gael","Iker","Alejandro","Rodrigo","Andres","Fernando","Ricardo","Hector","Enrique","Arturo","Raul","Joaquin","Cesar"], f: ["Valentina","Sofia","Regina","Ximena","Maria Jose","Renata","Camila","Romina","Isabella","Fernanda","Montserrat","Paulina","Itzel","Dulce","Citlali","Marisol","Yolanda","Alejandra","Guadalupe","Daniela"] },
+    "Swedish": { m: ["Oscar","William","Liam","Lucas","Elias","Hugo","Oliver","Theodor","Axel","Filip","Nils","Gustav","Erik","Viktor","Emil","Anton","Isak","Albin","Edvin","Arvid"], f: ["Alice","Maja","Elsa","Astrid","Wilma","Ebba","Ella","Klara","Saga","Freja","Alma","Linnea","Sigrid","Ingrid","Lovisa","Tilda","Agnes","Hedda","Signe","Ronja"] },
+    "Greek": { m: ["Nikolaos","Georgios","Dimitrios","Konstantinos","Ioannis","Christos","Alexandros","Panagiotis","Vasileios","Athanasios","Evangelos","Michail","Andreas","Spyridon","Stavros","Theodoros","Stefanos","Petros","Kostas","Yannis"], f: ["Maria","Eleni","Aikaterini","Vasiliki","Sofia","Anastasia","Georgia","Dimitra","Ioanna","Chrysanthi","Paraskevi","Nikoleta","Theodora","Evangelia","Konstantina","Despoina","Ariadne","Calliope","Penelope","Melina"] },
+    "Turkish": { m: ["Yusuf","Kerem","Eymen","Mirac","Omer","Mustafa","Emir","Ali","Mehmet","Berat","Kaan","Arda","Burak","Cem","Deniz","Emre","Onur","Serkan","Tolga","Volkan"], f: ["Zeynep","Elif","Defne","Azra","Ecrin","Nehir","Asya","Eylul","Melek","Hiranur","Ceren","Deniz","Selin","Naz","Buse","Cansu","Merve","Esra","Yasemin","Asli"] },
+    "Polish": { m: ["Jan","Aleksander","Franciszek","Jakub","Szymon","Filip","Mikolaj","Antoni","Wojciech","Kacper","Adam","Mateusz","Piotr","Tomasz","Marcin","Lukasz","Bartosz","Dawid","Kamil","Pawel"], f: ["Julia","Zuzanna","Maja","Hanna","Lena","Alicja","Maria","Amelia","Oliwia","Zofia","Wiktoria","Natalia","Aleksandra","Karolina","Martyna","Agnieszka","Katarzyna","Magdalena","Anna","Kinga"] },
+    "Egyptian": { m: ["Omar","Ahmed","Mohamed","Youssef","Ali","Hassan","Ibrahim","Khaled","Tarek","Amr","Karim","Mahmoud","Nour","Rami","Sherif","Ayman","Hossam","Mostafa","Samir","Waleed"], f: ["Nour","Farida","Yasmin","Hana","Malak","Salma","Layla","Maryam","Aya","Dina","Rania","Amira","Noura","Sara","Zeina","Habiba","Mariam","Nadine","Shahd","Tia"] },
+    "South African": { m: ["Thabo","Sipho","Mandla","Bongani","Lebo","Kagiso","Tshepo","Neo","Zane","Jayden","Ethan","Aiden","Kyle","Ruan","Pieter","Hennie","Jaco","Schalk","Siyanda","Andile"], f: ["Naledi","Lerato","Thandi","Palesa","Lindiwe","Nomzamo","Zandile","Precious","Hope","Faith","Chloe","Megan","Anika","Minke","Liezl","Amahle","Nompumelelo","Ayanda","Sizakele","Buhle"] },
+    "Russian": { m: ["Alexander","Dmitry","Maxim","Artem","Ivan","Kirill","Nikita","Mikhail","Daniil","Andrei","Sergei","Pavel","Anton","Egor","Ilya","Roman","Vladislav","Timur","Viktor","Oleg"], f: ["Anastasia","Maria","Daria","Sofia","Anna","Polina","Elizaveta","Victoria","Alexandra","Ekaterina","Alina","Ksenia","Valeria","Irina","Natalia","Tatiana","Olga","Svetlana","Yulia","Marina"] },
+    "Colombian": { m: ["Santiago","Samuel","Matias","Nicolas","Jeronimo","Emmanuel","Tomas","Martin","Sebastian","Alejandro","Andres","Juan Pablo","Camilo","Felipe","David","Daniel","Jose","Miguel","Carlos","Esteban"], f: ["Isabella","Luciana","Valentina","Mariana","Gabriela","Sara","Sofia","Maria Camila","Salome","Daniela","Natalia","Juliana","Alejandra","Carolina","Andrea","Paula","Manuela","Laura","Catalina","Lorena"] }
+};
+
+const NATIONALITIES = Object.keys(NATIONALITIES_AND_NAMES);
+
+const OCCUPATIONS = [
+    "Software Engineer","Doctor","Chef","Pilot","Architect","Nurse","Teacher","Lawyer","Artist",
+    "Musician","Photographer","Journalist","Firefighter","Marine Biologist","Fashion Designer",
+    "Astronomer","Psychologist","Veterinarian","Bartender","DJ","Personal Trainer","Dentist",
+    "Paramedic","Archaeologist","Sommelier","Interior Designer","Stockbroker","Tattoo Artist",
+    "Flight Attendant","Detective","Florist","Stunt Double","Pastry Chef","Yoga Instructor",
+    "Surfing Instructor","Helicopter Pilot","Event Planner","Barista","Electrician","Plumber",
+    "Carpenter","Mechanic","Physiotherapist","Translator","Librarian","Botanist","Geologist",
+    "Oceanographer","Cryptographer","Game Designer","Voice Actor","Animator","Film Director",
+    "Screenwriter","Stand-up Comedian","Circus Performer","Skydiving Instructor","Zookeeper",
+    "Park Ranger","Mountain Guide","Scuba Instructor","Wine Maker","Chocolatier","Beekeeper",
+    "Blacksmith","Glassblower","Ceramicist","Watchmaker","Perfumer","Gemologist","Cartographer"
+];
+
+const RED_FLAGS = [
+    "Still texts their ex 'just to check in'",
+    "Has never been single for more than 2 weeks since high school",
+    "Calls you crazy for having normal human emotions",
+    "Talks about their ex in bed",
+    "Says 'I'm brutally honest' but can't handle any criticism",
+    "Posts thirst traps while in a relationship with you",
+    "Gets jealous when you talk to the waiter",
+    "Still has active dating apps 'just for the ego boost'",
+    "Compares you to their ex constantly",
+    "Says all their exes are crazy",
+    "Ghosts you for days then acts like nothing happened",
+    "Only texts you after 10pm",
+    "Won't let you meet their friends after 6 months",
+    "Has you saved in their phone as 'Pizza Place' or something random",
+    "Gets mad when you don't respond within 5 minutes",
+    "Flirts with others in front of you to make you jealous",
+    "Says 'I don't believe in labels' after months of dating",
+    "Keeps gifts from their ex on display",
+    "Refuses to post you on social media but posts everything else",
+    "Says 'if you can't handle me at my worst' unironically",
+    "Doesn't wash their hands before sex",
+    "Jackhammers for 30 seconds then asks if you came",
+    "Tries to initiate anal without asking first",
+    "Gets all their sex education from porn",
+    "Refuses to reciprocate oral sex",
+    "Says 'I don't do foreplay'",
+    "Thinks the clitoris is a myth",
+    "Only wants sex when they're drunk",
+    "Dirty talks like they're reading a bad fanfiction",
+    "Treats your body like they're kneading dough",
+    "Gets genuinely angry if you don't finish",
+    "Asks 'are you done yet?' mid-sex",
+    "Thinks missionary with the lights off is kinky",
+    "Won't get tested for STIs",
+    "Removes the condom without asking",
+    "Has never made a partner orgasm and doesn't care",
+    "Finishes and immediately rolls over and snores",
+    "Keeps comparing your body to porn stars",
+    "Refuses to shower before expecting oral",
+    "Uses teeth during oral and won't take feedback",
+    "Only showers when they're going out",
+    "Their bedroom smells like a gym bag died",
+    "Wears the same underwear multiple days in a row",
+    "Has visible crust on their sheets",
+    "Doesn't wash their ass properly",
+    "Doesn't own a toothbrush",
+    "Their car is a biohazard",
+    "Has fungal toenails they refuse to treat",
+    "Leaves skid marks on the regular",
+    "Doesn't wash their hands after using the bathroom",
+    "Has a musty smell they think is 'natural musk'",
+    "Reuses towels for months without washing",
+    "Their breath could kill a plant",
+    "Doesn't clean under their nails",
+    "Has crusty discharge in their eyes all day",
+    "Has 6 maxed out credit cards",
+    "Gambles away their paycheck",
+    "Expects you to pay for everything",
+    "Has never filed taxes",
+    "Spends rent money on designer clothes",
+    "Has an NFT collection they won't shut up about",
+    "Joins every MLM scheme they encounter",
+    "Borrowed money from you and bought weed with it",
+    "Has $50k in student loans for a degree they never finished",
+    "Lives with their parents but spends $500/month on Door Dash",
+    "Has no savings at age 35",
+    "Gets payday loans regularly",
+    "Thinks investing means buying lottery tickets",
+    "Owes money to dangerous people",
+    "Files for bankruptcy every few years like it's a hobby",
+    "Is rude to service workers",
+    "Doesn't tip",
+    "Talks about themselves for 3 hours straight",
+    "Interrupts you constantly",
+    "One-ups every story you tell",
+    "Makes everything a competition",
+    "Uses the R-word casually",
+    "Says 'no offense but' before something deeply offensive",
+    "Trauma dumps on the first date",
+    "Doesn't have a single close friend",
+    "All their friends are people they want to sleep with",
+    "Gives you the silent treatment instead of communicating",
+    "Yells during every disagreement",
+    "Makes you feel guilty for having boundaries",
+    "Never apologizes, just says 'sorry you feel that way'",
+    "Has anime girls as their profile picture on everything",
+    "Comments 'looking good' on every attractive person's posts",
+    "Posts vague-booking about your arguments",
+    "Has a finsta for thirst trapping",
+    "Slides into DMs while dating you",
+    "Their camera roll is 90% screenshots of arguments",
+    "Tweets their entire life story including your business",
+    "Has burner accounts to stalk people",
+    "Posts every meal with the caption 'foodie'",
+    "Their TikTok is all thirst traps",
+    "Has been fired from 15 jobs",
+    "Thinks working is for suckers",
+    "Their 'business' is selling essential oils",
+    "Constantly has a new 'startup idea' but never executes",
+    "Brags about committing workers comp fraud",
+    "Hasn't held a job for more than 3 months",
+    "Their career goal is becoming TikTok famous",
+    "Calls in sick every Monday",
+    "Got fired for stealing and thinks it's funny",
+    "Is 40 with no job, no education, and no ambition",
+    "Their mom still does their laundry at age 30",
+    "Has never lived outside their parents' house",
+    "Mommy picks out their clothes",
+    "Lets their mom talk shit about you",
+    "Their family is in a cult",
+    "Borrows money from elderly relatives and never pays back",
+    "Their parents don't know you exist after a year of dating",
+    "Chose their mom's side when she insulted you",
+    "Expects you to cook like their mother",
+    "Has a creepy obsession with a sibling",
+    "Refuses therapy but clearly needs it",
+    "Uses their mental illness as an excuse to treat you like shit",
+    "Threatens suicide when you try to leave",
+    "Goes through your phone while you sleep",
+    "Makes burner accounts to spy on you",
+    "Punches walls during arguments",
+    "Blames all their problems on their ex from 10 years ago",
+    "Has untreated paranoia but won't get help",
+    "Weaponizes their tears to manipulate you",
+    "Says they'll change but never does",
+    "Has a piss jug collection",
+    "Leaves dishes in the sink until they grow mold",
+    "Never cleans the bathroom",
+    "Hoards trash in their room",
+    "Has bugs in their apartment and won't deal with it",
+    "Smokes inside and the walls are yellow",
+    "Leaves food out until it rots",
+    "Doesn't do laundry until they're out of clothes",
+    "Has a mattress on the floor with no sheets",
+    "Their place smells like a dumpster",
+    "Chews with their mouth open aggressively",
+    "Doesn't eat vegetables because they're 'for rabbits'",
+    "Only eats chicken nuggets and fries",
+    "Talks with a full mouth constantly",
+    "Makes sexual noises while eating",
+    "Eats your food without asking",
+    "Has never cooked a meal in their life",
+    "Thinks ketchup is spicy",
+    "Refuses to try any new foods",
+    "Eats like they're in a competitive eating contest",
+    "Has 4 kids with 4 different people",
+    "Cheated on everyone they've ever dated",
+    "Got engaged 6 times",
+    "Still lives with their ex 'for financial reasons'",
+    "Has a restraining order from their ex",
+    "Fucked your friend before you started dating",
+    "Their ex warned you about them",
+    "Was caught cheating and blamed you for not being enough",
+    "Met you while they were still in a relationship",
+    "Has a pregnant ex they're ignoring",
+    "Lies about small things for no reason",
+    "Steals from their workplace",
+    "Is cruel to animals",
+    "Makes fun of homeless people",
+    "Is openly racist/homophobic/transphobic",
+    "Thinks age is just a number",
+    "Scams elderly people for fun",
+    "Laughs at other people's pain",
+    "Has zero empathy for anyone",
+    "Bullies people online",
+    "Says they're an alpha male unironically",
+    "Listens to Andrew Tate podcasts",
+    "Their Spotify playlist is called 'sad boi hours' and it's 47 hours long",
+    "Collects katanas but has never trained in martial arts",
+    "Wears fedoras and says 'm'lady'",
+    "Has a waifu pillow they're emotionally attached to",
+    "Their Discord status is always 'Do Not Disturb'",
+    "Calls women 'females'",
+    "Uses 'sigma male' in their bio",
+    "Has a podcast nobody listens to",
+    "Thinks they're an entrepreneur but they dropship from AliExpress",
+    "Their personality is their Zodiac sign",
+    "Believes in hustle culture but doesn't have a job",
+    "Chews tobacco and spits in a cup they carry around",
+    "Vapes indoors at your place",
+    "Their entire personality is weed",
+    "Thinks being an asshole is a personality trait",
+    "Says 'I'm just built different'",
+    "Has a face tattoo of their own name spelled wrong",
+    "Their bio says 'CEO of my own life'",
+    "Brings their mom on dates",
+    "Asks to split the bill then orders the most expensive thing",
+    "Shows up to dates in pajamas",
+    "Takes phone calls during dinner",
+    "Talks about marriage on the first date",
+    "Asks for nudes before knowing your last name",
+    "Sends dick pics unrequested",
+    "Their opening line is 'hey beautiful wanna fuck'",
+    "Shows up drunk to dates",
+    "Forgets your name mid-date",
+    "Thinks jackhammering harder will make up for lack of rhythm",
+    "Asks 'did you cum?' while you're clearly not having a good time",
+    "Their idea of dirty talk is just saying 'fuck' repeatedly",
+    "Finishes then says 'your turn' and goes on their phone",
+    "Thinks porn moans are real",
+    "Tries positions they saw in porn without warming up",
+    "Gets performance anxiety then blames you",
+    "Can only finish to very specific weird porn",
+    "Their sex playlist is Nickelback",
+    "Calls it 'making love' every single time",
+    "Collects toenail clippings in a jar",
+    "Smells their fingers after scratching anything",
+    "Has a concerning amount of taxidermy in their room",
+    "Talks to their car like it's a person",
+    "Keeps their baby teeth in a box",
+    "Still uses a nightlight at age 28",
+    "Has a life-sized cardboard cutout of themselves",
+    "Names their muscles",
+    "Keeps a diary of everyone who wronged them",
+    "Has a spreadsheet ranking everyone they've slept with",
+    "Has 'entrepreneur' in their bio but works at Subway",
+    "Their Instagram is just gym selfies and motivational quotes",
+    "Sends 'wyd' at 2am on a Tuesday",
+    "Leaves you on read for days then quadruple texts",
+    "Their Tinder bio is their height and 'just ask'",
+    "Uses outdated photos from when they were 50 pounds lighter",
+    "Brings up their ex every 10 minutes",
+    "Takes mirror selfies at the gym between sets",
+    "Their bio says 'no drama' but they're pure chaos",
+    "Ghosts you then comes back months later with 'sorry I was busy'",
+    "Has main character syndrome",
+    "Thinks being mean is flirting",
+    "Never admits when they're wrong",
+    "Gaslights you about things they literally just said",
+    "Thinks boundaries are controlling",
+    "Pouts when they don't get their way",
+    "Gives you the ick on purpose",
+    "Tests you constantly",
+    "Reads your messages but waits hours to respond to seem busy",
+    "Love bombs you then goes cold randomly",
+    "Has a secret second family",
+    "Is wanted in three states",
+    "Faked their own death once",
+    "Is in a pyramid scheme and trying to recruit you",
+    "Stole from a charity",
+    "Has been to prison for something they definitely did",
+    "Catfished someone for 5 years",
+    "Scammed their own grandmother",
+    "Is running from child support payments",
+    "Has a warrant out for their arrest",
+    "Claps when the plane lands",
+    "Wears socks with sandals unironically",
+    "Still uses an iPod Classic",
+    "Drinks milk with ice cubes",
+    "Eats pizza with a fork and knife",
+    "Watches TikToks on full volume in public",
+    "Says 'we' when talking about their sports team",
+    "Has a favorite parking spot and gets upset if someone takes it",
+    "Refers to themselves in third person",
+    "Takes their shoes off on airplanes",
+    "Microwaves fish at work",
+    "Doesn't season their food at all",
+    "Uses speaker phone for every call in public",
+    "Still quotes Borat",
+    "Has strong opinions about fonts",
+    "Thinks they're a DJ because they have a Spotify playlist",
+    "Wears sunglasses indoors",
+    "Brings acoustic guitar to parties",
+    "Does voices for all their pets",
+    "Collects something weird like hotel key cards",
+    "Says 'living my best life' constantly",
+    "Takes photos of every meal for Instagram",
+    "Has a very specific morning routine that can't be disrupted",
+    "Pronounces it 'expresso'",
+    "Walks slow in the middle of the sidewalk",
+    "Breathes loudly through their mouth",
+    "Hums constantly without realizing",
+    "Laughs at their own jokes before the punchline",
+    "Thinks women belong in the kitchen",
+    "Says men shouldn't cry",
+    "Believes a man should always pay for everything",
+    "Thinks women shouldn't work after marriage",
+    "Says 'boys will be boys' to excuse bad behavior",
+    "Believes women should always wear makeup",
+    "Thinks men can't be raped",
+    "Says marriage is only between a man and woman",
+    "Believes women who have sex are sluts but men are studs",
+    "Thinks a woman's place is taking care of kids",
+    "Says real men don't do housework",
+    "Believes you need permission from dad to propose",
+    "Thinks women shouldn't have male friends",
+    "Says wives should obey their husbands",
+    "Believes women are too emotional to lead",
+    "Thinks asking for consent ruins the mood",
+    "Says depression isn't real, just be happy",
+    "Believes therapy is for weak people",
+    "Thinks participation trophies ruined a generation",
+    "Says 'back in my day' about everything",
+    "Believes young people are all lazy",
+    "Thinks mental illness is just seeking attention",
+    "Says women who don't want kids are selfish",
+    "Believes men who do yoga are gay",
+    "Thinks pink is only for girls",
+    "Says real men drink beer, not cocktails",
+    "Believes women provoke assault by what they wear",
+    "Thinks you can pray away the gay",
+    "Says 'it's just a joke' after being offensive",
+    "Believes hitting kids is good parenting",
+    "Has a foot fetish but makes it everyone's problem",
+    "Wants you to call them daddy but gets mad if you laugh",
+    "Into age play but brings it up at family dinner",
+    "Has a mommy kink and actually calls you mommy in public",
+    "Wants to be dominated but won't communicate what they like",
+    "Into pet play but expects you to be their pet 24/7",
+    "Has a breeding kink but no desire for actual kids",
+    "Lactation fetish and keeps asking when you'll get pregnant",
+    "Into financial domination and actually expects you to pay their bills",
+    "Has unusual kinks but refuses to discuss boundaries first",
+    "Wants threesomes but gets jealous immediately",
+    "Into choking but learned everything from porn",
+    "Has intense fantasies but won't discuss safety or consent",
+    "Wants to try pegging but makes it weird and awkward",
+    "Into furry stuff and expects you to participate",
+    "Has a vore fetish and won't stop talking about it",
+    "Inflation fetish and their entire camera roll is concerning",
+    "Into sounding but has no idea about safety",
+    "Wants to bring a third but only talks to them, not you",
+    "Has a humiliation kink but actually has no self-esteem",
+    "Into wax play but uses regular candles not body-safe ones",
+    "Wants you to dominate them but doesn't accept any of your rules",
+    "Has a cuckold fantasy but would actually be devastated",
+    "Into impact play but doesn't believe in aftercare",
+    "Has a diaper fetish and leaves them around the house",
+    "Wants roleplay scenarios but makes them uncomfortable",
+    "Into latex but doesn't clean any of their gear",
+    "Has breeding kink and tries to stealth during sex",
+    "Wants to do rope bondage but watched one YouTube video",
+    "Into blood play with zero understanding of safety",
+    "Has a tickle fetish and won't stop even when you're clearly uncomfortable",
+    "Wants to do knife play with actual sharp knives",
+    "Into water sports but doesn't shower after",
+    "Has a clown fetish and owns a full costume",
+    "Wants to film everything but won't discuss consent",
+    "Into exhibitionism and doesn't care if you're comfortable",
+    "Has fantasy scenarios and takes them way too far",
+    "Wants to explore power dynamics but skips negotiation",
+    "Into orgasm denial but actually just doesn't make you finish",
+    "Has a food fetish and wastes so much food",
+    "Wants you to wear fursuit in bed",
+    "Into electro-play with sketchy Amazon equipment",
+    "Has a giantess fetish and won't shut up about it",
+    "Wants to explore BDSM but thinks it means abuse",
+    "Into primal play but is actually just aggressive",
+    "Has a pregnancy fetish but you're both men",
+    "Wants to try prostate stuff but is too insecure",
+    "Into public play and doesn't care about getting arrested",
+    "Has a vampire fetish and actually tries to drink blood",
+    "Wants to do master/slave dynamic 24/7 without discussion",
+    "Double dips their chips",
+    "Leaves one square of toilet paper on the roll",
+    "Doesn't use turn signals",
+    "Replies 'K' to long messages",
+    "Doesn't put the shopping cart back",
+    "Reheats fish in the microwave",
+    "Chews ice loudly",
+    "Leaves their Bluetooth speaker on in public",
+    "Says 'no offense' then says something offensive",
+    "Uses 'your' instead of 'you're'",
+    "Doesn't pick up their dog's shit",
+    "Parks across two spaces",
+    "Doesn't say thank you when you hold the door",
+    "Takes the last slice without asking",
+    "Leaves time on the microwave",
+    "Doesn't rerack weights at the gym",
+    "Clips their nails in public",
+    "Talks during movies",
+    "Spoils shows without warning",
+    "Stands on the left side of the escalator",
+    "Asks 'are you on your period?' when you're annoyed",
+    "Says 'calm down' during arguments",
+    "Leaves voice memos instead of texting",
+    "FaceTimes in public bathrooms",
+    "Plays music from their phone without headphones on public transit",
+    "Coughs without covering their mouth",
+    "Doesn't wash hands after bathroom",
+    "Leaves wet towels on the bed",
+    "Doesn't close cabinets or drawers",
+    "Eats loudly with mouth open",
+    "Brings up their kinks at inappropriate times",
+    "Shares their fetish with your family at dinner",
+    "Posts about kink stuff on main social media",
+    "Tries to convert vanilla friends to their lifestyle",
+    "Doesn't respect safe words",
+    "Pushes boundaries without consent",
+    "Kink shames you for your preferences",
+    "Expects you to be into everything they're into",
+    "Doesn't believe in limits",
+    "Gets defensive when you have boundaries",
+    "Thinks 50 Shades is an instruction manual",
+    "Wants to be your dom but has no idea how",
+    "Calls themselves an alpha in bed",
+    "Uses kink as an excuse to be abusive",
+    "Doesn't understand the difference between BDSM and abuse",
+    "Has 'ask me' for every profile question",
+    "All their photos are group shots",
+    "Only has photos with sunglasses and hats",
+    "Bio is just their Instagram handle",
+    "Lists their height in every photo caption",
+    "Has 'fluent in sarcasm' in bio",
+    "Says 'I don't know why I'm on here'",
+    "Only photos are with fish they caught",
+    "Every picture has a Snapchat filter",
+    "Bio says 'here for a good time not a long time'",
+    "Lists 'school of hard knocks' as education",
+    "Has 'entrepreneur' but no actual business",
+    "Only photos are in their car",
+    "Bio is entirely emojis",
+    "Has their ex cropped out of every photo",
+    "Has a balloon fetish and the popping sound makes them cum",
+    "Into macrophilia and constantly talks about being crushed",
+    "Has a sneeze fetish and films you when you're sick",
+    "Armpit fetish and wants to lick them without asking",
+    "Into transformation fetish and roleplays turning into furniture",
+    "Has a belly button fetish and won't stop poking yours",
+    "Objectification kink but treats you like actual furniture outside the bedroom",
+    "Into quicksand fetish and shows you videos constantly",
+    "Has a medical fetish but uses actual medical equipment wrong",
+    "Statue fetish and wants you to freeze mid-activity",
+    "Into hypnosis kink but actually thinks they can control minds",
+    "Has unusual trigger fetishes and won't stop trying to activate them",
+    "Muscle worship but only talks about themselves at the gym",
+    "Into feederism and gets upset when you try to eat healthy",
+    "Has a burping/farting fetish and encourages it constantly",
+    "Inflation fetish taken to dangerous levels with pumps",
+    "Into tentacle porn and owns way too many tentacle dildos",
+    "Has a giantess fetish and photoshops you crushing cities",
+    "Has extreme fetishes but won't discuss safety or boundaries",
+    "Into unusual play without proper safety discussions",
+    "Has a fart fetish and wants you to fart on command",
+    "Pregnancy fetish and fake cries when you get your period",
+    "Into insect play and brings actual bugs into bed",
+    "Has a hair fetish and steals your hairbrush bristles",
+    "Wants extreme bathroom play for real",
+    "Into cake sitting and wastes so much food",
+    "Has a smoking fetish but you don't smoke",
+    "Dental fetish and gets hard at the dentist office",
+    "Into controversial roleplay without understanding the issues",
+    "Has a hiccup fetish and tries to scare you constantly",
+    "Wants sissy play but makes it offensive",
+    "Into mind control hypnosis and genuinely thinks it works",
+    "Has a mermaid fetish and wants you in a tail 24/7",
+    "Has breath control interests with zero safety precautions",
+    "Into puppy play but takes it too literally",
+    "Has dark fantasies and doesn't understand they should stay fantasy",
+    "Wants intense roleplay that crosses comfort lines",
+    "Into taboo scenarios without proper discussion",
+    "Has a fisting fetish but won't use lube",
+    "Wants to do shibari but uses hardware store rope",
+    "Into edge play with no safe words or limits",
+    "Has a sweat fetish and smells your gym clothes",
+    "Lactation kink and tries to induce it without consent",
+    "Into breath play alone with no safety",
+    "Has a wedgie fetish from childhood",
+    "Wants to do knifeplay with actual kitchen knives",
+    "Into medical play and bought a speculum off Amazon",
+    "Has a vore fetish and their art folder is concerning",
+    "Wants you to trample them but doesn't understand weight distribution",
+    "Into intense roleplay and makes it way too realistic",
+    "Has a robot fetish and wants you to be emotionless",
+    "Wants gang bang but gets jealous of everyone there",
+    "Calls themselves a dom but it's just abuse with extra steps",
+    "Wants a sub but actually wants a slave with no limits",
+    "Does impact play with no warmup or aftercare",
+    "Uses 'I'm a dom' to justify controlling behavior outside scenes",
+    "Wants TPE but has never discussed it properly",
+    "Thinks being a brat means being actually disrespectful",
+    "Uses degradation but it's just their real opinion",
+    "Wants power exchange but skips all the consent negotiation",
+    "Claims to be a master but has never studied BDSM",
+    "Punishes for real mistakes not agreed-upon infractions",
+    "Wants 24/7 dynamic after one week of dating",
+    "Thinks subspace means you consent to anything",
+    "Does intense play with zero safety training",
+    "Leaves marks in visible places without permission",
+    "Uses pain as actual punishment not sensation play",
+    "Wants to collar you without understanding the commitment",
+    "Does rope bondage but never learned about nerve damage",
+    "Thinks aftercare is optional",
+    "Wants permanent marks on the first date",
+    "Uses degrading language outside negotiated scenes",
+    "Demands submission without earning trust",
+    "Thinks BDSM means they can do whatever they want",
+    "Wants to be worshipped but gives nothing in return",
+    "Does wax play with regular candles not body-safe wax",
+    "Thinks hard limits are just suggestions",
+    "Ignores yellow safewords",
+    "Wants intense play with no safety knowledge",
+    "Uses bondage but doesn't check circulation",
+    "Does temperature play with frozen/boiling items",
+    "Wants to do needle play with sewing needles",
+    "Is vanilla but lies about being kinky to get laid",
+    "Kink shames your fetishes while expecting you to do theirs",
+    "Only into receiving never giving",
+    "Wants you to dominate them but criticizes everything you do",
+    "Has a humiliation kink but actually has trauma they haven't processed",
+    "Into praise kink but fishing for compliments 24/7",
+    "Wants degradation but cries when you do it",
+    "Says they're a switch but only ever tops/bottoms",
+    "Into roleplay but can't stay in character",
+    "Wants rough sex but doesn't communicate what they like",
+    "Has fantasies but won't discuss boundaries",
+    "Expects you to read their mind about what they want",
+    "Says they're experienced but knows nothing about safety",
+    "Wants to try everything but has no patience",
+    "Into orgasm control but just doesn't make you cum",
+    "Has a daddy kink but calls you daddy at Thanksgiving",
+    "Wants to be choked but doesn't know safe choking doesn't exist",
+    "Into sensation play but only cares about their sensations",
+    "Has breeding kink but refuses to wear condoms",
+    "Wants to explore poly but just wants to cheat with permission",
+    "Into exhibitionism but will actually get you arrested",
+    "Has size kink but body shames you",
+    "Wants threesomes but has rules only for you not them",
+    "Into free use but doesn't grasp consent",
+    "Has a degradation kink and calls you slurs without asking",
+    "Wants to be your sugar daddy but is actually broke",
+    "Into ageplay but makes it creepy not cute",
+    "Has corruption kink and targets actual inexperienced people",
+    "Wants to film content but won't sign releases",
+    "Into findom but it's just financial abuse",
+    "Uses sex toys but never cleans them",
+    "Wants to use their ex's toys on you",
+    "Buys the cheapest toys with toxic materials",
+    "Uses household items as sex toys unsafely",
+    "Shares sex toys without barriers",
+    "Stores toys in a gross pile",
+    "Uses silicone toys with silicone lube",
+    "Wants to use a hitachi magic wand on high immediately",
+    "Buys you a toy in their favorite color not yours",
+    "Uses numbing lube to avoid communication",
+    "Wants to use a cock ring but won't read instructions",
+    "Uses butt plugs without flared bases",
+    "Wants to use e-stim but bought sketchy equipment",
+    "Has a toy collection but they're all crusty",
+    "Uses sex furniture but it's falling apart",
+    "Says 'I don't need to ask, I can tell what you want'",
+    "Thinks talking about sex ruins the spontaneity",
+    "Gets offended when you give feedback",
+    "Assumes porn sex is real sex",
+    "Won't discuss STI status before sex",
+    "Thinks consent is a mood killer",
+    "Says you're overthinking when you want to negotiate",
+    "Refuses to tell you what they like",
+    "Gets mad when you don't automatically know their preferences",
+    "Won't respect your no the first time you say it",
+    "Thinks asking for consent means you don't want it",
+    "Uses 'blue balls' to guilt you into sex",
+    "Says 'if you loved me you would'",
+    "Pouts when you're not in the mood",
+    "Makes you feel bad for having boundaries"
+];
+
+const GREEN_FLAGS = [
+    "Remembers small details about things you mentioned weeks ago",
+    "Brings you soup when you're sick without being asked",
+    "Texts you they got home safe",
+    "Asks about your day and actually listens",
+    "Respects your boundaries without making it weird",
+    "Celebrates your wins like they're their own",
+    "Admits when they're wrong and apologizes sincerely",
+    "Makes you coffee/tea exactly how you like it",
+    "Lets you sleep in and brings you breakfast in bed",
+    "Defends you when you're not around",
+    "Notices when you're quiet and checks if you're okay",
+    "Remembers your allergies without you having to remind them",
+    "Keeps your favorite snacks stocked",
+    "Watches shows you like even if they're not into them",
+    "Holds your hand in public proudly",
+    "Introduces you to everyone as their partner with excitement",
+    "Supports your hobbies even if they don't understand them",
+    "Gives you space when you need it without taking it personally",
+    "Remembers important dates (not just birthdays)",
+    "Leaves you cute notes randomly",
+    "Actually helps with chores without being asked",
+    "Plans thoughtful dates, not just dinner and a movie",
+    "Compliments you on things beyond your appearance",
+    "Makes you laugh when you're stressed",
+    "Respects your sleep schedule",
+    "Shares the last bite of their favorite food with you",
+    "Tells their family and friends about you warmly",
+    "Gets excited about your interests",
+    "Remembers your comfort order at restaurants",
+    "Checks in during the day just because",
+    "Actually listens to your feedback and makes changes",
+    "Hypes you up to other people",
+    "Sends you memes they think you'll like",
+    "Comfortable with comfortable silence",
+    "Respects your relationship with your family",
+    "Makes an effort with your friends",
+    "Plans for a future that includes you",
+    "Supports your career goals",
+    "Doesn't make you feel guilty for having alone time",
+    "Shows affection in your love language",
+    "Compromises without keeping score",
+    "Makes you feel safe, physically and emotionally",
+    "Never makes you question if they're into you",
+    "Trusts you without being controlling",
+    "Communicates openly about feelings",
+    "Takes care of you when you're drunk/high",
+    "Doesn't hold grudges over small things",
+    "Makes you feel like the only person in the room",
+    "Surprised you with something you mentioned wanting",
+    "Respects your 'no' immediately",
+    "Goes to therapy and actually works on themselves",
+    "Has close friendships they maintain",
+    "Tips service workers generously",
+    "Handles conflict maturely without yelling",
+    "Takes accountability for their mistakes",
+    "Has healthy boundaries with exes",
+    "Financially responsible and talks about money openly",
+    "Supports your independence",
+    "Can cook an actual meal from scratch",
+    "Cleans up after themselves without being asked",
+    "Handles your emotions with care and patience",
+    "Has hobbies and passions outside of you",
+    "Encourages you to pursue your goals",
+    "Never makes you feel bad for your mental health struggles",
+    "Actually changes behavior after you express concerns",
+    "Treats service workers with respect",
+    "Has a good relationship with their family",
+    "Takes 'no' gracefully without pouting",
+    "Splits costs fairly or takes turns paying",
+    "Communicates their needs clearly",
+    "Validates your feelings even when they don't understand",
+    "Has dealt with their trauma in healthy ways",
+    "Respects your career as much as their own",
+    "Can admit 'I don't know' instead of making things up",
+    "Actually reads books (not just says they do)",
+    "Maintains good hygiene consistently",
+    "Has follow-through on promises",
+    "Shows up when they say they will",
+    "Can handle constructive criticism",
+    "Apologizes to service workers when wrong",
+    "Doesn't need to be drunk to be affectionate",
+    "Respects all your identities",
+    "Actively anti-racist/anti-bigotry",
+    "Believes and supports survivors",
+    "Votes and stays politically informed",
+    "Checks their privilege",
+    "Listens to feedback about being offensive",
+    "Calls out their friends' bad behavior",
+    "Financially independent",
+    "Has a passport and uses it",
+    "Reads the news beyond headlines",
+    "Can navigate conflict without running away",
+    "Makes major decisions together with you",
+    "Respects your pronouns and corrects others",
+    "Knows how to genuinely apologize (no 'but')",
+    "Takes initiative in planning and household tasks",
+    "Has emotional intelligence",
+    "Can regulate their emotions",
+    "Understands consent is enthusiastic and ongoing",
+    "Makes you feel heard and valued",
+    "Willing to try new foods and cuisines",
+    "Down for spontaneous adventures",
+    "Has a valid passport and wants to use it",
+    "Can handle spicy food",
+    "Knows how to parallel park",
+    "Has taken a solo trip before",
+    "Can name all 50 states",
+    "Knows basic first aid/CPR",
+    "Has changed a tire before",
+    "Can swim and isn't afraid of the ocean",
+    "Comfortable camping/being in nature",
+    "Has been to therapy and recommends it",
+    "Knows how to use tools/fix basic things",
+    "Can handle bugs without freaking out",
+    "Has a skincare routine",
+    "Drinks water regularly",
+    "Actually uses sunscreen",
+    "Can dance and doesn't care who's watching",
+    "Speaks multiple languages",
+    "Has traveled solo internationally",
+    "Can read a map without GPS",
+    "Knows how to start a fire (safely)",
+    "Has done psychedelics responsibly",
+    "Comfortable with karaoke",
+    "Can drive stick shift",
+    "Has gone skinny dipping",
+    "Down for road trips with no fixed plan",
+    "Comfortable being naked around you",
+    "Has interesting stories from past adventures",
+    "Will try your weird food combinations",
+    "Can handle their alcohol",
+    "Has done something that scared them",
+    "Comfortable with public speaking",
+    "Has performed or done stand-up",
+    "Can handle rollercoasters",
+    "Has been in a mosh pit",
+    "Knows how to surf/ski/skate",
+    "Has jumped off something high into water",
+    "Comfortable with their sexuality",
+    "Has gone to music festivals",
+    "Can pitch a tent",
+    "Has been backpacking",
+    "Comfortable with nudist beaches",
+    "Has done an open mic night",
+    "Can shotgun a beer",
+    "Has done karaoke sober",
+    "Willing to try new kinks/explore sexually",
+    "Has defined personal boundaries and kinks",
+    "Communicates desires clearly in bed",
+    "Enthusiastic about foreplay",
+    "Asks what you like sexually",
+    "Wants you to orgasm as much as they do",
+    "Comfortable talking about sex",
+    "Has invested in quality sex toys",
+    "Believes in aftercare",
+    "Knows that consent is sexy",
+    "Can take sexual feedback without ego",
+    "Has read actual books about sex",
+    "Understands anatomy (including the clitoris)",
+    "Gets tested for STIs regularly",
+    "Carries condoms and doesn't complain about using them",
+    "Open to trying new positions",
+    "Doesn't shame your kinks or fantasies",
+    "Makes sex fun and playful, not just serious",
+    "Can laugh during sex when things get awkward",
+    "Initiates in creative ways",
+    "Pays attention to your body language",
+    "Respects your boundaries during sex",
+    "Wants to learn what makes you feel good",
+    "Doesn't treat porn as a manual",
+    "Understands sex isn't just penetration",
+    "Actually enjoys giving oral",
+    "Has a safeword and respects it",
+    "Checks in during intense moments",
+    "Can separate kink from real life",
+    "Understands aftercare is important",
+    "Has researched safe BDSM practices",
+    "Respects hard limits without questioning",
+    "Communicates their limits clearly too",
+    "Knows the difference between BDSM and abuse",
+    "Takes your pleasure seriously",
+    "Doesn't finish and immediately ignore you",
+    "Willing to experiment but respects 'no'",
+    "Can handle toys without feeling threatened",
+    "Understands that lube is essential",
+    "Knows that bigger isn't always better",
+    "Communicates when something doesn't feel good",
+    "Can be dominant OR submissive depending on mood",
+    "Respects that you're not always in the mood",
+    "Makes you feel sexy and desired",
+    "Puts effort into seduction",
+    "Understands sexual compatibility matters",
+    "Willing to explore your fantasies",
+    "Has their own fantasies they share",
+    "Knows that sex changes and evolves in relationships",
+    "Doesn't pressure you into anything",
+    "Makes STI testing a normal conversation",
+    "Actually knows where the clit is",
+    "Understands that 'no' can happen at any point",
+    "Respects your body autonomy completely",
+    "Makes you feel comfortable being vulnerable"
+];
+
+// ── STATE ──
+let players = [];
+let currentPlayerId = null;
+let flagMode = 'red';
+let currentFlagIndex = { red: -1, green: -1 };
+let shuffledRed = [];
+let shuffledGreen = [];
+let identityIndices = { name: 0, occupation: 0, nationality: 0 };
+let currentNameList = [];
+
+// Shuffle arrays
+function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+function reshuffleFlags() {
+    shuffledRed = shuffle(RED_FLAGS);
+    shuffledGreen = shuffle(GREEN_FLAGS);
+    currentFlagIndex = { red: -1, green: -1 };
+}
+
+function buildNameList(nationality) {
+    const data = NATIONALITIES_AND_NAMES[nationality];
+    if (!data) return shuffle(Object.values(NATIONALITIES_AND_NAMES).flatMap(d => [...d.m, ...d.f]));
+    return shuffle([...data.m, ...data.f]);
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ── PLAYER MANAGEMENT ──
+
+function addPlayer(nameOverride) {
+    const input = document.getElementById('playerNameInput');
+    const name = nameOverride || input.value.trim();
+    if (!name) return;
+
+    const player = {
+        id: Date.now().toString() + Math.random().toString(36).slice(2, 6),
+        realName: name,
+        stageIndex: 0,
+        identity: { name: null, occupation: null, nationality: null },
+        locked: { name: false, occupation: false, nationality: false },
+        flags: {},
+        // snapshot of flags at time of "keep seeing them" - locked per stage
+        lockedFlags: {}
+    };
+    STAGES.forEach(s => { player.flags[s.id] = []; player.lockedFlags[s.id] = null; });
+    players.push(player);
+    input.value = '';
+    renderPlayerList();
+    showToast(name + ' added');
+}
+
+function removePlayer(id, e) {
+    e.stopPropagation();
+    players = players.filter(p => p.id !== id);
+    renderPlayerList();
+}
+
+let _emptyStateEl = null;
+function renderPlayerList() {
+    const list = document.getElementById('playerList');
+    if (!_emptyStateEl) _emptyStateEl = document.getElementById('emptyState');
+
+    if (players.length === 0) {
+        list.innerHTML = '';
+        list.appendChild(_emptyStateEl);
+        _emptyStateEl.style.display = 'block';
+        return;
+    }
+
+    _emptyStateEl.remove();
+    list.innerHTML = players.map(p => {
+        const stage = STAGES[p.stageIndex];
+        const displayName = p.identity.name || p.realName;
+        const initial = displayName.charAt(0).toUpperCase();
+        const meta = [];
+        if (p.identity.occupation) meta.push(p.identity.occupation);
+        if (p.identity.nationality) meta.push(p.identity.nationality);
+        const totalFlags = Object.values(p.flags).reduce((sum, arr) => sum + arr.length, 0);
+
+        return `<div class="player-card" onclick="openPlayer('${p.id}')">
+            <div class="player-avatar">${initial}</div>
+            <div class="player-info">
+                <div class="player-name">${displayName}</div>
+                <div class="player-meta">${meta.length ? meta.join(' &middot; ') : 'Tap to set up'} &middot; ${totalFlags} flags</div>
+            </div>
+            <span class="player-stage">${stage.name}</span>
+            <button class="player-remove" onclick="removePlayer('${p.id}', event)">&times;</button>
+        </div>`;
+    }).join('');
+}
+
+// ── OPEN PLAYER ──
+
+function openPlayer(id) {
+    currentPlayerId = id;
+    const player = players.find(p => p.id === id);
+    if (!player) return;
+
+    reshuffleFlags();
+
+    // Set up identity indices
+    const nat = player.identity.nationality || NATIONALITIES[0];
+    identityIndices.nationality = NATIONALITIES.indexOf(nat);
+    if (identityIndices.nationality < 0) identityIndices.nationality = 0;
+    currentNameList = buildNameList(NATIONALITIES[identityIndices.nationality]);
+    identityIndices.name = 0;
+    identityIndices.occupation = Math.floor(Math.random() * OCCUPATIONS.length);
+
+    // If player already has locked values, set indices to match
+    if (player.identity.name) {
+        const idx = currentNameList.indexOf(player.identity.name);
+        if (idx >= 0) identityIndices.name = idx;
+    }
+    if (player.identity.occupation) {
+        const idx = OCCUPATIONS.indexOf(player.identity.occupation);
+        if (idx >= 0) identityIndices.occupation = idx;
+    }
+    if (player.identity.nationality) {
+        identityIndices.nationality = NATIONALITIES.indexOf(player.identity.nationality);
+    }
+
+    showView('viewStage');
+    updateStageUI();
+    switchTab('identity');
+}
+
+function goHome() {
+    showView('viewHub');
+    renderPlayerList();
+}
+
+function showView(id) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+// ── STAGE UI ──
+
+function getPlayer() {
+    return players.find(p => p.id === currentPlayerId);
+}
+
+function updateStageUI() {
+    const player = getPlayer();
+    if (!player) return;
+
+    const stage = STAGES[player.stageIndex];
+    document.getElementById('stageTitle').textContent = player.realName + ' — ' + stage.name;
+
+    // Profile summary
+    const displayName = player.identity.name || player.realName;
+    document.getElementById('profileAvatar').textContent = displayName.charAt(0).toUpperCase();
+    document.getElementById('profileName').textContent = displayName;
+    document.getElementById('profileOccupation').textContent = player.identity.occupation || '';
+    document.getElementById('profileNationality').textContent = player.identity.nationality ? 'From ' + player.identity.nationality : '';
+    document.getElementById('profilePlayerName').textContent = 'Player: ' + player.realName;
+
+    // Stage progress
+    const progress = document.getElementById('stageProgress');
+    progress.innerHTML = STAGES.map((s, i) => {
+        let cls = 'stage-dot';
+        if (i === player.stageIndex) cls += ' active';
+        else if (i < player.stageIndex) cls += ' completed';
+        return `<div class="${cls}" onclick="jumpToStage(${i})"><span class="stage-label">${s.name}</span></div>`;
+    }).join('');
+
+    // Lock buttons
+    updateLockButtons(player);
+
+    // Identity values
+    updateIdentityDisplay();
+
+    // Advance button
+    const advBtn = document.getElementById('advanceBtn');
+    if (player.stageIndex >= STAGES.length - 1) {
+        advBtn.textContent = 'Game Complete';
+        advBtn.disabled = true;
+        advBtn.style.opacity = '0.4';
+    } else {
+        const next = STAGES[player.stageIndex + 1];
+        advBtn.textContent = 'Keep Seeing Them \u2192 ' + next.name;
+        advBtn.disabled = false;
+        advBtn.style.opacity = '1';
+    }
+}
+
+function jumpToStage(index) {
+    const player = getPlayer();
+    if (!player) return;
+    player.stageIndex = index;
+    updateStageUI();
+    renderSaved();
+}
+
+function updateLockButtons(player) {
+    ['name', 'occupation', 'nationality'].forEach(field => {
+        const btn = document.getElementById('lock' + field.charAt(0).toUpperCase() + field.slice(1));
+        if (player.locked[field]) {
+            btn.className = 'lock-btn locked';
+            btn.innerHTML = SVG_LOCK + ' Locked: ' + player.identity[field];
+        } else {
+            btn.className = 'lock-btn unlocked';
+            btn.textContent = 'Lock in';
+        }
+    });
+}
+
+// ── IDENTITY PICKER ──
+
+function updateIdentityDisplay() {
+    const player = getPlayer();
+    if (!player) return;
+
+    if (player.locked.name) {
+        document.getElementById('idName').textContent = player.identity.name;
+    } else {
+        document.getElementById('idName').textContent = currentNameList[identityIndices.name] || '\u2014';
+    }
+
+    if (player.locked.occupation) {
+        document.getElementById('idOccupation').textContent = player.identity.occupation;
+    } else {
+        document.getElementById('idOccupation').textContent = OCCUPATIONS[identityIndices.occupation] || '\u2014';
+    }
+
+    if (player.locked.nationality) {
+        document.getElementById('idNationality').textContent = player.identity.nationality;
+    } else {
+        document.getElementById('idNationality').textContent = NATIONALITIES[identityIndices.nationality] || '\u2014';
+    }
+}
+
+function prevIdentity(field) {
+    const player = getPlayer();
+    if (!player || player.locked[field]) return;
+
+    if (field === 'name') {
+        identityIndices.name = (identityIndices.name - 1 + currentNameList.length) % currentNameList.length;
+    } else if (field === 'occupation') {
+        identityIndices.occupation = (identityIndices.occupation - 1 + OCCUPATIONS.length) % OCCUPATIONS.length;
+    } else if (field === 'nationality') {
+        identityIndices.nationality = (identityIndices.nationality - 1 + NATIONALITIES.length) % NATIONALITIES.length;
+        currentNameList = buildNameList(NATIONALITIES[identityIndices.nationality]);
+        identityIndices.name = 0;
+    }
+    updateIdentityDisplay();
+}
+
+function nextIdentity(field) {
+    const player = getPlayer();
+    if (!player || player.locked[field]) return;
+
+    if (field === 'name') {
+        identityIndices.name = (identityIndices.name + 1) % currentNameList.length;
+    } else if (field === 'occupation') {
+        identityIndices.occupation = (identityIndices.occupation + 1) % OCCUPATIONS.length;
+    } else if (field === 'nationality') {
+        identityIndices.nationality = (identityIndices.nationality + 1) % NATIONALITIES.length;
+        currentNameList = buildNameList(NATIONALITIES[identityIndices.nationality]);
+        identityIndices.name = 0;
+    }
+    updateIdentityDisplay();
+}
+
+function shuffleIdentity(field) {
+    const player = getPlayer();
+    if (!player || player.locked[field]) return;
+
+    if (field === 'name') {
+        identityIndices.name = Math.floor(Math.random() * currentNameList.length);
+    } else if (field === 'occupation') {
+        identityIndices.occupation = Math.floor(Math.random() * OCCUPATIONS.length);
+    } else if (field === 'nationality') {
+        identityIndices.nationality = Math.floor(Math.random() * NATIONALITIES.length);
+        currentNameList = buildNameList(NATIONALITIES[identityIndices.nationality]);
+        identityIndices.name = Math.floor(Math.random() * currentNameList.length);
+    }
+    updateIdentityDisplay();
+}
+
+function toggleLock(field) {
+    const player = getPlayer();
+    if (!player) return;
+
+    if (player.locked[field]) {
+        // Unlock
+        player.locked[field] = false;
+        player.identity[field] = null;
+    } else {
+        // Lock
+        let value;
+        if (field === 'name') value = currentNameList[identityIndices.name];
+        else if (field === 'occupation') value = OCCUPATIONS[identityIndices.occupation];
+        else if (field === 'nationality') value = NATIONALITIES[identityIndices.nationality];
+
+        player.identity[field] = value;
+        player.locked[field] = true;
+    }
+
+    // Auto-save identity if all three are locked and on first stage
+    if (player.locked.name && player.locked.occupation && player.locked.nationality) {
+        showToast('Identity locked in');
+    }
+
+    updateLockButtons(player);
+    updateStageUI();
+}
+
+// ── TABS ──
+
+function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+
+    document.getElementById('tabIdentity').style.display = tab === 'identity' ? 'block' : 'none';
+    document.getElementById('tabFlags').style.display = tab === 'flags' ? 'block' : 'none';
+    document.getElementById('tabSaved').style.display = tab === 'saved' ? 'block' : 'none';
+
+    if (tab === 'saved') renderSaved();
+    if (tab === 'flags') nextFlag();
+}
+
+// ── FLAG SWIPER ──
+
+function setFlagMode(mode) {
+    flagMode = mode;
+    document.getElementById('modeRed').className = mode === 'red' ? 'mode-btn active-red' : 'mode-btn';
+    document.getElementById('modeGreen').className = mode === 'green' ? 'mode-btn active-green' : 'mode-btn';
+
+    const card = document.getElementById('swiperCard');
+    const saveBtn = document.getElementById('saveBtn');
+    if (mode === 'green') {
+        card.classList.add('green');
+        saveBtn.classList.add('green-save');
+    } else {
+        card.classList.remove('green');
+        saveBtn.classList.remove('green-save');
+    }
+    nextFlag();
+}
+
+function nextFlag() {
+    const key = flagMode;
+    const list = key === 'red' ? shuffledRed : shuffledGreen;
+    currentFlagIndex[key]++;
+
+    if (currentFlagIndex[key] >= list.length) {
+        if (key === 'red') shuffledRed = shuffle(RED_FLAGS);
+        else shuffledGreen = shuffle(GREEN_FLAGS);
+        currentFlagIndex[key] = 0;
+    }
+
+    const flag = (key === 'red' ? shuffledRed : shuffledGreen)[currentFlagIndex[key]];
+    document.getElementById('swiperIcon').innerHTML = key === 'red' ? SVG_FLAG_RED_BIG : SVG_FLAG_GREEN_BIG;
+    document.getElementById('swiperText').textContent = flag;
+
+    // Animate
+    const card = document.getElementById('swiperCard');
+    card.style.transform = 'scale(0.97)';
+    setTimeout(() => card.style.transform = 'scale(1)', 100);
+}
+
+function saveFlag() {
+    const player = getPlayer();
+    if (!player) return;
+
+    const key = flagMode;
+    const list = key === 'red' ? shuffledRed : shuffledGreen;
+    const flag = list[currentFlagIndex[key]];
+    if (!flag) return;
+
+    const stage = STAGES[player.stageIndex];
+
+    // Check if this stage is already locked
+    if (player.lockedFlags[stage.id]) {
+        showToast('This stage is locked. Advance to save more flags.');
+        return;
+    }
+
+    const entry = { text: flag, type: key };
+
+    // Don't duplicate
+    if (!player.flags[stage.id].some(f => f.text === flag)) {
+        player.flags[stage.id].push(entry);
+        showToast('Saved');
+    }
+}
+
+// ── SAVED FLAGS ──
+
+function renderSaved() {
+    const player = getPlayer();
+    if (!player) return;
+
+    const section = document.getElementById('savedSection');
+    let html = '';
+    let totalFlags = 0;
+
+    STAGES.forEach((stage, stageIdx) => {
+        const flags = player.flags[stage.id];
+        const isLocked = !!player.lockedFlags[stage.id];
+        if (flags.length === 0 && stageIdx > player.stageIndex) return;
+
+        html += `<div class="saved-stage-group">
+            <div class="saved-stage-title">${stage.name} (${flags.length})${isLocked ? ' <span class="locked-badge">' + SVG_LOCK + ' locked</span>' : ''}</div>`;
+
+        if (flags.length === 0) {
+            html += `<div class="no-flags" style="padding:12px">No flags yet</div>`;
+        } else {
+            flags.forEach((f, i) => {
+                const icon = f.type === 'red' ? SVG_FLAG_RED : SVG_FLAG_GREEN;
+                html += `<div class="saved-flag">
+                    <span class="saved-flag-icon">${icon}</span>
+                    <span class="saved-flag-text">${f.text}</span>
+                    ${!isLocked ? `<button class="saved-flag-remove" onclick="removeFlag('${stage.id}', ${i})">&times;</button>` : ''}
+                </div>`;
+            });
+        }
+        html += `</div>`;
+        totalFlags += flags.length;
+    });
+
+    if (totalFlags === 0) {
+        html = '<div class="no-flags">No flags saved yet. Go swipe some.</div>';
+    }
+
+    section.innerHTML = html;
+}
+
+function removeFlag(stageId, index) {
+    const player = getPlayer();
+    if (!player) return;
+    // Can't remove from locked stages
+    if (player.lockedFlags[stageId]) return;
+    player.flags[stageId].splice(index, 1);
+    renderSaved();
+}
+
+// ── ADVANCE STAGE (Keep Seeing Them) ──
+
+function advanceStage() {
+    const player = getPlayer();
+    if (!player || player.stageIndex >= STAGES.length - 1) return;
+
+    const currentStage = STAGES[player.stageIndex];
+
+    // Lock the current stage's flags - snapshot them
+    player.lockedFlags[currentStage.id] = [...player.flags[currentStage.id]];
+
+    // Also auto-lock identity if not already locked
+    if (!player.locked.name && currentNameList[identityIndices.name]) {
+        player.identity.name = currentNameList[identityIndices.name];
+        player.locked.name = true;
+    }
+    if (!player.locked.occupation) {
+        player.identity.occupation = OCCUPATIONS[identityIndices.occupation];
+        player.locked.occupation = true;
+    }
+    if (!player.locked.nationality) {
+        player.identity.nationality = NATIONALITIES[identityIndices.nationality];
+        player.locked.nationality = true;
+    }
+
+    player.stageIndex++;
+    reshuffleFlags();
+    updateStageUI();
+    renderSaved();
+    switchTab('flags');
+    showToast('Advanced to ' + STAGES[player.stageIndex].name);
+}
+
+// ── DISCARD & START OVER ──
+
+function discardAndRestart() {
+    const player = getPlayer();
+    if (!player) return;
+
+    // Reset everything for this player
+    player.stageIndex = 0;
+    player.identity = { name: null, occupation: null, nationality: null };
+    player.locked = { name: false, occupation: false, nationality: false };
+    STAGES.forEach(s => { player.flags[s.id] = []; player.lockedFlags[s.id] = null; });
+
+    reshuffleFlags();
+    identityIndices = { name: 0, occupation: 0, nationality: 0 };
+    currentNameList = buildNameList(NATIONALITIES[0]);
+
+    updateStageUI();
+    renderSaved();
+    switchTab('identity');
+    showToast('Starting fresh');
+}
+
+// ── INIT ──
+
+document.getElementById('playerNameInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addPlayer();
+});
+
+renderPlayerList();
+</script>
+</html>
+</body>
+</html>

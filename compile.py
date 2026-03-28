@@ -8,6 +8,7 @@ import os
 import json
 import shutil
 from pathlib import Path
+from datetime import datetime
 
 class ModularBlogCompiler:
     def __init__(self, pages_dir="pages", output_dir="output", static_dir="static"):
@@ -139,33 +140,104 @@ class ModularBlogCompiler:
     def copy_page_assets(self, page_dir, slug):
         """Copy page assets to output directory"""
         assets_dir = page_dir / 'assets'
-        
+
         if not assets_dir.exists():
             return []
-        
+
         # Create page-specific assets directory in output
         output_assets_dir = self.output_dir / "assets" / slug
         output_assets_dir.mkdir(parents=True, exist_ok=True)
-        
+
         copied_assets = []
-        
+
         # Copy all files from page assets to output assets
         for asset_file in assets_dir.rglob('*'):
             if asset_file.is_file():
                 # Preserve directory structure
                 relative_path = asset_file.relative_to(assets_dir)
                 output_asset_path = output_assets_dir / relative_path
-                
+
                 # Create parent directories if needed
                 output_asset_path.parent.mkdir(parents=True, exist_ok=True)
-                
+
                 try:
                     shutil.copy2(asset_file, output_asset_path)
                     copied_assets.append(str(relative_path))
                 except IOError as e:
                     print(f"Warning: Could not copy asset {asset_file}: {e}")
-        
+
         return copied_assets
+
+    def copy_artist_assets(self):
+        """Copy artist-level assets to output directory for preview routes.
+
+        Copies pages/artists/{slug}/assets/ -> output/artists/{slug}/assets/
+        This allows artist pages to reference assets via ../assets/ relative paths
+        that work in both preview mode (/artists/{slug}/page) and domain mode (/page).
+        """
+        artists_dir = self.pages_dir / 'artists'
+        if not artists_dir.exists():
+            return
+
+        for artist_dir in artists_dir.iterdir():
+            if not artist_dir.is_dir() or artist_dir.name.startswith('_'):
+                continue
+
+            assets_dir = artist_dir / 'assets'
+            if not assets_dir.exists():
+                continue
+
+            output_assets_dir = self.output_dir / 'artists' / artist_dir.name / 'assets'
+            output_assets_dir.mkdir(parents=True, exist_ok=True)
+
+            asset_count = 0
+            for asset_file in assets_dir.rglob('*'):
+                if asset_file.is_file():
+                    relative_path = asset_file.relative_to(assets_dir)
+                    output_path = output_assets_dir / relative_path
+                    output_path.parent.mkdir(parents=True, exist_ok=True)
+                    try:
+                        shutil.copy2(asset_file, output_path)
+                        asset_count += 1
+                    except IOError as e:
+                        print(f"Warning: Could not copy artist asset {asset_file}: {e}")
+
+            if asset_count:
+                print(f"  Copied {asset_count} assets for artist '{artist_dir.name}'")
+
+    def generate_artist_root_indexes(self):
+        """Generate root index.html for each artist that serves their home page.
+
+        This enables preview routes: /artists/{slug}/ serves the home page.
+        """
+        artists_dir = self.pages_dir / 'artists'
+        if not artists_dir.exists():
+            return
+
+        for artist_dir in artists_dir.iterdir():
+            if not artist_dir.is_dir() or artist_dir.name.startswith('_'):
+                continue
+
+            # Check if artist has a home page
+            home_output = self.output_dir / 'artists' / artist_dir.name / 'home' / 'index.html'
+            artist_root = self.output_dir / 'artists' / artist_dir.name
+            artist_root.mkdir(parents=True, exist_ok=True)
+
+            if home_output.exists():
+                # Redirect to home/ so relative paths (../assets/, ../gallery) resolve correctly
+                redirect_html = '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=home/"></head></html>'
+                with open(artist_root / 'index.html', 'w') as f:
+                    f.write(redirect_html)
+                print(f"  Generated root index for artist '{artist_dir.name}' -> home")
+            else:
+                # Generate a simple redirect to the first available page
+                for subdir in (self.output_dir / 'artists' / artist_dir.name).iterdir():
+                    if subdir.is_dir() and (subdir / 'index.html').exists() and subdir.name != 'assets':
+                        redirect_html = f'<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url={subdir.name}/"></head></html>'
+                        with open(artist_root / 'index.html', 'w') as f:
+                            f.write(redirect_html)
+                        print(f"  Generated redirect index for artist '{artist_dir.name}' -> {subdir.name}")
+                        break
     
     def compile_page(self, page_dir):
         """Compile a single page from the modular structure"""
@@ -179,6 +251,13 @@ class ModularBlogCompiler:
         # Use slug from config, or fall back to the full relative path
         slug = config.get('slug', url_path)
 
+        # Safety: if page lives under artists/, force slug to start with artists/
+        # This prevents artist pages from accidentally overwriting main blog pages
+        if str(relative_path).startswith('artists/') and not slug.startswith('artists/'):
+            corrected_slug = url_path
+            print(f"  WARNING: Artist page slug '{slug}' doesn't match path, using '{corrected_slug}'")
+            slug = corrected_slug
+
         # Copy page assets
         assets = self.copy_page_assets(page_dir, slug)
         if assets:
@@ -190,6 +269,34 @@ class ModularBlogCompiler:
         # No CRT effects on blog posts - they render normally
         crt_scripts = ""
 
+        # Inject current compile date for artist home pages
+        if slug.endswith('/home') or slug == 'artists/cliveburgess/home':
+            compile_date = datetime.now()
+            # Replace the hardcoded date in JavaScript with current compile date
+            html_content = html_content.replace(
+                'let updateDate = new Date(2026, 2, 1);',
+                f'let updateDate = new Date({compile_date.year}, {compile_date.month - 1}, {compile_date.day});'
+            )
+
+        # Calculate relative path to favicon based on nesting level
+        # Add 1 because the file is index.html inside a directory
+        nesting_level = slug.count('/') + 1
+        favicon_path = '../' * nesting_level + 'favicon.svg' if nesting_level > 0 else 'favicon.svg'
+
+        # Check for artist-specific favicon
+        if str(relative_path).startswith('artists/'):
+            parts = str(relative_path).split('/')
+            if len(parts) >= 2:
+                artist_config_file = self.pages_dir / 'artists' / parts[1] / 'config.json'
+                if artist_config_file.exists():
+                    try:
+                        with open(artist_config_file, 'r', encoding='utf-8') as f:
+                            artist_config = json.load(f)
+                        if artist_config.get('favicon'):
+                            favicon_path = '../assets/' + artist_config['favicon']
+                    except (json.JSONDecodeError, IOError):
+                        pass
+
         # Create full HTML document
         full_html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -197,6 +304,7 @@ class ModularBlogCompiler:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">{meta_section}
     <title>{config.get('title', 'Blog Post')}</title>
+    <link rel="icon" href="{favicon_path}">
     {css_content}
 </head>
 <body>
@@ -266,7 +374,8 @@ class ModularBlogCompiler:
                     'description': config.get('description', ''),
                     'categories': config.get('categories', []),
                     'assets': assets,
-                    'hidden': config.get('hidden', False)
+                    'hidden': config.get('hidden', False),
+                    'preview_video': config.get('preview_video', '')
                 })
                 print(f"Compiled page: {page_dir.name}")
             except Exception as e:
@@ -345,31 +454,44 @@ class ModularBlogCompiler:
     }
 
     h1 {
-        text-align: center;
+        text-align: left;
         font-size: 2.5em;
-        margin: 0 0 1ch 0;
+        margin: 0 auto 1ch auto;
         color: #00FFFF;
         letter-spacing: 0.2ch;
         flex-shrink: 0;
         font-weight: normal;
-        font-family: 'VT323', monospace;
+        font-family: 'Courier New', Courier, monospace;
         text-shadow: 2px 2px 0 #000000;
         padding: 0 1ch;
+        width: 100%;
+        max-width: 1400px;
+        box-sizing: border-box;
     }
 
-    /* Mosaic container - blocks flow and wrap naturally */
+    /* Preview video in blog blocks */
+    .ascii-block.blog-post .preview-video {
+        width: 100%;
+        max-height: 65%;
+        object-fit: contain;
+        display: block;
+        margin: 0.5ch auto;
+        border-radius: 0;
+        pointer-events: none;
+    }
+
+    /* Mosaic container - CSS grid with small cells, big blocks span 2x2 */
     .grid-container {
-        display: flex;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(6, 16.5ch);
         gap: 2ch;
         width: 100%;
         max-width: 1400px;
         margin: 0 auto;
         min-height: calc(100vh - 12ch);
         position: relative;
-        align-content: flex-start;
-        align-items: flex-start;
-        justify-content: center;
+        grid-auto-rows: 16.5ch;
+        grid-auto-flow: dense;
         overflow: visible;
     }
 
@@ -382,7 +504,6 @@ class ModularBlogCompiler:
         position: relative;
         font-family: 'VT323', 'Courier New', monospace;
         border: none;
-        flex-shrink: 0;
         box-sizing: border-box;
         font-size: 20px;
         font-weight: bold;
@@ -393,10 +514,10 @@ class ModularBlogCompiler:
             inset -2px -2px 0px rgba(0, 0, 0, 0.5);
     }
 
-    /* Blog post blocks - SQUARE */
+    /* Blog post blocks - big 2x2 */
     .ascii-block.blog-post {
-        width: 35ch;
-        height: 35ch;
+        grid-column: span 2;
+        grid-row: span 2;
         cursor: pointer;
         overflow: hidden;
         display: flex;
@@ -421,6 +542,16 @@ class ModularBlogCompiler:
         font-size: 0.9em;
     }
 
+    .block-preview-video {
+        width: 100%;
+        max-height: 16ch;
+        object-fit: contain;
+        border-radius: 2px;
+        pointer-events: none;
+        display: block;
+        margin: 0.5ch 0;
+    }
+
     .ascii-block.blog-post a {
         display: block;
         margin-top: auto;
@@ -429,10 +560,10 @@ class ModularBlogCompiler:
         text-decoration: underline;
     }
 
-    /* System status - SQUARE - Green background */
+    /* System status - big 2x2 - Green background */
     .ascii-block.system-status {
-        width: 35ch;
-        height: 35ch;
+        grid-column: span 2;
+        grid-row: span 2;
         background-color: #00AA00;
         color: #FFFF00;
     }
@@ -448,10 +579,10 @@ class ModularBlogCompiler:
         font-size: 0.9em;
     }
 
-    /* Dev ports - SQUARE - Cyan background */
+    /* Dev ports - big 2x2 - Cyan background */
     .ascii-block.dev-ports {
-        width: 35ch;
-        height: 35ch;
+        grid-column: span 2;
+        grid-row: span 2;
         background-color: #00AAAA;
         color: #FFFF00;
     }
@@ -463,12 +594,99 @@ class ModularBlogCompiler:
     }
 
     .ascii-block.dev-ports a {
-        display: block;
+        display: flex;
+        align-items: center;
+        gap: 0.8ch;
         margin: 0.5ch 0;
         font-size: 0.9em;
         color: #FFFF00;
         font-weight: bold;
     }
+
+    svg.port-icon {
+        width: 1.2em;
+        height: 1.2em;
+        fill: #FFFF00;
+        flex-shrink: 0;
+    }
+
+    /* ── Individual widgets (1x1 grid cells) ── */
+    .widget {
+        grid-column: span 1;
+        grid-row: span 1;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        gap: 0.4ch;
+        font-family: 'VT323', 'Courier New', monospace;
+        font-size: 20px;
+        font-weight: bold;
+        padding: 1ch;
+        box-sizing: border-box;
+        text-decoration: none;
+        color: #FFFF00;
+        opacity: 0.85;
+        box-shadow:
+            inset 2px 2px 0px rgba(255, 255, 255, 0.3),
+            inset -2px -2px 0px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+    }
+    .widget:hover {
+        opacity: 1;
+    }
+    .widget h3 {
+        font-size: 0.9em;
+        margin: 0;
+        color: #FFFFFF;
+        font-family: inherit;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+    .widget .widget-icon {
+        line-height: 1;
+        color: #FFFFFF;
+    }
+    .widget .widget-icon svg {
+        width: 32px;
+        height: 32px;
+        fill: #FFFFFF;
+    }
+    .widget .widget-label {
+        font-size: 0.6em;
+        color: #FFFF00;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+    .widget .widget-status {
+        font-size: 0.55em;
+        color: #00FF00;
+    }
+
+    /* Empty gap slot - 1x1 invisible spacer */
+    .layout-gap {
+        grid-column: span 1;
+        grid-row: span 1;
+        visibility: hidden;
+    }
+
+    .widget.wg-github { background-color: #333333; }
+    .widget.wg-linkedin { background-color: #0055AA; }
+    .widget.wg-instagram { background-color: #AA3377; }
+    .widget.wg-soundcloud { background-color: #FF5500; }
+    .widget.wg-email { background-color: #AA5500; }
+    .widget.wg-bluemap { background-color: #00AA00; }
+    .widget.wg-portal { background-color: #AA00AA; }
+    .widget.wg-mgmt { background-color: #005500; }
+    .widget.wg-templeos { background-color: #AA00AA; }
+    .widget.wg-xp { background-color: #0055AA; }
+    .widget.wg-default { background-color: #0000AA; }
 
     /* CPU grid styling - 4 rows of 4 characters */
     #cpu-grid {
@@ -529,7 +747,7 @@ class ModularBlogCompiler:
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        color: #4dd0e1;
+        color: #FFFFFF;
         font-family: 'Courier New', monospace;
         transition: opacity 0.5s ease-out;
     }
@@ -549,6 +767,11 @@ class ModularBlogCompiler:
         font-size: 2em;
     }
 
+    .loading-status {
+        font-size: 1.5em;
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+
     @keyframes pulse {
         0%, 100% { opacity: 0.4; }
         50% { opacity: 1; }
@@ -556,13 +779,32 @@ class ModularBlogCompiler:
 
     @media (max-width: 768px) {
         .grid-container {
-            flex-direction: column;
+            grid-template-columns: repeat(2, 1fr);
+            grid-auto-rows: auto;
         }
 
-        .ascii-block {
-            width: 100% !important;
-            height: auto !important;
+        .ascii-block.blog-post,
+        .ascii-block.system-status,
+        .ascii-block.dev-ports {
+            grid-column: span 2;
+            grid-row: span 1;
             min-height: 20ch;
+        }
+
+        .widget {
+            grid-column: span 1;
+            grid-row: span 1;
+            min-height: 8ch;
+            font-size: 12px;
+        }
+
+        .preview-video,
+        .block-preview-video {
+            display: none;
+        }
+
+        .layout-gap {
+            display: none;
         }
 
         body {
@@ -760,8 +1002,7 @@ class ModularBlogCompiler:
 <body>
     <!-- Loading Screen -->
     <div id="loading-screen">
-        <div class="loading-text">INITIALIZING</div>
-        <div class="loading-dots">...</div>
+        <div class="loading-status">Loading...</div>
     </div>
 
     <div id="page-content" class="crt">
@@ -769,8 +1010,44 @@ class ModularBlogCompiler:
     <div class="grid-container" id="grid-container">
 """
 
-        # Add system status block first
-        homepage_html += """        <div class="ascii-block system-status">
+        import random
+        import json as json_module
+
+        # ── Load widgets and blocks from widgets.json ──
+        widgets_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'widgets.json')
+        with open(widgets_path, 'r') as f:
+            widgets_config = json_module.load(f)
+
+        # ── Build individual widget blocks (each 1x1 in the grid) ──
+        all_widgets = widgets_config['widgets']
+        widget_blocks = {}  # id -> html
+        for w in all_widgets:
+            wid = f"widget-{w['id']}"
+            target_attr = f' target="{w["target"]}"' if w.get('target') else ''
+            css_class = w.get('css_class', 'wg-default')
+            status_html = ''
+            if w.get('status_id'):
+                status_html = f'<div class="widget-status" id="{w["status_id"]}">OFF</div>'
+            widget_blocks[wid] = f'        <a href="{w["url"]}"{target_attr} class="widget {css_class}" data-block-id="{wid}"><div class="widget-icon">{w["icon"]}</div><h3>{w["title"]}</h3><div class="widget-label">{w["label"]}</div>{status_html}</a>\n'
+
+        # ── Dev ports block (only dev tools) ──
+        dev_ports_block = """        <div class="ascii-block dev-ports" data-block-id="dev-ports">
+            <h3>DEV PORTS</h3>
+            <div><a href="/dev/3005/"><svg class="port-icon" viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>Trading :3005</a> <span id="trading-port-status">OFF</span></div>
+            <div><a href="/dev/5123/"><svg class="port-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>Depopper :5123</a> <span id="depopper-port-status">OFF</span></div>
+            <div><a href="/dev/8888/"><svg class="port-icon" viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>Jupyter :8888</a> <span id="jupyter-port-status">OFF</span></div>
+            <div><a href="/dev/8889/lab"><svg class="port-icon" viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>Titan SAR :8889</a> <span id="titansar-port-status">OFF</span></div>
+            <div><a href="/dev/8890/"><svg class="port-icon" viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>Geopolitical :8890</a> <span id="geopolmarkets-port-status">OFF</span></div>
+            <div><a href="/dev/8891/"><svg class="port-icon" viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>Geopol Web :8891</a> <span id="geopolweb-port-status">OFF</span></div>
+        </div>
+"""
+
+        # ── Build block registry: id -> html ──
+        colors = ['red', 'blue', 'yellow', 'cyan', 'magenta', 'green']
+        block_registry = {}  # id -> html string
+
+        # System status block (2x2)
+        block_registry['system-status'] = """        <div class="ascii-block system-status" data-block-id="system-status">
             <h3>SYSTEM</h3>
             <div>MC:  <span id="minecraft-status">OFF</span></div>
             <div>API: <span id="api-status">OFF</span></div>
@@ -779,13 +1056,17 @@ class ModularBlogCompiler:
             <div id="cpu-grid"></div>
             <div>RAM: <span id="ram-usage">0%</span></div>
             <div id="ram-grid"></div>
-        </div>
-"""
+        </div>\n"""
 
-        # Random primary colors for blog posts
-        colors = ['red', 'blue', 'yellow', 'cyan', 'magenta', 'green']
+        # Individual widget blocks (1x1 each)
+        for wid, whtml in widget_blocks.items():
+            block_registry[wid] = whtml
 
-        # Separate music and photography from other posts
+        # Dev ports block (2x2)
+        block_registry['dev-ports'] = dev_ports_block
+
+        # Blog post blocks
+        color_idx = 0
         music_post = None
         photography_post = None
         other_posts = []
@@ -798,73 +1079,76 @@ class ModularBlogCompiler:
             else:
                 other_posts.append(page)
 
-        # Add photography first
-        color_idx = 0
-        if photography_post:
-            color = colors[color_idx % len(colors)]
-            color_idx += 1
-
-            description = photography_post.get('description', '')
-            if len(description) > 200:
-                description = description[:197] + '...'
-
-            homepage_html += f"""        <div class="ascii-block blog-post color-{color}" onclick="window.location.href='/{photography_post['slug']}'">
-            <h3>{photography_post['title']}</h3>
-            <div class="description">{description}</div>
-            <a href="/{photography_post['slug']}">/{photography_post['slug']}</a>
-        </div>
-"""
-
-        # Add dev ports after photography
-        homepage_html += """        <div class="ascii-block dev-ports">
-            <h3>DEV PORTS</h3>
-            <div><a href="/dev/8100/">→ BlueMap:8100</a> <span id="bluemap-port-status">OFF</span></div>
-            <div><a href="/dev/3005/">→ Trading:3005</a> <span id="trading-port-status">OFF</span></div>
-            <div><a href="/dev/5123/">→ Depopper:5123</a> <span id="depopper-port-status">OFF</span></div>
-            <div><a href="/dev/6767/">→ WTA:6767</a> <span id="wta-port-status">OFF</span></div>
-            <div><a href="/dev/8888/">→ Jupyter:8888</a> <span id="jupyter-port-status">OFF</span></div>
-        </div>
-"""
-
-        # Add music
-        if music_post:
-            color = colors[color_idx % len(colors)]
-            color_idx += 1
-
-            description = music_post.get('description', '')
-            if len(description) > 200:
-                description = description[:197] + '...'
-
-            homepage_html += f"""        <div class="ascii-block blog-post color-{color}" onclick="window.location.href='/{music_post['slug']}'">
-            <h3>{music_post['title']}</h3>
-            <div class="description">{description}</div>
-            <a href="/{music_post['slug']}">/{music_post['slug']}</a>
-        </div>
-"""
-
-        # Add all other blog posts
-        for page in other_posts:
-            color = colors[color_idx % len(colors)]
-            color_idx += 1
-
+        def make_blog_block(page, color):
             description = page.get('description', '')
             if len(description) > 200:
                 description = description[:197] + '...'
-
-            homepage_html += f"""        <div class="ascii-block blog-post color-{color}" onclick="window.location.href='/{page['slug']}'">
+            cats = ','.join(page.get('categories', []))
+            video_html = ''
+            if page.get('preview_video'):
+                video_html = f'<video class="preview-video" src="{page["preview_video"]}" autoplay muted loop playsinline></video>'
+            return f"""        <div class="ascii-block blog-post color-{color}" data-categories="{cats}" data-block-id="post-{page['slug']}" onclick="window.location.href='/{page['slug']}'">
             <h3>{page['title']}</h3>
             <div class="description">{description}</div>
+            {video_html}
             <a href="/{page['slug']}">/{page['slug']}</a>
-        </div>
-"""
+        </div>\n"""
 
-        # Add admin block at the bottom
-        homepage_html += """        <div class="ascii-block blog-post color-magenta" onclick="window.photoBackground && window.photoBackground.toggleAdminMode();" style="cursor: pointer;">
+        ordered_posts = []
+        if photography_post:
+            ordered_posts.append(photography_post)
+        if music_post:
+            ordered_posts.append(music_post)
+        ordered_posts.extend(other_posts)
+
+        for page in ordered_posts:
+            block_id = f"post-{page['slug']}"
+            block_registry[block_id] = make_blog_block(page, colors[color_idx % len(colors)])
+            color_idx += 1
+
+        # Admin block
+        block_registry['admin'] = """        <div class="ascii-block blog-post color-magenta" data-block-id="admin" onclick="window.photoBackground && window.photoBackground.toggleAdminMode();" style="cursor: pointer;">
             <h3>ADMIN</h3>
             <div class="description">Configure glitchGL effects for background and title</div>
             <a href="#" onclick="window.photoBackground && window.photoBackground.toggleAdminMode(); return false;">→ Settings Panel</a>
-        </div>
-"""
+        </div>\n"""
+
+        # ── Layout from layout.json (or default order) ──
+        layout_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'layout.json')
+        default_order = list(block_registry.keys())
+        layout_order = None
+
+        if os.path.exists(layout_path):
+            try:
+                with open(layout_path, 'r') as f:
+                    layout_data = json_module.load(f)
+                layout_order = layout_data.get('order', [])
+            except Exception:
+                layout_order = None
+
+        if layout_order:
+            # Use saved order. Slots can be block IDs or "__gap__" for empty spaces.
+            # Any new blocks not in layout get appended at the end.
+            known_ids = set()
+            for slot in layout_order:
+                if slot != '__gap__':
+                    known_ids.add(slot)
+            # Append any blocks not in the saved layout
+            for block_id in default_order:
+                if block_id not in known_ids:
+                    layout_order.append(block_id)
+        else:
+            # No saved layout — use default order with no gaps
+            layout_order = default_order
+
+        # Emit the grid based on layout order
+        empty_block = '        <div class="layout-gap" data-block-id="__gap__"></div>\n'
+        for slot in layout_order:
+            if slot == '__gap__':
+                homepage_html += empty_block
+            elif slot in block_registry:
+                homepage_html += block_registry[slot]
+            # skip unknown IDs silently (deleted posts etc)
 
         homepage_html += """    </div>
     </div>
@@ -984,6 +1268,36 @@ class ModularBlogCompiler:
                         if (jupyterStatus) {
                             jupyterStatus.textContent = portData.services.jupyter.running ? 'ON' : 'OFF';
                         }
+
+                        const titansarStatus = document.getElementById('titansar-port-status');
+                        if (titansarStatus) {
+                            titansarStatus.textContent = portData.services.titansar.running ? 'ON' : 'OFF';
+                        }
+
+                        const bluemapPortStatus = document.getElementById('bluemap-port-status');
+                        if (bluemapPortStatus) {
+                            bluemapPortStatus.textContent = portData.services.bluemap.running ? 'ON' : 'OFF';
+                        }
+
+                        const xpvncStatus = document.getElementById('xpvnc-port-status');
+                        if (xpvncStatus) {
+                            xpvncStatus.textContent = portData.services.xpvnc.running ? 'ON' : 'OFF';
+                        }
+
+                        const templeosStatus = document.getElementById('templeos-port-status');
+                        if (templeosStatus) {
+                            templeosStatus.textContent = portData.services.templeos.running ? 'ON' : 'OFF';
+                        }
+
+                        const geopolmarketsStatus = document.getElementById('geopolmarkets-port-status');
+                        if (geopolmarketsStatus) {
+                            geopolmarketsStatus.textContent = portData.services.geopolmarkets.running ? 'ON' : 'OFF';
+                        }
+
+                        const geopolwebStatus = document.getElementById('geopolweb-port-status');
+                        if (geopolwebStatus) {
+                            geopolwebStatus.textContent = portData.services.geopolweb.running ? 'ON' : 'OFF';
+                        }
                     })
                     .catch(error => {
                         console.error('Failed to fetch port status:', error);
@@ -999,6 +1313,7 @@ class ModularBlogCompiler:
     setInterval(refreshStatus, 500);
     </script>
 
+
     <!-- glitchGL Photo Background - ENABLED -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lil-gui@0.21"></script>
@@ -1011,7 +1326,7 @@ class ModularBlogCompiler:
             photo_background: true        // Enable photo background system
         };
 
-        // Photo background controller will handle everything
+        // Always start loading background immediately
         if (window.photoBackground) {
             window.photoBackground.init(window.pageConfig);
         }
@@ -1033,8 +1348,14 @@ class ModularBlogCompiler:
         print("Copying static files...")
         self.copy_static_files()
 
+        print("Copying artist assets...")
+        self.copy_artist_assets()
+
         print("Compiling pages...")
         self.generate_homepage()
+
+        print("Generating artist preview indexes...")
+        self.generate_artist_root_indexes()
 
         # Generate summary
         html_files = list(self.output_dir.glob('*.html'))

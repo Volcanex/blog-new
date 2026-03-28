@@ -3,5 +3,12 @@
     "slug": "geo-butler-backend-architecture",
     "date": "2026-01-05",
     "description": "How we built a multi-engine search platform with Firebase, Python, and AI. Exploring serverless architecture, data flows, and lessons learned building GEO-Butler.",
-    "categories": ["architecture", "serverless", "firebase", "backend", "python"]
+    "categories": [
+        "architecture",
+        "serverless",
+        "firebase",
+        "backend",
+        "python"
+    ],
+    "hidden": true
 }

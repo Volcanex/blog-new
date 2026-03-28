@@ -1,0 +1,27 @@
+{
+    "tool": "chroma-key",
+    "tool_path": "~/.local/bin/chroma-key",
+    "presets": {
+        "photography-preview": {
+            "source": "/home/gabriel/Bullshit_transparent.webm",
+            "color": "0x30B070",
+            "similarity": 0.38,
+            "blend": 0.12,
+            "pre_crop": "crop=981:720:149:0",
+            "post_crop": "crop=720:720:130:0",
+            "notes": "Aggressive keying - ghostly/sketchy look. Camera body partially keyed which looks cool.",
+            "ffmpeg_command": "ffmpeg -y -i INPUT -vf 'crop=981:720:149:0,format=rgba,colorkey=0x30B070:0.38:0.12,crop=720:720:130:0' -c:v libvpx-vp9 -pix_fmt yuva420p -auto-alt-ref 0 -b:v 0 -crf 25 -an OUTPUT",
+            "note_alpha": "Use ffmpeg 7.0.2 static build at /tmp/ffmpeg-7.0.2-amd64-static/ffmpeg for VP9 alpha. System ffmpeg 6.1.1 drops alpha. Two-step: extract RGBA PNGs with system ffmpeg, encode to VP9 with static ffmpeg 7."
+        },
+        "music-preview": {
+            "source": "/home/gabriel/Generated Video March 25, 2026 - 7_03PM.mp4",
+            "color": "0x01AE07",
+            "similarity": 0.38,
+            "blend": 0.12,
+            "pre_crop": "none (full 1920x1080)",
+            "post_crop": "crop=1080:1080:420:0",
+            "notes": "Bright green screen waveform visualization. Clean key.",
+            "ffmpeg_command": "ffmpeg -y -i INPUT -vf 'format=rgba,colorkey=0x01AE07:0.38:0.12,crop=1080:1080:420:0' then encode PNGs with ffmpeg7"
+        }
+    }
+}
