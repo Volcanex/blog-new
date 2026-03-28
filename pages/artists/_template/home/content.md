@@ -94,7 +94,7 @@ a:hover { color: var(--accent); }
 }
 
 .site-name {
-    font-family: var(--text-font);
+    font-family: var(--heading-font);
     font-weight: 600;
     font-size: 18px;
     color: var(--primary);

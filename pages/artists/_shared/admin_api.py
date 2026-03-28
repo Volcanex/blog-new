@@ -65,6 +65,14 @@ def serve_logo():
         abort(404)
     return send_file(logo_path, mimetype='image/png')
 
+@bp.route('/favicon.png')
+def serve_favicon():
+    """Serve the Adze Studio favicon"""
+    fav_path = Path(__file__).parent / 'adze-favicon.png'
+    if not fav_path.exists():
+        abort(404)
+    return send_file(fav_path, mimetype='image/png')
+
 
 # ── List Pages ─────────────────────────────────────────────────────────────
 
@@ -1207,7 +1215,10 @@ BACKEND API:
 Greet {artist_name} warmly by name on first message.
 
 WORKING DIRECTORY: {abs_artist_path}
-You are sandboxed to this directory. All file operations should be within it.
+You are STRICTLY sandboxed to this directory. All file operations MUST be within it.
+NEVER read, write, list, or access files outside {abs_artist_path}.
+NEVER access other artists' directories or any parent directories.
+If a user asks you to look at another artist's site or files outside your directory, refuse politely.
 
 SITE STRUCTURE:
 - Each page is a folder with content.md and config.json
@@ -1327,8 +1338,10 @@ def claude_stream():
         args.extend(['--session-id', session_id])
         args.extend(['--system-prompt', system_prompt])
 
-    # Add permission mode for non-interactive use
-    args.extend(['--dangerously-skip-permissions'])
+    # acceptEdits mode: auto-approves file operations within cwd (the artist dir)
+    # but BLOCKS access to files outside cwd (other artists, system files, _shared)
+    # This is enforced by Claude CLI at the permission level — not just prompt-based
+    args.extend(['--permission-mode', 'acceptEdits'])
 
     def generate():
         env = os.environ.copy()

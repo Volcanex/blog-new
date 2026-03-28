@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Adze Studio</title>
+    <link rel="icon" type="image/png" href="/api/adze/favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&family=Cardo:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -55,7 +56,7 @@
             --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
         }
 
-        body { font-family: var(--body-font); background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; transition: background 0.3s, color 0.3s; }
+        body { font-family: var(--body-font); background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; height: 100dvh; transition: background 0.3s, color 0.3s; }
         button { background: var(--accent); color: var(--accent-text); border: none; padding: 8px 16px; border-radius: var(--radius); cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; }
         button:hover { background: var(--accent-hover); }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -78,7 +79,7 @@
         .error-msg.show { display: block; }
 
         /* ── Dashboard Shell ── */
-        .dashboard { display: none; height: 100vh; }
+        .dashboard { display: none; height: 100vh; height: 100dvh; }
         .dashboard.active { display: flex; flex-direction: column; }
         .header-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 20px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; height: 52px; box-shadow: var(--shadow-sm); position: relative; z-index: 10; }
         .header-bar h1 { font-size: 15px; font-weight: 400; font-family: var(--heading-font); }
@@ -94,9 +95,14 @@
         .btn-success { background: var(--success); color: white; }
         .btn-success:hover { opacity: 0.9; }
 
+        /* ── Logo ── */
+        .adze-logo { transition: filter 0.3s; }
+        [data-theme="dark"] .adze-logo { filter: invert(1) hue-rotate(180deg) brightness(1.1); }
+
         /* ── Theme Toggle ── */
-        .theme-toggle { background: transparent; border: 1px solid var(--border); color: var(--text2); padding: 6px 10px; font-size: 14px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s; line-height: 1; }
+        .theme-toggle { background: transparent; border: 1px solid var(--border); color: var(--text2); padding: 6px 10px; font-size: 14px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s; line-height: 1; width: 32px; height: 32px; justify-content: center; }
         .theme-toggle:hover { border-color: var(--accent); color: var(--text); background: var(--surface2); }
+        .theme-toggle svg { width: 16px; height: 16px; fill: currentColor; }
 
         /* ── Main Layout ── */
         .main-layout { display: flex; flex: 1; overflow: hidden; min-height: 0; }
@@ -396,17 +402,20 @@
         .claude-term-input-bar .claude-send:disabled { opacity: 0.4; }
         .claude-term-input-bar .claude-reset { background: transparent; color: #666; border: 1px solid #3e3e44; padding: 10px 12px; }
         .claude-term-input-bar .claude-reset:hover { color: #e74c3c; border-color: #e74c3c; }
+        .claude-tools-toggle { width: 36px; height: 36px; flex-shrink: 0; background: #2a2a2e; color: #999; border: 1px solid #3e3e44; border-radius: 6px; font-size: 20px; font-weight: 300; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; padding: 0; line-height: 1; }
+        .claude-tools-toggle:hover { color: #fff; border-color: #5a8bbe; }
+        .claude-tools-toggle.open { background: #5a8bbe; color: #fff; border-color: #5a8bbe; transform: rotate(45deg); }
+        .claude-term-tools { display: flex; }
         .claude-tool-btn { background: transparent; color: #888; border: 1px solid #3e3e44; padding: 8px 10px; font-size: 11px; border-radius: 5px; white-space: nowrap; cursor: pointer; transition: all 0.15s; }
         .claude-tool-btn:hover { color: #5a8bbe; border-color: #5a8bbe; }
         .claude-tool-btn.active { color: #5a8bbe; border-color: #5a8bbe; background: rgba(90,139,190,0.1); }
         .claude-term-welcome { padding: 30px 20px; text-align: center; }
-        .claude-term-welcome h2 { font-family: 'Inter', -apple-system, sans-serif; font-weight: 800; font-style: normal; color: var(--accent, #5a8bbe); font-size: 22px; margin-bottom: 10px; letter-spacing: 3px; text-transform: uppercase; }
-        .claude-term-welcome p { color: #666; font-size: 13px; line-height: 1.4; max-width: 500px; margin: 0 auto; }
-        .claude-term-welcome p + p { margin-top: 2px; }
+        .claude-term-welcome h2 { font-family: 'Cardo', Georgia, serif; font-weight: 700; font-style: normal; color: var(--accent, #5a8bbe); font-size: 22px; margin-bottom: 8px; letter-spacing: 3px; text-transform: uppercase; }
+        .claude-term-welcome p { color: #666; font-size: 13px; line-height: 1.3; max-width: 500px; margin: 0 auto; }
         .claude-term-welcome .vc-line1 { font-size: 13px; }
-        .claude-term-welcome .vc-line2 { font-size: 11.5px; }
-        .claude-term-welcome .vc-line3 { font-size: 10px; }
-        .claude-term-welcome .vc-line4 { font-size: 8.5px; }
+        .claude-term-welcome .vc-line2 { font-size: 11.5px; margin-top: 1px; }
+        .claude-term-welcome .vc-line3 { font-size: 10px; margin-top: 1px; }
+        .claude-term-welcome .vc-line4 { font-size: 8.5px; margin-top: 1px; }
         .claude-term-welcome .vc-try { margin-top: 10px; }
         .claude-term-welcome kbd { background: #2c2c30; padding: 2px 6px; border-radius: 3px; font-family: 'Menlo', monospace; font-size: 11px; color: #999; border: 1px solid #3e3e44; transition: opacity 0.25s, transform 0.25s; cursor: pointer; }
         .claude-term-welcome kbd:hover { color: #ccc; border-color: #555; }
@@ -418,13 +427,106 @@
         .claude-thinking-indicator .dots span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes dotPulse { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
         .unsaved-dot.show { display: inline-block; }
+
+        /* ── Mobile Hamburger Menu ── */
+        .mobile-hamburger { display: none; position: fixed; top: 5px; left: 6px; z-index: 1000; width: 36px; height: 36px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 0; transition: all 0.2s; }
+        .mobile-hamburger span { display: block; width: 20px; height: 2px; background: var(--text); transition: all 0.3s; border-radius: 2px; }
+        .mobile-hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(6px, 6px); }
+        .mobile-hamburger.open span:nth-child(2) { opacity: 0; }
+        .mobile-hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(6px, -6px); }
+        .mobile-hamburger:hover { background: var(--surface2); border-color: var(--accent); }
+
+        /* ── Mobile Preview Toggle ── */
+        .mobile-preview-toggle { display: none; position: fixed; bottom: 16px; right: 16px; z-index: 1000; width: 56px; height: 56px; background: var(--accent); color: var(--accent-text); border: none; border-radius: 8px; cursor: pointer; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: bottom 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease; text-align: center; line-height: 1.2; }
+        .mobile-preview-toggle.elevated { bottom: 75px; }
+        .mobile-preview-toggle.elevated.preview-mode { bottom: 16px; }
+        .mobile-preview-toggle:hover { transform: scale(1.05); box-shadow: 0 6px 16px rgba(0,0,0,0.25); }
+        .mobile-preview-toggle:active { transform: scale(0.95); }
+        .mobile-preview-toggle.preview-mode { background: var(--success); }
+
+        /* ── Mobile Responsive ── */
+        @media (max-width: 768px) {
+            /* Hide desktop sidebar */
+            .sidebar { position: fixed; left: 0; top: 46px; bottom: 0; width: 280px; transform: translateX(-100%); transition: transform 0.3s ease; z-index: 999; box-shadow: var(--shadow-md); }
+            .sidebar.open { transform: translateX(0); }
+
+            /* Show mobile controls */
+            .mobile-hamburger { display: flex; }
+            .mobile-preview-toggle.show-mobile { display: flex; }
+
+            /* Compact header for mobile — two rows: hamburger+title on top */
+            .header-bar { padding: 8px 10px 8px 48px; height: 50px; }
+            .header-bar h1 { font-size: 18px !important; white-space: nowrap; }
+            .header-bar .adze-logo { height: 20px !important; }
+            /* Hide welcome text and dash on mobile */
+            .header-bar .welcome-dash, .header-bar .welcome-text { display: none !important; }
+            /* Hide theme toggle and fullscreen on mobile */
+            .header-bar .header-actions .btn-ghost { display: none; }
+            .header-bar .theme-toggle { display: none; }
+            .header-bar .header-actions { gap: 4px; }
+
+            /* Sidebar below taller header */
+            .sidebar { top: 50px; }
+
+            /* Hamburger centered in header */
+            .mobile-hamburger { top: 7px; }
+
+            /* Make tabs scrollable — no overlap with hamburger */
+            .tab-bar { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 0 8px; }
+            .tab-bar::-webkit-scrollbar { display: none; }
+            .tab { flex-shrink: 0; font-size: 11px; padding: 7px 10px; }
+            .tab-spacer { display: none; }
+            .tab-bar .btn-sm { font-size: 10px; padding: 4px 8px; }
+            .tab-bar .btn-danger { display: none; }
+
+            /* Mobile split pane behavior */
+            .split-pane { position: relative; }
+            .editor-pane { width: 100% !important; min-width: 100%; }
+            .preview-pane { position: absolute; top: 0; left: 0; right: 0; bottom: 0; transform: translateX(100%); transition: transform 0.3s ease; z-index: 100; }
+            .split-pane.preview-mode .preview-pane { transform: translateX(0); }
+            .split-pane.preview-mode .editor-pane { visibility: hidden; }
+            .pane-resizer { display: none; }
+
+            /* Adjust Claude terminal for mobile — ensure input stays visible */
+            .claude-terminal { font-size: 12px; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+            .claude-term-output { flex: 1; min-height: 0; overflow-y: auto; }
+            .claude-term-input-bar { padding: 10px; gap: 6px; flex-shrink: 0; background: #222226; border-top: 1px solid #333; }
+            .claude-term-input-bar input { font-size: 14px; padding: 10px 12px; }
+            .claude-term-input-bar button { padding: 10px 14px; font-size: 13px; }
+            .claude-tool-btn { font-size: 10px; padding: 6px 8px; }
+
+            /* Adjust editor split */
+            .editor-split { flex-direction: column; }
+            .css-editor, .html-editor { width: 100% !important; min-height: 300px; }
+            .editor-divider { display: none; }
+
+            /* Modal adjustments */
+            .modal-content { max-width: calc(100% - 32px); margin: 16px; }
+            .login-box { margin: 16px; max-width: calc(100% - 32px); }
+
+            /* Smaller text on mobile */
+            body { font-size: 13px; }
+        }
+
+        @media (max-width: 480px) {
+            .header-bar { padding: 8px 6px 8px 44px; height: 48px; }
+            .header-bar h1 { font-size: 15px !important; }
+            .header-bar .adze-logo { height: 18px !important; }
+            .mobile-hamburger { top: 6px; left: 4px; width: 36px; height: 36px; }
+            .sidebar { top: 48px; }
+            .tab { font-size: 10px; padding: 6px 8px; }
+        }
+
+        /* Mobile sidebar overlay */
+        .mobile-sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 998; opacity: 0; transition: opacity 0.3s; }
+        .mobile-sidebar-overlay.show { display: block; opacity: 1; }
     </style>
 </head>
 <body>
     <!-- Login -->
     <div class="login-screen" id="loginScreen">
         <div class="login-box">
-            <div style="text-align:center;margin-bottom:16px;"><img src="/api/adze/logo.png" alt="Adze" style="height:56px;width:auto;"></div>
+            <div style="text-align:center;margin-bottom:16px;"><img src="/api/adze/logo.png" alt="Adze" class="adze-logo" style="height:56px;width:auto;"></div>
             <h1 style="text-align:center;font-family:'Cardo',Georgia,serif;font-weight:700;font-style:normal;color:var(--text);">Adze Studio <span style="font-weight:400;font-size:16px;color:var(--text2);">(Beta)</span></h1>
             <p class="login-subtitle" style="text-align:center;">Sign in to manage your site</p>
             <div class="error-msg" id="loginError"></div>
@@ -440,26 +542,37 @@
                 <button type="submit" style="width:100%;padding:11px 16px;font-size:14px;">Sign In</button>
             </form>
             <div style="text-align:center;margin-top:20px;">
-                <button class="theme-toggle" onclick="toggleTheme()" style="font-size:13px;margin:0 auto;">&#9790; Dark Mode</button>
+                <button class="theme-toggle" onclick="toggleTheme()" style="font-size:13px;margin:0 auto;width:auto;padding:8px 14px;"><svg viewBox="0 0 24 24" style="width:14px;height:14px;margin-right:6px;vertical-align:middle;"><circle cx="12" cy="12" r="5"/><path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/></svg><span>Dark Mode</span></button>
             </div>
         </div>
     </div>
 
     <!-- Dashboard -->
     <div class="dashboard" id="dashboard">
+        <!-- Mobile Controls -->
+        <button class="mobile-hamburger" id="mobileHamburger" onclick="toggleMobileSidebar()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="mobile-sidebar-overlay" id="mobileSidebarOverlay" onclick="closeMobileSidebar()"></div>
+        <button class="mobile-preview-toggle" id="mobilePreviewToggle" onclick="toggleMobilePreview()">
+            <span id="previewToggleText">Preview</span>
+        </button>
+
         <!-- Header -->
         <div class="header-bar">
             <div style="display:flex;align-items:center;gap:12px;">
-                <img src="/api/adze/logo.png" alt="Adze" style="height:26px;width:auto;">
+                <img src="/api/adze/logo.png" alt="Adze" class="adze-logo" style="height:26px;width:auto;">
                 <h1 style="font-family:'Cardo',Georgia,serif;font-weight:700;font-style:normal;color:var(--text);font-size:26px;">Adze Studio</h1>
-                <span style="color:var(--text2);margin-left:6px;">–</span>
-                <span style="font-family:'Cardo',Georgia,serif;color:var(--text2);font-size:13px;margin-left:6px;">Welcome back, <span id="artistName" style="color:var(--text2);"></span></span>
+                <span class="welcome-dash" style="color:var(--text2);margin-left:6px;">–</span>
+                <span class="welcome-text" style="font-family:'Cardo',Georgia,serif;color:var(--text2);font-size:13px;margin-left:6px;">Welcome back, <span id="artistName" style="color:var(--text2);"></span></span>
             </div>
             <div class="header-actions">
                 <span class="unsaved-dot" id="unsavedDot" title="Unsaved changes"></span>
                 <button onclick="savePage()" id="saveBtn" disabled>Save</button>
                 <button class="btn-ghost" onclick="toggleFullscreen()">Fullscreen</button>
-                <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="Toggle dark mode">&#9790;</button>
+                <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="Toggle dark mode"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/></svg></button>
                 <button class="btn-ghost" onclick="logout()">Logout</button>
             </div>
         </div>
@@ -543,12 +656,15 @@
                                         <p class="vc-try">Try: <kbd class="vc-suggestion" id="vcSuggestion">update the nav on all pages</kbd></p>
                                     </div>
                                 </div>
-                                <div class="claude-term-input-bar">
+                                <div class="claude-term-tools" id="claudeToolsRow" style="display:none;padding:6px 10px;background:#222226;border-top:1px solid #333;gap:6px;flex-shrink:0;flex-wrap:wrap;">
                                     <button class="claude-tool-btn" onclick="openClaudeAssetModal()" title="Insert asset reference">+ Asset</button>
                                     <button class="claude-tool-btn" id="claudePointerBtn" onclick="toggleClaudePointer()" title="Pick an element on the preview">Pointer</button>
-                                    <input type="text" id="claudeInput" placeholder="Ask the Vibe Coder anything about your site..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendClaudeMessage();}">
+                                    <button class="claude-tool-btn" onclick="resetClaudeSession()" title="Clear memory and start fresh">Clear Memory</button>
+                                </div>
+                                <div class="claude-term-input-bar">
+                                    <button class="claude-tools-toggle" onclick="toggleClaudeTools()" title="Tools">+</button>
+                                    <input type="text" id="claudeInput" placeholder="Ask anything about your site..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendClaudeMessage();}">
                                     <button class="claude-send" onclick="sendClaudeMessage()" id="claudeSendBtn">Send</button>
-                                    <button class="claude-reset" onclick="resetClaudeSession()" title="Clear memory and start fresh — can also speed things up">Clear Memory</button>
                                 </div>
                             </div>
                         </div>
@@ -557,6 +673,7 @@
                             <div class="pane-header">
                                 <span>Preview</span>
                                 <div class="pane-actions">
+                                    <button class="btn-sm btn-ghost" id="textEditBtn" onclick="toggleTextEdit()" title="Click text in the preview to edit it inline">✎ Text Edit</button>
                                     <button class="btn-sm btn-ghost" onclick="refreshPreview()" title="Reload preview from server">↻ Refresh</button>
                                     <button class="btn-sm btn-ghost" onclick="toggleFullscreen()">Fullscreen</button>
                                 </div>
@@ -863,14 +980,60 @@ function toggleTheme() {
 }
 function updateThemeIcon() {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const svg = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/></svg>';
+    const svgWithText = `<svg viewBox="0 0 24 24" style="width:14px;height:14px;margin-right:6px;vertical-align:middle;"><circle cx="12" cy="12" r="5"/><path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/></svg><span>${isDark ? 'Light Mode' : 'Dark Mode'}</span>`;
+
     document.querySelectorAll('.theme-toggle').forEach(btn => {
-        btn.innerHTML = isDark ? '&#9728; Light Mode' : '&#9790; Dark Mode';
+        if (btn.id === 'themeToggle') {
+            btn.innerHTML = svg;
+        } else {
+            btn.innerHTML = svgWithText;
+        }
         btn.title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
     });
-    const headerBtn = document.getElementById('themeToggle');
-    if (headerBtn) headerBtn.innerHTML = isDark ? '&#9728;' : '&#9790;';
 }
 initTheme();
+
+// ── Mobile Controls ──
+function toggleMobileSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const hamburger = document.getElementById('mobileHamburger');
+    const overlay = document.getElementById('mobileSidebarOverlay');
+
+    sidebar.classList.toggle('open');
+    hamburger.classList.toggle('open');
+    overlay.classList.toggle('show');
+}
+
+function closeMobileSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const hamburger = document.getElementById('mobileHamburger');
+    const overlay = document.getElementById('mobileSidebarOverlay');
+
+    sidebar.classList.remove('open');
+    hamburger.classList.remove('open');
+    overlay.classList.remove('show');
+}
+
+function toggleMobilePreview() {
+    const activePanel = document.querySelector('.tab-panel.active');
+    const splitPane = activePanel?.querySelector('.split-pane');
+    const toggleBtn = document.getElementById('mobilePreviewToggle');
+    const toggleText = document.getElementById('previewToggleText');
+
+    if (splitPane) {
+        const isPreviewMode = splitPane.classList.toggle('preview-mode');
+        toggleBtn.classList.toggle('preview-mode', isPreviewMode);
+        toggleText.textContent = isPreviewMode ? 'Editor' : 'Preview';
+    }
+}
+
+// Close mobile sidebar when clicking on a page
+function handlePageClick() {
+    if (window.innerWidth <= 768) {
+        closeMobileSidebar();
+    }
+}
 
 // ── Auth ──
 const stored = { a: localStorage.getItem('artistSlug'), t: localStorage.getItem('adminToken') };
@@ -1345,6 +1508,25 @@ function switchTab(tab, btn) {
     else document.querySelector(`.tab[data-tab="${tab}"]`)?.classList.add('active');
     const panel = document.getElementById('panel-' + tab);
     if (panel) panel.classList.add('active');
+
+    // Show/hide mobile preview toggle based on whether tab has split-pane
+    const toggleBtn = document.getElementById('mobilePreviewToggle');
+    const hasSplitPane = panel?.querySelector('.split-pane') !== null;
+    if (toggleBtn) {
+        // Use class instead of inline style so CSS media query controls visibility
+        if (hasSplitPane) {
+            toggleBtn.classList.add('show-mobile');
+        } else {
+            toggleBtn.classList.remove('show-mobile');
+        }
+        // Elevate button on Vibe Coder tab to avoid covering controls
+        if (tab === 'claude') {
+            toggleBtn.classList.add('elevated');
+        } else {
+            toggleBtn.classList.remove('elevated');
+        }
+    }
+
     // Sync all preview frames
     syncAllPreviews();
 }
@@ -1374,7 +1556,7 @@ function renderPageList() {
         const li = document.createElement('li');
         li.className = 'page-item' + (currentPage && currentPage.slug === p.slug ? ' active' : '');
         li.innerHTML = `<div class="page-item-title">${p.title}</div><div class="page-item-slug">${p.slug}</div>`;
-        li.onclick = function() { loadPage(p.slug, this); };
+        li.onclick = function() { loadPage(p.slug, this); handlePageClick(); };
         list.appendChild(li);
     });
 }
@@ -1439,10 +1621,47 @@ function serializeContent(css, html) {
     return `<style>\n${css}\n</style>\n\n<html>\n${html}`;
 }
 
+// ── Preview navigation listener ──
+window.addEventListener('message', (e) => {
+    if (e.data?.type === 'adze-navigate' && e.data.page) {
+        const targetPage = e.data.page;
+        // Find the page in our loaded pages list
+        const match = pages.find(p => p.slug === targetPage || p.slug.endsWith('/' + targetPage));
+        if (match) {
+            // Find the page item element and load it
+            const pageItems = document.querySelectorAll('.page-item');
+            const el = Array.from(pageItems).find(item => item.dataset.slug === match.slug);
+            loadPage(match.slug, el);
+        } else {
+            toast(`Page "${targetPage}" not found`, 'error');
+        }
+    }
+});
+
 // ── Live Preview ──
 function buildPreviewDoc(css, html) {
     const title = currentPage?.config?.title || 'Preview';
     const baseHref = `/artists/${currentArtist}/${currentPage?.slug}/`;
+    // Inject a script that intercepts link clicks and loads source content
+    // instead of navigating to stale compiled output
+    const linkInterceptScript = `
+<script>
+document.addEventListener('click', function(e) {
+    const a = e.target.closest('a');
+    if (!a || !a.href) return;
+    try {
+        const url = new URL(a.href);
+        // Only intercept internal artist page links
+        const prefix = '/artists/${currentArtist}/';
+        if (url.pathname.startsWith(prefix)) {
+            e.preventDefault();
+            const pageName = url.pathname.replace(prefix, '').replace(/\\/$/, '') || 'home';
+            // Message the parent dashboard to switch to this page
+            window.parent.postMessage({ type: 'adze-navigate', page: pageName }, '*');
+        }
+    } catch(err) {}
+}, true);
+<\/script>`;
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1452,7 +1671,7 @@ function buildPreviewDoc(css, html) {
 <base href="${baseHref}">
 <style>${css}</style>
 </head>
-<body>${html}</body>
+<body>${html}${linkInterceptScript}</body>
 </html>`;
 }
 
@@ -3470,6 +3689,14 @@ async function sendClaudeMessage() {
     }
 }
 
+function toggleClaudeTools() {
+    const row = document.getElementById('claudeToolsRow');
+    const btn = document.querySelector('.claude-tools-toggle');
+    const isOpen = row.style.display === 'flex';
+    row.style.display = isOpen ? 'none' : 'flex';
+    btn.classList.toggle('open', !isOpen);
+}
+
 async function resetClaudeSession() {
     if (claudeIsStreaming) return;
     if (!confirm('Clear memory and start fresh?\n\nThis wipes the conversation so the Vibe Coder forgets everything from this session. It can also speed things up if responses have gotten slow.')) return;
@@ -3506,6 +3733,18 @@ function toggleClaudePointer() {
         overlay.onmousemove = claudePointerHover;
         overlay.onmouseout = () => { highlight.style.display = 'none'; label.style.display = 'none'; };
         overlay.onclick = claudePointerClick;
+        // On mobile, auto-switch to preview so user can see & tap elements
+        if (window.innerWidth <= 768) {
+            const splitPane = document.querySelector('.tab-panel.active .split-pane');
+            if (splitPane && !splitPane.classList.contains('preview-mode')) {
+                toggleMobilePreview();
+            }
+            // Also close the tools row
+            const toolsRow = document.getElementById('claudeToolsRow');
+            const toolsBtn = document.querySelector('.claude-tools-toggle');
+            if (toolsRow) toolsRow.style.display = 'none';
+            if (toolsBtn) toolsBtn.classList.remove('open');
+        }
     } else {
         overlay.classList.remove('active');
         btn.classList.remove('active');
@@ -3513,6 +3752,13 @@ function toggleClaudePointer() {
         label.style.display = 'none';
         overlay.onmousemove = null;
         overlay.onclick = null;
+        // On mobile, switch back to editor after picking
+        if (window.innerWidth <= 768) {
+            const splitPane = document.querySelector('.tab-panel.active .split-pane');
+            if (splitPane && splitPane.classList.contains('preview-mode')) {
+                toggleMobilePreview();
+            }
+        }
     }
 }
 
@@ -3575,6 +3821,143 @@ function claudePointerClick(e) {
 // ── Claude Asset Picker (multi-select) ──
 window._claudeAssetMode = false;
 window._claudeSelectedAssets = new Set();
+
+// ── Inline Text Editor ──
+let textEditActive = false;
+let textEditCleanup = null;
+
+function toggleTextEdit() {
+    textEditActive = !textEditActive;
+    const btn = document.getElementById('textEditBtn');
+    const iframe = document.getElementById('previewFrameClaude');
+
+    if (textEditActive) {
+        btn.style.color = 'var(--accent)';
+        btn.style.fontWeight = '700';
+        enableTextEdit(iframe);
+    } else {
+        btn.style.color = '';
+        btn.style.fontWeight = '';
+        disableTextEdit();
+    }
+}
+
+function enableTextEdit(iframe) {
+    try {
+        const doc = iframe.contentDocument;
+        if (!doc) return;
+
+        // Style for hover highlight
+        const style = doc.createElement('style');
+        style.id = 'adze-text-edit-style';
+        style.textContent = `
+            .adze-text-hover { outline: 2px dashed var(--accent, #5a8bbe) !important; outline-offset: 2px; cursor: text !important; }
+            .adze-text-editing { outline: 2px solid #5a8bbe !important; outline-offset: 2px; background: rgba(90,139,190,0.05) !important; }
+        `;
+        doc.head.appendChild(style);
+
+        const isTextNode = (el) => {
+            const tag = el.tagName?.toLowerCase();
+            if (['script','style','iframe','img','svg','video','audio','canvas','br','hr','input','select','textarea'].includes(tag)) return false;
+            // Has direct text content
+            for (const child of el.childNodes) {
+                if (child.nodeType === 3 && child.textContent.trim()) return true;
+            }
+            // Or is a typical text container
+            return ['h1','h2','h3','h4','h5','h6','p','span','a','li','td','th','label','button','figcaption','blockquote','em','strong','b','i','small','code','pre'].includes(tag);
+        };
+
+        let hoveredEl = null;
+
+        const onMouseOver = (e) => {
+            const el = e.target;
+            if (!isTextNode(el)) return;
+            if (el.contentEditable === 'true') return;
+            if (hoveredEl) hoveredEl.classList.remove('adze-text-hover');
+            el.classList.add('adze-text-hover');
+            hoveredEl = el;
+        };
+
+        const onMouseOut = (e) => {
+            if (hoveredEl) {
+                hoveredEl.classList.remove('adze-text-hover');
+                hoveredEl = null;
+            }
+        };
+
+        const onClick = (e) => {
+            const el = e.target;
+            if (!isTextNode(el)) return;
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Remove hover
+            el.classList.remove('adze-text-hover');
+            el.classList.add('adze-text-editing');
+
+            const originalText = el.textContent;
+            el.contentEditable = 'true';
+            el.focus();
+
+            const onBlur = () => {
+                el.contentEditable = 'false';
+                el.classList.remove('adze-text-editing');
+                const newText = el.textContent;
+                if (newText !== originalText) {
+                    // Update the HTML editor with the change
+                    applyTextEditToSource(originalText, newText);
+                }
+                el.removeEventListener('blur', onBlur);
+                el.removeEventListener('keydown', onKey);
+            };
+
+            const onKey = (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); el.blur(); }
+                if (e.key === 'Escape') { el.textContent = originalText; el.blur(); }
+            };
+
+            el.addEventListener('blur', onBlur);
+            el.addEventListener('keydown', onKey);
+        };
+
+        doc.addEventListener('mouseover', onMouseOver, true);
+        doc.addEventListener('mouseout', onMouseOut, true);
+        doc.addEventListener('click', onClick, true);
+
+        textEditCleanup = () => {
+            doc.removeEventListener('mouseover', onMouseOver, true);
+            doc.removeEventListener('mouseout', onMouseOut, true);
+            doc.removeEventListener('click', onClick, true);
+            const s = doc.getElementById('adze-text-edit-style');
+            if (s) s.remove();
+            if (hoveredEl) hoveredEl.classList.remove('adze-text-hover');
+        };
+    } catch(e) {
+        console.warn('Text edit failed:', e);
+    }
+}
+
+function disableTextEdit() {
+    if (textEditCleanup) {
+        textEditCleanup();
+        textEditCleanup = null;
+    }
+}
+
+function applyTextEditToSource(oldText, newText) {
+    // Find and replace in the HTML editor
+    const htmlEditor = document.getElementById('htmlEditor');
+    if (!htmlEditor) return;
+
+    const html = htmlEditor.value;
+    // Escape for regex but do a simple string replace
+    const idx = html.indexOf(oldText);
+    if (idx !== -1) {
+        htmlEditor.value = html.substring(0, idx) + newText + html.substring(idx + oldText.length);
+        schedulePreview(0);
+        markUnsaved();
+    }
+}
 
 function openClaudeAssetModal() {
     document.getElementById('aiAssetSearch').value = '';
