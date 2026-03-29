@@ -30,4 +30,35 @@ p {
     <h1>Sandbox</h1>
     <p>This is a blank canvas. Use the Vibe Coder to build something.</p>
 </div>
+
+<script>
+// Error 1: Undefined variable
+try {
+    console.log(thisVariableDoesNotExist);
+} catch(e) {
+    console.error('Error 1:', e);
+}
+
+// Error 2: Calling undefined function
+try {
+    nonExistentFunction();
+} catch(e) {
+    console.error('Error 2:', e);
+}
+
+// Error 3: Type error
+try {
+    const obj = null;
+    obj.someMethod();
+} catch(e) {
+    console.error('Error 3:', e);
+}
+
+// Error 4: Reference error
+try {
+    let x = undefinedThing + 5;
+} catch(e) {
+    console.error('Error 4:', e);
+}
+</script>
 </html>

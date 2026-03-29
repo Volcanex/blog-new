@@ -400,6 +400,8 @@
         .claude-term-input-bar .claude-send { background: #5a8bbe; color: #fff; }
         .claude-term-input-bar .claude-send:hover { background: #6a9fd4; }
         .claude-term-input-bar .claude-send:disabled { opacity: 0.4; }
+        .claude-term-input-bar .claude-halt { background: #c0392b; color: #fff; padding: 10px 14px; }
+        .claude-term-input-bar .claude-halt:hover { background: #e74c3c; }
         .claude-term-input-bar .claude-reset { background: transparent; color: #666; border: 1px solid #3e3e44; padding: 10px 12px; }
         .claude-term-input-bar .claude-reset:hover { color: #e74c3c; border-color: #e74c3c; }
         .claude-tools-toggle { width: 36px; height: 36px; flex-shrink: 0; background: #2a2a2e; color: #999; border: 1px solid #3e3e44; border-radius: 6px; font-size: 20px; font-weight: 300; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; padding: 0; line-height: 1; }
@@ -603,7 +605,7 @@
                     <button class="tab" data-tab="about" onclick="switchTab('about', this)">About</button>
                     <span id="widgetTabsContainer"></span>
                     <span class="tab-spacer"></span>
-                    <a class="btn-sm btn-ghost" id="livePageLink" href="#" target="_blank" style="text-decoration:none;display:inline-block;line-height:1.4;">View Live</a>
+                    <button class="btn-sm btn-ghost" id="livePageLink" onclick="publishAndView()">Publish / View Live</button>
                     <button class="btn-sm btn-danger" onclick="showModal('deletePageModal')">Delete Page</button>
                 </div>
 
@@ -665,6 +667,7 @@
                                     <button class="claude-tools-toggle" onclick="toggleClaudeTools()" title="Tools">+</button>
                                     <input type="text" id="claudeInput" placeholder="Ask anything about your site..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendClaudeMessage();}">
                                     <button class="claude-send" onclick="sendClaudeMessage()" id="claudeSendBtn">Send</button>
+                                    <button class="claude-halt" onclick="haltClaude()" id="claudeHaltBtn" style="display:none;" title="Stop the Vibe Coder">Stop</button>
                                 </div>
                             </div>
                         </div>
@@ -677,6 +680,12 @@
                                     <button class="btn-sm btn-ghost" onclick="refreshPreview()" title="Reload preview from server">↻ Refresh</button>
                                     <button class="btn-sm btn-ghost" onclick="toggleFullscreen()">Fullscreen</button>
                                 </div>
+                            </div>
+                            <div id="previewErrorBar" style="display:none;background:#2d1b1b;border-bottom:1px solid #5a2d2d;padding:6px 12px;font-size:12px;color:#e8a0a0;flex-shrink:0;align-items:center;gap:8px;">
+                                <span id="previewErrorCount" style="font-weight:600;"></span>
+                                <span id="previewErrorSummary" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#c88;"></span>
+                                <button onclick="sendErrorsToVibeCoder()" style="background:#5a8bbe;color:#fff;border:none;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;">Send to Vibe Coder</button>
+                                <button onclick="dismissErrors()" style="background:none;border:none;color:#886;cursor:pointer;font-size:14px;padding:2px 4px;">✕</button>
                             </div>
                             <iframe id="previewFrameClaude" class="preview-frame" sandbox="allow-same-origin allow-scripts"></iframe>
                             <div class="pointer-overlay" id="claudePointerOverlay"></div>
@@ -980,14 +989,19 @@ function toggleTheme() {
 }
 function updateThemeIcon() {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const svg = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/></svg>';
-    const svgWithText = `<svg viewBox="0 0 24 24" style="width:14px;height:14px;margin-right:6px;vertical-align:middle;"><circle cx="12" cy="12" r="5"/><path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/></svg><span>${isDark ? 'Light Mode' : 'Dark Mode'}</span>`;
+    // Block-colour sun (light) and moon (dark) icons
+    const sunSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="5"/><rect x="11" y="1" width="2" height="4" rx="1"/><rect x="11" y="19" width="2" height="4" rx="1"/><rect x="19" y="11" width="4" height="2" rx="1"/><rect x="1" y="11" width="4" height="2" rx="1"/><rect x="17.2" y="3.4" width="2" height="4" rx="1" transform="rotate(45 18.2 5.4)"/><rect x="4.8" y="16.6" width="2" height="4" rx="1" transform="rotate(45 5.8 18.6)"/><rect x="17.2" y="16.6" width="2" height="4" rx="1" transform="rotate(-45 18.2 18.6)"/><rect x="4.8" y="3.4" width="2" height="4" rx="1" transform="rotate(-45 5.8 5.4)"/></svg>';
+    const moonSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+    const icon = isDark ? sunSvg : moonSvg;
+    const iconSmall = isDark
+        ? '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:14px;height:14px;margin-right:6px;vertical-align:middle;"><circle cx="12" cy="12" r="5"/><rect x="11" y="1" width="2" height="4" rx="1"/><rect x="11" y="19" width="2" height="4" rx="1"/><rect x="19" y="11" width="4" height="2" rx="1"/><rect x="1" y="11" width="4" height="2" rx="1"/><rect x="17.2" y="3.4" width="2" height="4" rx="1" transform="rotate(45 18.2 5.4)"/><rect x="4.8" y="16.6" width="2" height="4" rx="1" transform="rotate(45 5.8 18.6)"/><rect x="17.2" y="16.6" width="2" height="4" rx="1" transform="rotate(-45 18.2 18.6)"/><rect x="4.8" y="3.4" width="2" height="4" rx="1" transform="rotate(-45 5.8 5.4)"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:14px;height:14px;margin-right:6px;vertical-align:middle;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
 
     document.querySelectorAll('.theme-toggle').forEach(btn => {
         if (btn.id === 'themeToggle') {
-            btn.innerHTML = svg;
+            btn.innerHTML = icon;
         } else {
-            btn.innerHTML = svgWithText;
+            btn.innerHTML = iconSmall + `<span>${isDark ? 'Light Mode' : 'Dark Mode'}</span>`;
         }
         btn.title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
     });
@@ -1183,9 +1197,52 @@ async function saveDomain() {
     try {
         const r = await apiFetch('/api/adze/update-domain', { method: 'POST', body: { domain } });
         if (!r.ok) { toast('Failed to save domain', 'error'); return; }
-        toast('Domain saved — text Gabriel to finish the setup', 'success');
+        toast('Domain saved', 'success');
         checkDomain();
     } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function activateDomain(domain) {
+    const btn = document.getElementById('activateDomainBtn');
+    const log = document.getElementById('activateDomainLog');
+    btn.disabled = true;
+    btn.textContent = 'Activating...';
+    log.style.display = 'block';
+    log.textContent = 'Starting domain activation...\n';
+
+    try {
+        const r = await apiFetch('/api/adze/activate-domain', {
+            method: 'POST',
+            body: { domain }
+        });
+        const data = await r.json();
+
+        if (data.steps) {
+            data.steps.forEach(s => { log.textContent += '  ✓ ' + s + '\n'; });
+        }
+
+        if (data.success) {
+            if (data.partial) {
+                log.textContent += '\n⚠ ' + (data.warning || 'Partial success') + '\n';
+                toast('Domain active on HTTP — SSL may need another attempt', 'info');
+            } else {
+                log.textContent += '\n✓ Domain is live at https://' + domain + '\n';
+                toast('Domain activated with SSL!', 'success');
+            }
+            btn.textContent = 'Done!';
+            setTimeout(() => checkDomain(), 2000);
+        } else {
+            log.textContent += '\n✗ Error: ' + (data.error || 'Unknown error') + '\n';
+            toast('Activation failed: ' + (data.error || 'Unknown error'), 'error');
+            btn.textContent = 'Retry';
+            btn.disabled = false;
+        }
+    } catch(e) {
+        log.textContent += '\n✗ Error: ' + e.message + '\n';
+        toast('Activation failed: ' + e.message, 'error');
+        btn.textContent = 'Retry';
+        btn.disabled = false;
+    }
 }
 
 async function checkDomain() {
@@ -1254,91 +1311,48 @@ function renderDomainPanel(d) {
     // Setup instructions
     html += '<h3 style="margin:20px 0 12px;font-size:15px;">Setup Guide</h3>';
 
-    // Step 1: DNS
+    // Step 1: DNS (still manual — user needs to do this at their registrar)
     html += `
         <div class="domain-step">
-            <h5>Step 1: DNS Configuration</h5>
-            <p>Go to your domain registrar (Namecheap, Cloudflare, GoDaddy, etc.) and add these records:</p>
+            <h5>Step 1: Point your DNS</h5>
+            <p>Go to your domain registrar (Namecheap, Cloudflare, GoDaddy, etc.) and add this record:</p>
             <div class="domain-cmd-block">Type: A
 Name: @ (or blank)
 Value: ${d.server_ipv4}
 TTL: Auto
 
-Type: AAAA
-Name: @ (or blank)
-Value: ${d.server_ipv6}
-TTL: Auto
-
-(Optional) For www subdomain:
+(Optional) For www:
 Type: CNAME
 Name: www
 Value: ${d.domain}
 TTL: Auto</div>
-            <p>DNS changes can take up to 24 hours to propagate (usually much faster).</p>
+            <p style="font-size:12px;color:var(--text2);">DNS changes can take up to 24 hours to propagate (usually much faster). Use the Re-check button above to see when it's ready.</p>
         </div>`;
 
-    // Step 2: Nginx
-    html += `
-        <div class="domain-step">
-            <h5>Step 2: Nginx Server Block</h5>
-            <p>Run this to create the nginx config:</p>
-            <div class="domain-cmd-block">sudo tee /etc/nginx/sites-available/${d.domain} << 'NGINX'
-server {
-    listen 80;
-    listen [::]:80;
-    server_name ${d.domain} www.${d.domain};
-
-    root /home/gabriel/blog-new/output/artists/${d.slug};
-
-    location /assets/ {
-        alias /home/gabriel/blog-new/output/artists/${d.slug}/assets/;
-        expires 24h;
-        add_header Cache-Control "public, max-age=86400";
+    // Step 2: Activate — auto nginx + SSL
+    if (d.dns_ok && !d.ssl_ok) {
+        html += `
+            <div class="domain-step">
+                <h5>Step 2: Activate Domain</h5>
+                <p>DNS is pointing to the server. Click below to automatically configure the web server and SSL certificate.</p>
+                <button id="activateDomainBtn" onclick="activateDomain('${d.domain}')" style="margin-top:8px;padding:10px 24px;background:var(--accent);color:white;border:none;border-radius:var(--radius);cursor:pointer;font-size:14px;font-weight:600;">
+                    Activate Domain
+                </button>
+                <div id="activateDomainLog" style="display:none;margin-top:12px;padding:12px;background:var(--surface2);border-radius:var(--radius);font-family:monospace;font-size:12px;white-space:pre-wrap;color:var(--text2);max-height:200px;overflow-y:auto;"></div>
+            </div>`;
+    } else if (!d.dns_ok) {
+        html += `
+            <div class="domain-step">
+                <h5>Step 2: Activate Domain</h5>
+                <p style="color:var(--text2);">Waiting for DNS to propagate... Once the DNS check above shows a tick, you'll be able to activate with one click.</p>
+            </div>`;
+    } else if (d.ssl_ok) {
+        html += `
+            <div class="domain-step">
+                <h5 style="color:var(--success);">Domain is fully active</h5>
+                <p>Nginx and SSL are configured. Your site is live at <a href="https://${d.domain}" target="_blank" style="color:var(--accent);">https://${d.domain}</a></p>
+            </div>`;
     }
-
-    location /api/ {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        client_max_body_size 50M;
-    }
-
-    location / {
-        try_files $uri $uri/ @api;
-    }
-
-    location @api {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-}
-NGINX</div>
-            <p>Then enable and reload:</p>
-            <div class="domain-cmd-block">sudo ln -sf /etc/nginx/sites-available/${d.domain} /etc/nginx/sites-enabled/
-sudo nginx -t && sudo systemctl reload nginx</div>
-        </div>`;
-
-    // Step 3: SSL
-    html += `
-        <div class="domain-step">
-            <h5>Step 3: SSL Certificate</h5>
-            <p>Run this to get a free SSL certificate (without www first, add www later once its CNAME propagates):</p>
-            <div class="domain-cmd-block">sudo certbot --nginx -d ${d.domain}</div>
-            <p>Once www CNAME is working too, expand the cert:</p>
-            <div class="domain-cmd-block">sudo certbot --nginx -d ${d.domain} -d www.${d.domain} --expand</div>
-            <p>Certbot will automatically update your nginx config for HTTPS.</p>
-        </div>`;
 
     // Current access
     html += `
@@ -1572,7 +1586,7 @@ async function loadPage(slug, clickedEl) {
         // Show editor UI
         document.getElementById('emptyState').style.display = 'none';
         document.getElementById('tabBar').style.display = 'flex';
-        document.getElementById('livePageLink').href = `/artists/${currentArtist}/${data.slug}/`;
+        document.getElementById('livePageLink').dataset.url = `/artists/${currentArtist}/${data.slug}/`;
         document.querySelectorAll('.tab-panel').forEach(p => { /* make sure they exist in DOM */ });
         switchTab('claude');
 
@@ -1638,6 +1652,46 @@ window.addEventListener('message', (e) => {
     }
 });
 
+// ── Preview error capture ──
+let previewErrors = [];
+let previewErrorDedup = new Set();
+
+window.addEventListener('message', (e) => {
+    if (e.data?.type === 'adze-preview-error' && e.data.error) {
+        const err = e.data.error;
+        // Deduplicate (multiple iframes send same errors)
+        const key = err.type + ':' + err.message;
+        if (previewErrorDedup.has(key)) return;
+        previewErrorDedup.add(key);
+        previewErrors.push(err);
+
+        const bar = document.getElementById('previewErrorBar');
+        const count = document.getElementById('previewErrorCount');
+        const summary = document.getElementById('previewErrorSummary');
+        if (!bar) return;
+        bar.style.display = 'flex';
+        count.textContent = previewErrors.length + ' error' + (previewErrors.length > 1 ? 's' : '');
+        summary.textContent = previewErrors[0].message;
+    }
+});
+
+function sendErrorsToVibeCoder() {
+    if (previewErrors.length === 0) return;
+    const errorText = previewErrors.map((e, i) => `${i + 1}. [${e.type}] ${e.message}`).join('\n');
+    const input = document.getElementById('claudeInput');
+    input.value = `The live preview has ${previewErrors.length} error(s) in the browser console:\n\n${errorText}\n\nPlease fix these.`;
+    input.focus();
+    // Auto-send
+    sendClaudeMessage();
+    dismissErrors();
+}
+
+function dismissErrors() {
+    previewErrors = [];
+    const bar = document.getElementById('previewErrorBar');
+    if (bar) bar.style.display = 'none';
+}
+
 // ── Live Preview ──
 function buildPreviewDoc(css, html) {
     const title = currentPage?.config?.title || 'Preview';
@@ -1651,16 +1705,40 @@ document.addEventListener('click', function(e) {
     if (!a || !a.href) return;
     try {
         const url = new URL(a.href);
-        // Only intercept internal artist page links
         const prefix = '/artists/${currentArtist}/';
         if (url.pathname.startsWith(prefix)) {
             e.preventDefault();
             const pageName = url.pathname.replace(prefix, '').replace(/\\/$/, '') || 'home';
-            // Message the parent dashboard to switch to this page
             window.parent.postMessage({ type: 'adze-navigate', page: pageName }, '*');
         }
     } catch(err) {}
 }, true);
+<\/script>`;
+    const errorCaptureScript = `<script>
+(function() {
+    var _errors = [];
+    var _origError = console.error;
+    console.error = function() {
+        var msg = Array.prototype.slice.call(arguments).map(function(a) {
+            if (a instanceof Error) return a.message || a.toString();
+            if (typeof a === 'object' && a !== null) { try { var s = JSON.stringify(a); return s === '{}' ? String(a) : s; } catch(e) { return String(a); } }
+            return String(a);
+        }).join(' ');
+        _errors.push({ type: 'console.error', message: msg });
+        window.parent.postMessage({ type: 'adze-preview-error', error: _errors[_errors.length - 1] }, '*');
+        _origError.apply(console, arguments);
+    };
+    window.onerror = function(msg, src, line, col, err) {
+        var e = { type: 'error', message: msg + (line ? ' (line ' + line + ')' : '') };
+        _errors.push(e);
+        window.parent.postMessage({ type: 'adze-preview-error', error: e }, '*');
+    };
+    window.addEventListener('unhandledrejection', function(ev) {
+        var e = { type: 'promise', message: 'Unhandled promise: ' + (ev.reason ? (ev.reason.message || String(ev.reason)) : 'unknown') };
+        _errors.push(e);
+        window.parent.postMessage({ type: 'adze-preview-error', error: e }, '*');
+    });
+})();
 <\/script>`;
     return `<!DOCTYPE html>
 <html lang="en">
@@ -1669,6 +1747,7 @@ document.addEventListener('click', function(e) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${title}</title>
 <base href="${baseHref}">
+${errorCaptureScript}
 <style>${css}</style>
 </head>
 <body>${html}${linkInterceptScript}</body>
@@ -1677,6 +1756,12 @@ document.addEventListener('click', function(e) {
 
 function updatePreview() {
     if (!currentPage) return;
+    // Clear previous errors before loading new content
+    previewErrors = [];
+    previewErrorDedup = new Set();
+    const bar = document.getElementById('previewErrorBar');
+    if (bar) bar.style.display = 'none';
+
     const css = document.getElementById('cssEditor').value;
     const html = document.getElementById('htmlEditor').value;
     const doc = buildPreviewDoc(css, html);
@@ -1740,6 +1825,54 @@ async function savePage() {
             loadPages();
         } else { toast('Save failed', 'error'); }
     } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function publishAndView() {
+    if (!currentPage) return;
+    const btn = document.getElementById('livePageLink');
+    const liveUrl = btn.dataset.url;
+    const origText = btn.textContent;
+
+    try {
+        // Save content to disk (no snapshot) so compile picks it up
+        const css = document.getElementById('cssEditor').value;
+        const html = document.getElementById('htmlEditor').value;
+        const content = serializeContent(css, html);
+        const config = getConfigFromForm();
+
+        btn.disabled = true;
+        btn.textContent = 'Publishing...';
+        toast('Press Cmd+Shift+R to hard refresh and see updates', 'info');
+
+        const r = await apiFetch('/api/adze/edit-page', {
+            method: 'POST',
+            body: { page_slug: currentPage.slug, content, config }
+        });
+
+        if (!r.ok) {
+            const errData = await r.text();
+            toast('Publish failed: ' + r.status + ' ' + errData, 'error');
+            btn.textContent = origText;
+            btn.disabled = false;
+            return;
+        }
+
+        setUnsaved(false);
+
+        // Countdown
+        for (let i = 3; i > 0; i--) {
+            btn.textContent = `Opening in ${i}...`;
+            await new Promise(r => setTimeout(r, 1000));
+        }
+
+        window.open(liveUrl, '_blank');
+        btn.textContent = origText;
+        btn.disabled = false;
+    } catch(e) {
+        toast('Error: ' + e.message, 'error');
+        btn.textContent = origText;
+        btn.disabled = false;
+    }
 }
 
 // Ctrl+S
@@ -3514,6 +3647,7 @@ async function sendClaudeMessage() {
     }
 
     claudeIsStreaming = true;
+    document.getElementById('claudeHaltBtn').style.display = '';
 
     // Clear welcome on first message
     if (claudeFirstMessage) {
@@ -3546,6 +3680,7 @@ async function sendClaudeMessage() {
             thinkingEl.remove();
             claudeAppendLine('Error: ' + response.statusText, 'error');
             claudeIsStreaming = false;
+            document.getElementById('claudeHaltBtn').style.display = 'none';
             return;
         }
 
@@ -3660,16 +3795,9 @@ async function sendClaudeMessage() {
         loadPages();
         loadAssets();
 
-        // If we're on a page, re-fetch its content to pick up any changes Claude made
+        // Re-fetch content and auto-refresh preview to pick up any changes Claude made
         if (currentPage) {
-            const r = await apiFetch(`/api/adze/get-page-content?page_slug=${currentPage.slug}`);
-            if (r.ok) {
-                const data = await r.json();
-                const { css, html } = parseContent(data.content);
-                document.getElementById('cssEditor').value = css;
-                document.getElementById('htmlEditor').value = html;
-                schedulePreview(0);
-            }
+            await refreshPreview();
         }
 
     } catch (err) {
@@ -3678,6 +3806,7 @@ async function sendClaudeMessage() {
     }
 
     claudeIsStreaming = false;
+    document.getElementById('claudeHaltBtn').style.display = 'none';
     document.getElementById('claudeSendBtn').disabled = false;
     document.getElementById('claudeInput').focus();
 
@@ -3695,6 +3824,24 @@ function toggleClaudeTools() {
     const isOpen = row.style.display === 'flex';
     row.style.display = isOpen ? 'none' : 'flex';
     btn.classList.toggle('open', !isOpen);
+}
+
+async function haltClaude() {
+    try {
+        await apiFetch('/api/adze/claude-halt', { method: 'POST' });
+        claudeIsStreaming = false;
+        document.getElementById('claudeHaltBtn').style.display = 'none';
+        // Add a halted indicator in the chat
+        const output = document.getElementById('claudeOutput');
+        const div = document.createElement('div');
+        div.className = 'ai-msg system';
+        div.innerHTML = '<em>Stopped.</em>';
+        output.appendChild(div);
+        output.scrollTop = output.scrollHeight;
+        toast('Vibe Coder stopped', 'info');
+    } catch (e) {
+        toast('Failed to stop: ' + e.message, 'error');
+    }
 }
 
 async function resetClaudeSession() {

@@ -216,170 +216,122 @@ a:hover { color: var(--accent); }
 /* ── Main Content ── */
 .main-content {
     flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    min-height: 100vh;
-    animation: gentleFade 1s ease-out 0.3s both;
-    margin-left: -130px; /* Offset sidebar width to center content */
+    padding: 80px 60px;
+    max-width: 900px;
+    animation: pageIn 1s ease-out 0.3s both;
 }
 
-.hero-text {
-    text-align: center;
-    position: relative;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-.hero-text h1 {
+.main-content h1 {
     font-style: normal;
     font-weight: 900;
-    font-size: 6rem;
-    margin: 0;
-    letter-spacing: -4px;
+    font-size: 3rem;
+    margin-bottom: 32px;
+    letter-spacing: -2px;
     text-transform: uppercase;
-    line-height: 0.9;
-    position: absolute;
-    transition: letter-spacing 0.3s ease;
-}
-.hero-text h1:hover {
-    letter-spacing: 0px;
 }
 
-/* Center */
-.layer-black-center {
-    color: #000;
-    z-index: 11;
-    top: 50%;
-    left: calc(50% + 7px);
-    transform: translate(-50%, -50%);
+.main-content h2 {
+    font-style: normal;
+    font-weight: 900;
+    font-size: 2rem;
+    margin-top: 48px;
+    margin-bottom: 20px;
+    letter-spacing: -1px;
+    text-transform: uppercase;
 }
 
-/* Going up from center: Black → Pink → Blue → Black → Pink → Blue */
-.layer-pink-top {
-    background-image: url('../assets/images/back.png');
-    background-size: 200px 200px;
-    background-repeat: repeat;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    color: transparent;
-    z-index: 10;
-    top: calc(50% - 6rem);
-    left: calc(50% - 12px);
-    transform: translate(-50%, -50%);
+.main-content p {
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    font-size: 16px;
+    line-height: 1.7;
 }
 
-.layer-blue-top {
-    color: var(--blue);
-    z-index: 9;
-    top: calc(50% - 12rem);
-    left: calc(50% + 5px);
-    transform: translate(-50%, -50%);
+.article-grid {
+    display: grid;
+    gap: 24px;
+    margin-top: 40px;
 }
 
-.layer-black-top {
-    color: #000;
-    z-index: 8;
-    top: calc(50% - 18rem);
-    left: calc(50% - 8px);
-    transform: translate(-50%, -50%);
+.article-card {
+    padding: 28px;
+    background: #fff;
+    border: 4px solid #000;
+    border-radius: 0;
+    transition: all 0.1s ease;
+    cursor: pointer;
 }
 
-.layer-pink-top-2 {
-    background-image: url('../assets/images/back.png');
-    background-size: 200px 200px;
-    background-repeat: repeat;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    color: transparent;
-    z-index: 7;
-    top: calc(50% - 24rem);
-    left: calc(50% + 14px);
-    transform: translate(-50%, -50%);
+.article-card:hover {
+    border-color: var(--accent);
+    transform: translateX(3px);
 }
 
-.layer-blue-top-2 {
-    color: var(--blue);
-    z-index: 6;
-    top: calc(50% - 30rem);
-    left: calc(50% - 6px);
-    transform: translate(-50%, -50%);
+.article-meta {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: -0.3px;
+    margin-bottom: 12px;
 }
 
-/* Going down from center: Black → Pink → Blue → Black → Pink → Blue */
-.layer-pink-bottom {
-    background-image: url('../assets/images/back.png');
-    background-size: 200px 200px;
-    background-repeat: repeat;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    color: transparent;
-    z-index: 5;
-    top: calc(50% + 6rem);
-    left: calc(50% + 11px);
-    transform: translate(-50%, -50%);
+.article-title {
+    font-family: var(--heading-font);
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--primary);
+    margin-bottom: 12px;
+    letter-spacing: -1px;
+    text-transform: uppercase;
+    line-height: 1.2;
 }
 
-.layer-blue-bottom {
-    color: var(--blue);
-    z-index: 4;
-    top: calc(50% + 12rem);
-    left: calc(50% - 9px);
-    transform: translate(-50%, -50%);
+.article-excerpt {
+    color: var(--text-muted);
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 16px;
 }
 
-.layer-black-bottom {
-    color: #000;
-    z-index: 3;
-    top: calc(50% + 18rem);
-    left: calc(50% + 13px);
-    transform: translate(-50%, -50%);
+.article-link {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: -0.5px;
+    border-bottom: 2px solid #000;
+    display: inline-block;
+    transition: all 0.1s ease;
 }
 
-.layer-pink-bottom-2 {
-    background-image: url('../assets/images/back.png');
-    background-size: 200px 200px;
-    background-repeat: repeat;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    color: transparent;
-    z-index: 2;
-    top: calc(50% + 24rem);
-    left: calc(50% - 15px);
-    transform: translate(-50%, -50%);
+.article-link:hover {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
 }
 
-.layer-blue-bottom-2 {
-    color: var(--blue);
-    z-index: 1;
-    top: calc(50% + 30rem);
-    left: calc(50% + 10px);
-    transform: translate(-50%, -50%);
+.platform-note {
+    margin-top: 48px;
+    padding: 24px 28px;
+    background: #fff;
+    border: 4px solid #000;
+    border-radius: 0;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text-muted);
+}
+
+.platform-note strong {
+    color: var(--primary);
+    font-weight: 900;
+    text-transform: uppercase;
 }
 
 @media (max-width: 768px) {
-    .main-content { min-height: 60vh; padding: 16px; margin-left: 0; }
-    .hero-text { height: 60vh; }
-    .hero-text h1 { font-size: 2.5rem; }
-
-    .layer-pink-top { top: calc(50% - 3rem); }
-    .layer-blue-top { top: calc(50% - 6rem); }
-    .layer-black-top { top: calc(50% - 9rem); }
-    .layer-pink-top-2 { top: calc(50% - 12rem); }
-    .layer-blue-top-2 { top: calc(50% - 15rem); }
-
-    .layer-pink-bottom { top: calc(50% + 3rem); }
-    .layer-blue-bottom { top: calc(50% + 6rem); }
-    .layer-black-bottom { top: calc(50% + 9rem); }
-    .layer-pink-bottom-2 { top: calc(50% + 12rem); }
-    .layer-blue-bottom-2 { top: calc(50% + 15rem); }
+    .main-content { padding: 32px 20px; }
+    .main-content h1 { font-size: 1.8rem; }
+    .main-content h2 { font-size: 1.5rem; margin-top: 36px; }
+    .article-card { padding: 20px; }
 }
 </style>
 
@@ -409,18 +361,35 @@ a:hover { color: var(--accent); }
 </div>
 
 <main class="main-content">
-    <div class="hero-text">
-        <h1 class="layer-blue-top-2" aria-hidden="true">KESKESAY</h1>
-        <h1 class="layer-pink-top-2" aria-hidden="true">KESKESAY</h1>
-        <h1 class="layer-black-top" aria-hidden="true">KESKESAY</h1>
-        <h1 class="layer-blue-top" aria-hidden="true">KESKESAY</h1>
-        <h1 class="layer-pink-top" aria-hidden="true">KESKESAY</h1>
-        <h1 class="layer-black-center">KESKESAY</h1>
-        <h1 class="layer-pink-bottom" aria-hidden="true">KESKESAY</h1>
-        <h1 class="layer-blue-bottom" aria-hidden="true">KESKESAY</h1>
-        <h1 class="layer-black-bottom" aria-hidden="true">KESKESAY</h1>
-        <h1 class="layer-pink-bottom-2" aria-hidden="true">KESKESAY</h1>
-        <h1 class="layer-blue-bottom-2" aria-hidden="true">KESKESAY</h1>
+    <h1>Writing</h1>
+
+    <div class="article-grid">
+        <div class="article-card">
+            <div class="article-meta">Clash Music • Feb 2026</div>
+            <h2 class="article-title">The New Sound of London</h2>
+            <p class="article-excerpt">Exploring the underground electronic scene reshaping the city's nightlife, from warehouse raves to experimental noise collectives.</p>
+            <a href="#" class="article-link">Read Article →</a>
+        </div>
+
+        <div class="article-card">
+            <div class="article-meta">GTFO Magazine • Jan 2026</div>
+            <h2 class="article-title">Gonzo in the Digital Age</h2>
+            <p class="article-excerpt">How Hunter S. Thompson's legacy lives on in modern music journalism, and why truth is stranger than fiction in 2026.</p>
+            <a href="#" class="article-link">Read Article →</a>
+        </div>
+
+        <div class="article-card">
+            <div class="article-meta">The Indiependent • Dec 2025</div>
+            <h2 class="article-title">Aphex Twin at 50</h2>
+            <p class="article-excerpt">A retrospective on Richard D. James' influence on experimental electronic music and the artists carrying his torch forward.</p>
+            <a href="#" class="article-link">Read Article →</a>
+        </div>
+    </div>
+
+    <div class="platform-note">
+        <strong>This page can be customized to pull from any CMS or data source</strong>
+        <br><br>
+        We can integrate with WordPress, Notion, Google Sheets, or any custom API to automatically populate your articles. Add filters by category, search functionality, or feature your latest work dynamically.
     </div>
 </main>
 </html>

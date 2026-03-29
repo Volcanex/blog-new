@@ -504,6 +504,163 @@ def update_domain():
         return jsonify({'error': f'Error updating config: {str(e)}'}), 500
 
 
+# ── Activate Domain (auto nginx + certbot) ────────────────────────────────
+
+NGINX_TEMPLATE = """server {{
+    server_name {domain} www.{domain};
+
+    root /home/gabriel/blog-new/output/artists/{slug};
+
+    location /assets/ {{
+        alias /home/gabriel/blog-new/output/artists/{slug}/assets/;
+        expires 24h;
+        add_header Cache-Control "public, max-age=86400";
+    }}
+
+    location /api/ {{
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        client_max_body_size 50M;
+    }}
+
+    location / {{
+        try_files $uri $uri/ @api;
+    }}
+
+    location @api {{
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }}
+
+    listen 80;
+    listen [::]:80;
+}}"""
+
+@bp.route('/activate-domain', methods=['POST'])
+def activate_domain():
+    """
+    Auto-configure nginx + SSL for an artist's custom domain.
+    Body: { "domain": "example.com" }
+    Requires: sudoers rule for nginx/certbot (see /etc/sudoers.d/adze)
+    """
+    import re as _re
+
+    artist_slug = get_authenticated_artist()
+    if not artist_slug:
+        abort(401, description='Authentication required')
+
+    data = request.get_json()
+    domain = (data.get('domain') or '').strip().lower()
+
+    if not domain:
+        return jsonify({'error': 'Domain is required'}), 400
+
+    # Basic domain validation
+    if not _re.match(r'^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$', domain):
+        return jsonify({'error': 'Invalid domain format'}), 400
+
+    # Security: prevent path traversal in domain name
+    if '..' in domain or '/' in domain:
+        return jsonify({'error': 'Invalid domain'}), 400
+
+    steps = []
+
+    try:
+        # Step 1: Write nginx config
+        nginx_conf = NGINX_TEMPLATE.format(domain=domain, slug=artist_slug)
+        conf_path = f'/etc/nginx/sites-available/{domain}'
+        enabled_path = f'/etc/nginx/sites-enabled/{domain}'
+
+        # Write config via temp file + sudo mv (can't write directly to /etc)
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.conf', delete=False) as tmp:
+            tmp.write(nginx_conf)
+            tmp_path = tmp.name
+
+        result = subprocess.run(['sudo', 'cp', tmp_path, conf_path], capture_output=True, text=True)
+        os.unlink(tmp_path)
+        if result.returncode != 0:
+            return jsonify({'error': f'Failed to write nginx config: {result.stderr}'}), 500
+        steps.append('nginx config written')
+
+        # Step 2: Symlink to sites-enabled
+        if not os.path.exists(enabled_path):
+            result = subprocess.run(['sudo', 'ln', '-s', conf_path, enabled_path], capture_output=True, text=True)
+            if result.returncode != 0:
+                return jsonify({'error': f'Failed to enable site: {result.stderr}'}), 500
+        steps.append('site enabled')
+
+        # Step 3: Test nginx config
+        result = subprocess.run(['sudo', 'nginx', '-t'], capture_output=True, text=True)
+        if result.returncode != 0:
+            # Rollback: remove the broken config
+            subprocess.run(['sudo', 'rm', '-f', enabled_path], capture_output=True)
+            subprocess.run(['sudo', 'rm', '-f', conf_path], capture_output=True)
+            return jsonify({'error': f'Nginx config test failed: {result.stderr}'}), 500
+        steps.append('nginx config valid')
+
+        # Step 4: Reload nginx
+        result = subprocess.run(['sudo', 'systemctl', 'reload', 'nginx'], capture_output=True, text=True)
+        if result.returncode != 0:
+            return jsonify({'error': f'Failed to reload nginx: {result.stderr}'}), 500
+        steps.append('nginx reloaded')
+
+        # Step 5: Run certbot for SSL
+        result = subprocess.run([
+            'sudo', 'certbot', '--nginx',
+            '-d', domain, '-d', f'www.{domain}',
+            '--non-interactive', '--agree-tos',
+            '-m', 'gabrielpenman@gmail.com',
+            '--redirect'
+        ], capture_output=True, text=True, timeout=120)
+
+        if result.returncode != 0:
+            # SSL failed but site still works on HTTP
+            steps.append(f'SSL setup failed (site works on HTTP): {result.stderr[:200]}')
+            return jsonify({
+                'success': True,
+                'partial': True,
+                'steps': steps,
+                'warning': 'Domain is active on HTTP but SSL certificate failed. You may need to check DNS propagation and try again.'
+            })
+
+        steps.append('SSL certificate installed')
+
+        # Step 6: Update config.json with the domain
+        artist_path = get_artist_path(artist_slug)
+        config_file = artist_path / 'config.json'
+        if config_file.exists():
+            with open(config_file, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+            config['domain'] = domain
+            with open(config_file, 'w', encoding='utf-8') as f:
+                json.dump(config, f, indent=4, ensure_ascii=False)
+            steps.append('config.json updated')
+
+        return jsonify({
+            'success': True,
+            'steps': steps,
+            'url': f'https://{domain}'
+        })
+
+    except subprocess.TimeoutExpired:
+        return jsonify({'error': 'SSL setup timed out. DNS may not have propagated yet. Try again in a few minutes.'}), 504
+    except Exception as e:
+        return jsonify({'error': str(e), 'steps': steps}), 500
+
+
 # ── Update Site Config ────────────────────────────────────────────────────
 
 @bp.route('/update-site-config', methods=['POST'])
@@ -1146,6 +1303,9 @@ def _save_claude_sessions(sessions):
 
 _claude_sessions = _load_claude_sessions()
 
+# Track active Claude CLI processes per artist for halt functionality
+_claude_processes = {}  # artist_slug -> subprocess.Popen
+
 
 def _get_artist_system_prompt(artist_slug):
     """Build a system prompt that scopes Claude to the artist's directory."""
@@ -1343,6 +1503,57 @@ def claude_stream():
     # This is enforced by Claude CLI at the permission level — not just prompt-based
     args.extend(['--permission-mode', 'acceptEdits'])
 
+    # Pre-approve a wide set of Bash commands so they don't need interactive approval.
+    # acceptEdits already sandboxes file tools to the artist dir.
+    # If a command isn't listed here, it fails gracefully (Claude says it can't do it).
+    # Deliberately excluded: sudo, su, systemctl, apt, dpkg, mount, chroot, iptables,
+    #                        ssh, scp, rsync (to remote), passwd, useradd, userdel,
+    #                        shutdown, reboot, kill, killall, pkill, dd, mkfs, fdisk
+    allowed_tools = [
+        'Read', 'Write', 'Edit', 'Glob', 'Grep',
+        # File operations
+        'Bash(ls:*)', 'Bash(mkdir:*)', 'Bash(cp:*)', 'Bash(mv:*)', 'Bash(rm:*)',
+        'Bash(touch:*)', 'Bash(chmod:*)', 'Bash(chown:*)', 'Bash(ln:*)',
+        'Bash(basename:*)', 'Bash(dirname:*)', 'Bash(realpath:*)', 'Bash(readlink:*)',
+        'Bash(find:*)', 'Bash(tree:*)', 'Bash(pwd:*)', 'Bash(cd:*)',
+        'Bash(stat:*)', 'Bash(file:*)', 'Bash(du:*)', 'Bash(df:*)',
+        # Text processing
+        'Bash(cat:*)', 'Bash(head:*)', 'Bash(tail:*)', 'Bash(wc:*)',
+        'Bash(sort:*)', 'Bash(uniq:*)', 'Bash(diff:*)', 'Bash(comm:*)',
+        'Bash(sed:*)', 'Bash(awk:*)', 'Bash(tr:*)', 'Bash(cut:*)', 'Bash(paste:*)',
+        'Bash(grep:*)', 'Bash(egrep:*)', 'Bash(fgrep:*)', 'Bash(rg:*)',
+        'Bash(xargs:*)', 'Bash(tee:*)', 'Bash(rev:*)', 'Bash(fold:*)',
+        # Output
+        'Bash(echo:*)', 'Bash(printf:*)', 'Bash(yes:*)',
+        # Scripting / languages
+        'Bash(python3:*)', 'Bash(python:*)', 'Bash(node:*)', 'Bash(npx:*)',
+        'Bash(ruby:*)', 'Bash(perl:*)', 'Bash(php:*)', 'Bash(bash:*)', 'Bash(sh:*)',
+        # Package / dependency management (within project)
+        'Bash(pip:*)', 'Bash(pip3:*)', 'Bash(npm:*)', 'Bash(yarn:*)', 'Bash(pnpm:*)',
+        # Network / HTTP
+        'Bash(curl:*)', 'Bash(wget:*)', 'Bash(http:*)',
+        # Archives
+        'Bash(tar:*)', 'Bash(gzip:*)', 'Bash(gunzip:*)', 'Bash(bzip2:*)',
+        'Bash(zip:*)', 'Bash(unzip:*)', 'Bash(7z:*)', 'Bash(xz:*)',
+        # Image / audio / video processing
+        'Bash(convert:*)', 'Bash(identify:*)', 'Bash(mogrify:*)', 'Bash(composite:*)',
+        'Bash(ffmpeg:*)', 'Bash(ffprobe:*)', 'Bash(sox:*)', 'Bash(soxi:*)',
+        'Bash(aplay:*)', 'Bash(arecord:*)', 'Bash(lame:*)', 'Bash(oggenc:*)',
+        'Bash(magick:*)', 'Bash(gifsicle:*)', 'Bash(optipng:*)', 'Bash(pngquant:*)',
+        # Data / encoding
+        'Bash(jq:*)', 'Bash(base64:*)', 'Bash(md5sum:*)', 'Bash(sha256sum:*)',
+        'Bash(openssl:*)', 'Bash(xxd:*)', 'Bash(od:*)',
+        # System info (read-only)
+        'Bash(date:*)', 'Bash(env:*)', 'Bash(which:*)', 'Bash(whoami:*)',
+        'Bash(hostname:*)', 'Bash(uname:*)', 'Bash(id:*)', 'Bash(test:*)',
+        'Bash(true:*)', 'Bash(false:*)', 'Bash(sleep:*)',
+        # Git (read-only operations mostly, but allow all)
+        'Bash(git:*)',
+        # Web tools
+        'WebFetch', 'WebSearch',
+    ]
+    args.extend(['--allowedTools'] + allowed_tools)
+
     def generate():
         env = os.environ.copy()
         # Remove CLAUDECODE to avoid nested session detection
@@ -1357,6 +1568,7 @@ def claude_stream():
                 env=env,
                 bufsize=1,
             )
+            _claude_processes[artist_slug] = proc
 
             buffer = ''
             for chunk in iter(lambda: proc.stdout.read(4096), b''):
@@ -1539,3 +1751,25 @@ def claude_reset():
     _claude_sessions.pop(artist_slug, None)
     _save_claude_sessions(_claude_sessions)
     return jsonify({'ok': True, 'message': 'Session reset. Next message will start a fresh conversation.'})
+
+
+@bp.route('/claude-halt', methods=['POST'])
+def claude_halt():
+    """Halt the running Claude process for the artist. Requires auth."""
+    artist_slug = get_authenticated_artist()
+    if not artist_slug:
+        abort(401)
+
+    proc = _claude_processes.get(artist_slug)
+    if proc and proc.poll() is None:
+        import signal
+        proc.send_signal(signal.SIGTERM)
+        try:
+            proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+        _claude_processes.pop(artist_slug, None)
+        return jsonify({'ok': True, 'message': 'Vibe Coder stopped.'})
+    else:
+        _claude_processes.pop(artist_slug, None)
+        return jsonify({'ok': False, 'message': 'No active process to stop.'})

@@ -2,5 +2,6 @@
     "title": "Jack",
     "slug": "artists/jackdt/home",
     "description": "Portfolio",
-    "categories": []
+    "categories": [],
+    "hidden": false
 }
