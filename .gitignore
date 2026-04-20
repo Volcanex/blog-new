@@ -9,4 +9,5 @@ venv
 data/photography-thumbnails/
 logs/
 flask_server.pid
-*.mp3
+*.mp3site.zip
+output/artists/*/assets/*.pdf
