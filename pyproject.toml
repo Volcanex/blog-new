@@ -1,0 +1,7 @@
+[project]
+name = "blog-new"
+version = "0.1.0"
+description = "Modular personal blog generator — self-contained pages compiled to static and served by Flask. gabrielpenman.com."
+
+[tool.gcore]
+depends = []
