@@ -11,3 +11,4 @@ logs/
 flask_server.pid
 *.mp3site.zip
 output/artists/*/assets/*.pdf
+.env

@@ -1,6 +1,0 @@
-{
-    "title": "{{ARTIST_NAME}}",
-    "slug": "artists/{{SLUG}}/home",
-    "description": "Portfolio",
-    "categories": []
-}

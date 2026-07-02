@@ -1,6 +1,0 @@
-{
-    "title": "About — {{ARTIST_NAME}}",
-    "slug": "artists/{{SLUG}}/about",
-    "description": "About",
-    "categories": []
-}
