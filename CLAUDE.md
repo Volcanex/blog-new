@@ -1,16 +1,23 @@
 # blog-new
 
-Personal blog at **gabrielpenman.com**. A modular blog generator: each post
-lives in `pages/{slug}/` self-contained (`config.json` + `content.md` +
-optional `api.py` + `assets/`), compiled to `output/` and served by Flask.
+**Fossil.** Frozen on purpose — `gabrielpenman.com` now serves `g-site`
+(the guillotine-grid front page + migrated posts); this repo was re-homed
+to **old.gabrielpenman.com** so the old address keeps working. Don't
+develop new features here — port fixes to `g-site` instead, or accept
+that old. stays as-is. `site-editor` (the unauthenticated content-management
+UI) still lives here, just no longer linked from anywhere.
+
+Personal blog generator: each post lives in `pages/{slug}/` self-contained
+(`config.json` + `content.md` + optional `api.py` + `assets/`), compiled to
+`output/` and served by Flask.
 
 **Owner:** Gabriel Penman
 
 ## Run
-systemd unit `blog-server` on port 5000, fronted by nginx at gabrielpenman.com
-(`$backend` → `127.0.0.1:5000`). Manually: `python compile.py` (or
-`./compile.sh`) then `python flask_server.py`. Uncommitted edits in this tree
-go live on `systemctl restart blog-server`.
+systemd unit `blog-server` on port 5000, fronted by nginx at
+old.gabrielpenman.com (`$backend` → `127.0.0.1:5000`). Manually:
+`python compile.py` (or `./compile.sh`) then `python flask_server.py`.
+Uncommitted edits in this tree go live on `systemctl restart blog-server`.
 
 ## Gotchas
 - Easy to confuse with `gabrielpenmancouk` — that is the artist-business site
