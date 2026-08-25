@@ -1,4 +1,6 @@
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,600&family=Inter:wght@400;500;600&display=swap');
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -10,33 +12,92 @@
     --accent: #c8a87a;
     --gap: 10px;
     --min-col: 360px;
+
+    --font-serif: 'Newsreader', 'Source Serif 4', Georgia, serif;
+    --font-sans:  'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    --rule-thin:  1px solid var(--dim);
 }
 
 html, body {
     background: var(--bg);
     color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    font-family: var(--font-sans);
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    /* Kill the few pixels of sub-pixel masonry overflow that lets the page
+       scroll horizontally — this site is strictly vertical scroll. */
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+/* Make room for the fixed top-bar (46px desktop, 42px ≤540px) plus a
+   little breathing room before the gallery starts. */
+body { padding-top: 64px; }
+@media (max-width: 540px) { body { padding-top: 56px; } }
+
+/* Sticky year indicator — small fixed marker that updates as you scroll,
+   showing the year of the photo dominant in the viewport. Restrained
+   typography so it stays out of the work's way. */
+.year-indicator {
+    position: fixed;
+    bottom: 22px;
+    right: 22px;
+    z-index: 80;
+    font-family: var(--font-serif);
+    font-size: 1.35rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: var(--text);
+    background: rgba(8, 8, 8, 0.55);
+    border: 1px solid var(--dim);
+    padding: 6px 14px 4px;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    font-variant-numeric: tabular-nums;
+}
+.year-indicator.visible { opacity: 0.85; transform: translateY(0); }
+@media (max-width: 540px) {
+    .year-indicator { bottom: 14px; right: 14px; font-size: 1.1rem; padding: 5px 11px 3px; }
 }
 
-/* ── Settings icon ───────────────────────────────────── */
-.settings-btn {
+/* Page-wide grain — fractal-noise SVG, fixed, pointer-inert. Sits above the
+   page background but below the lightbox (z-index 9000+) so full-screen
+   photos aren't textured over. Very low opacity so it reads as material,
+   not as a filter. */
+body::before {
+    content: '';
     position: fixed;
-    top: 16px;
-    left: 18px;
-    z-index: 8000;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 8px;
-    color: var(--dim);
-    transition: color 0.2s;
-    line-height: 1;
+    inset: 0;
+    pointer-events: none;
+    z-index: 50;
+    opacity: 0.045;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    background-size: 220px 220px;
 }
-.settings-btn:hover { color: var(--muted); }
-.settings-btn.admin-active { color: var(--accent); }
-.settings-btn svg { width: 16px; height: 16px; fill: currentColor; display: block; }
+
+/* Wavy-underline links (lifted from gabrielpenman.co.uk) — body prose only. */
+.bio-card a,
+.lb-info a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-style: wavy;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    transition: text-decoration-thickness 120ms linear, color 120ms linear;
+}
+.bio-card a:hover,
+.lb-info a:hover {
+    text-decoration-thickness: 2px;
+}
+
+/* Settings entry now lives inside the sidebar — original floating cog is hidden. */
+.settings-btn { display: none !important; }
 
 /* ── Auth modal ──────────────────────────────────────── */
 .auth-overlay {
@@ -211,6 +272,42 @@ body.admin-mode .view-toggle { display: flex; }
 .gallery-grid {
     position: relative;
     padding: 0 var(--gap);
+    opacity: 0;
+    transition: opacity 0.45s ease;
+}
+.gallery-grid.ready { opacity: 1; }
+
+/* Tiny loading dot under the top bar while /photos is in flight. Fades
+   away once the first batch of cards has been laid out. */
+.page-loading {
+    position: fixed;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 70;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--dim);
+    font-family: var(--font-sans);
+    font-size: 0.5rem;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+.page-loading::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pageLoadingPulse 1.2s ease-in-out infinite;
+}
+.page-loading.gone { opacity: 0; }
+@keyframes pageLoadingPulse {
+    0%, 100% { opacity: 0.25; transform: scale(0.7); }
+    50%      { opacity: 1;    transform: scale(1);   }
 }
 
 .photo-card {
@@ -218,11 +315,30 @@ body.admin-mode .view-toggle { display: flex; }
     background: var(--card-bg);
     overflow: hidden;
     cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.5s ease;
 }
-.photo-card.visible { opacity: 1; }
 .photo-card:hover .card-img { transform: scale(1.015); }
+
+/* Scroll-driven entry: photos settle in with a slight scale-down + blur clear
+   as they enter the viewport. Pure CSS, no IntersectionObserver. */
+@media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+        .photo-card {
+            animation: card-settle linear both;
+            animation-timeline: view();
+            animation-range: entry 0% entry 55%;
+        }
+    }
+    /* Fallback for browsers without scroll-driven animations:
+       JS adds .visible after layout to fade each card in. */
+    @supports not (animation-timeline: view()) {
+        .photo-card { opacity: 0; transition: opacity 0.5s ease; }
+        .photo-card.visible { opacity: 1; }
+    }
+}
+@keyframes card-settle {
+    from { opacity: 0; transform: scale(1.03); filter: blur(8px); }
+    to   { opacity: 1; transform: scale(1);    filter: blur(0); }
+}
 
 /* Admin: hidden card treatment */
 body.admin-mode .photo-card.is-hidden .card-img {
@@ -231,7 +347,34 @@ body.admin-mode .photo-card.is-hidden .card-img {
 }
 body.admin-mode .photo-card.is-hidden:hover .card-img { opacity: 0.35 !important; }
 
+/* LQIP wrapper — reserves aspect-ratio space and shows a blurred low-res
+   thumbnail underneath the high-res <img> until it loads. Eliminates the
+   empty-box flash and mid-load layout jumps. */
+.card-img-wrap {
+    position: relative;
+    width: 100%;
+    background: var(--card-bg);
+    overflow: hidden;
+}
+.card-img-wrap::before {
+    content: '';
+    position: absolute;
+    inset: -6%;
+    background-image: var(--lqip, none);
+    background-size: cover;
+    background-position: center;
+    filter: blur(18px);
+    transform: translateZ(0);
+    z-index: 0;
+    opacity: 1;
+    transition: opacity 0.45s ease;
+    pointer-events: none;
+}
+.card-img-wrap.loaded::before { opacity: 0; }
+
 .card-img {
+    position: relative;
+    z-index: 1;
     display: block;
     width: 100%;
     height: auto;
@@ -310,16 +453,48 @@ body.admin-mode .photo-card.is-hidden .hidden-badge { display: block; }
 body.admin-mode .photo-card.is-hidden .toggle-hide-btn { border-color: #604040; color: #a06060; }
 body.admin-mode .photo-card.is-hidden .toggle-hide-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-.toggle-background-btn {}
-.toggle-background-btn.is-background {
-    border-color: #4CAF50;
-    color: #4CAF50;
-    background: rgba(76, 175, 80, 0.1);
+/* Highlight star — admin-only, always-visible icon at top-right of every card.
+   One click toggles the photo's "background/highlight" flag (Highlights view +
+   homepage random background). Replaces the older text "background" button. */
+.highlight-star {
+    display: none;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 11;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(8, 8, 8, 0.72);
+    border: 1px solid var(--dim);
+    color: rgba(220, 220, 220, 0.55);
+    font-size: 18px;
+    line-height: 1;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    font-family: inherit;
+    transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.15s;
 }
-.toggle-background-btn.is-background:hover {
-    border-color: #66BB6A;
-    color: #66BB6A;
+body.admin-mode .highlight-star { display: flex; }
+.highlight-star:hover {
+    background: rgba(8, 8, 8, 0.92);
+    color: var(--accent);
+    border-color: var(--accent);
+    transform: scale(1.08);
 }
+.highlight-star.is-on {
+    color: #f5c45e;
+    border-color: #f5c45e;
+    background: rgba(245, 196, 94, 0.12);
+}
+.highlight-star.is-on:hover { color: #ffd47a; border-color: #ffd47a; }
+
+/* Lightbox star — same toggle, surfaced while viewing the full photo. */
+.lb-star { display: none; }
+body.admin-mode .lb-star { display: inline-flex; }
+.lb-star.is-on { color: #f5c45e; border-color: #f5c45e; }
 
 
 /* rotate buttons side-by-side */
@@ -445,24 +620,43 @@ body.admin-mode .photo-card .card-meta-editor.open { display: flex; }
     max-height: 80vh;
     object-fit: contain;
     opacity: 0;
-    transition: opacity 0.3s, transform 0.3s ease;
+    /* While loading the full quality, the photo sits at 94% size with a
+       slight desaturation — a placeholder feel. When the full blob arrives
+       it scales up + colour-corrects in one smooth transition: this is the
+       "expand into focus" moment. */
+    transform: scale(0.94);
+    filter: brightness(0.94) saturate(0.95);
+    transition: opacity 0.3s,
+                transform 0.7s cubic-bezier(0.32, 0.72, 0.24, 1),
+                filter 0.7s ease;
     cursor: zoom-in;
     transform-origin: 50% 50%;
 }
-.lb-img.ready { opacity: 1; }
-.lb-img.zoomed { cursor: zoom-out; }
+.lb-img.ready    { opacity: 1; }
+.lb-img.refined  { transform: scale(1); filter: none; }
+.lb-img.zoomed   { cursor: zoom-out; }
 
+/* View Transition: thumbnail ↔ lightbox morph. Each photo gets a unique
+   view-transition-name (derived from filename) so simultaneous transitions
+   on different cards can't collide. Wildcard pseudo selectors apply our
+   timing curve to every named photo transition. */
+::view-transition-group(*),
+::view-transition-old(*),
+::view-transition-new(*) {
+    animation-duration: 360ms;
+    animation-timing-function: cubic-bezier(0.32, 0.72, 0.24, 1);
+}
 
+/* Progress now lives in .lb-info above the typewriter — sits in the same
+   vertical slot the EXIF text eventually animates into. Reserve a fixed
+   height while inactive so the layout doesn't jump when it fades out and
+   the typewriter takes over. */
 .lb-progress {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     display: none;
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    z-index: 9002;
+    margin-bottom: 6px;
     white-space: nowrap;
 }
 .lb-progress.active { display: flex; opacity: 1; transition: opacity 0.35s ease; }
@@ -738,12 +932,526 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
     .lb-actions { gap: 6px; }
     .lb-share, .lb-download { padding: 10px 18px; font-size: 0.55rem; }
 }
+
+/* ── Bio tile (sits in the masonry as one column tile) ─ */
+.bio-card {
+    position: absolute;             /* placed by layoutMasonry, like .photo-card */
+    background: var(--card-bg);
+    border: 1px solid var(--dim);
+    padding: 22px 22px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    box-sizing: border-box;
+    cursor: default;
+}
+.bio-row {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+    min-height: 0;
+}
+.bio-portrait {
+    flex: 0 0 38%;
+    aspect-ratio: 4/5;
+    overflow: hidden;
+    background: #0c0c0c;
+}
+.bio-portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+.bio-portrait img.loaded { opacity: 1; }
+.bio-text {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+.bio-title {
+    font-family: var(--font-sans);
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.bio-blurb {
+    font-family: var(--font-serif);
+    font-size: 0.92rem;
+    line-height: 1.4;
+    color: var(--text);
+    text-wrap: pretty;
+}
+.bio-blurb em {
+    color: var(--accent);
+    font-style: italic;
+    font-variation-settings: 'wght' 500, 'opsz' 18;
+}
+.bio-home {
+    margin-top: auto;
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-style: wavy;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    align-self: flex-start;
+}
+/* Profile contact icons (email, Instagram). Quiet by default; brighten
+   to the accent on hover. */
+.bio-links {
+    margin-top: auto;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding-top: 4px;
+}
+.bio-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--dim);
+    color: var(--muted);
+    transition: color 0.18s, border-color 0.18s, transform 0.18s;
+}
+.bio-link svg { width: 15px; height: 15px; display: block; }
+.bio-link:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    transform: translateY(-1px);
+}
+.bio-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 6px;
+    border-top: 1px solid var(--dim);
+}
+.bio-count {
+    font-family: var(--font-sans);
+    font-size: 0.55rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
+.bio-select {
+    background: transparent;
+    border: 1px solid var(--dim);
+    color: var(--muted);
+    padding: 6px 14px;
+    font-family: inherit;
+    font-size: 0.5rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+}
+.bio-select:hover { border-color: var(--accent); color: var(--accent); }
+.bio-select.select-active { border-color: var(--accent); color: var(--accent); }
+.bio-psa {
+    font-family: var(--font-serif);
+    font-size: 0.78rem;
+    font-style: italic;
+    color: var(--muted);
+    line-height: 1.4;
+}
+
+/* ── Admin-only strip (only when authenticated) ───────── */
+.admin-bar {
+    display: none;
+    align-items: center;
+    gap: 18px;
+    padding: 14px 24px;
+    border-bottom: var(--rule-thin);
+    font-family: var(--font-sans);
+}
+body.admin-mode .admin-bar { display: flex; }
+.admin-bar .admin-badge {
+    margin: 0;
+    display: inline-block;
+    font-size: 0.5rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--accent);
+}
+.admin-bar .view-toggle { margin: 0; display: inline-flex; gap: 6px; }
+
+/* ── Top bar ─────────────────────────────────────────── */
+/* Thin always-visible bar so the hamburger is discoverable and the page
+   has a bit of breathing room at the top. Sits below sidebar/lightbox so
+   modal layers cover it cleanly. */
+.top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 46px;
+    z-index: 8500;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    background: rgba(6, 6, 6, 0.62);
+    border-bottom: 1px solid var(--dim);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+.top-bar-title {
+    font-family: var(--font-sans);
+    font-size: 0.6rem;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--muted);
+    pointer-events: none;
+    user-select: none;
+}
+/* Icon + label select toggle in the top-bar's right slot. */
+.top-bar-select {
+    background: transparent;
+    border: 1px solid var(--dim);
+    color: var(--text);
+    height: 32px;
+    padding: 0 12px 0 9px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-sans);
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.top-bar-select svg { width: 16px; height: 16px; display: block; flex: 0 0 auto; }
+.top-bar-select-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    line-height: 1;
+}
+.top-bar-select:hover { color: var(--accent); border-color: var(--accent); }
+.top-bar-select.active {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(200, 168, 122, 0.08);
+}
+.top-bar-select.flashing { animation: selectFlash 0.35s ease-in-out 5; }
+@media (max-width: 540px) {
+    .top-bar { height: 42px; padding: 0 10px; }
+    .top-bar-title { display: none; }
+    .top-bar-select { height: 30px; padding: 0 10px 0 8px; gap: 6px; }
+    .top-bar-select svg { width: 15px; height: 15px; }
+    .top-bar-select-label { font-size: 0.5rem; letter-spacing: 0.2em; }
+}
+
+/* ── Sidebar toggle — now lives inside the top-bar ───── */
+.sidebar-toggle,
+.sidebar-toggle:focus,
+.sidebar-toggle:active {
+    background: transparent;
+    border: 0 none;
+    outline: none;
+    box-shadow: none;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    padding: 6px 4px;
+    color: var(--text);
+    transition: color 0.2s, transform 0.2s;
+    line-height: 1;
+}
+.sidebar-toggle:hover { color: var(--accent); }
+.sidebar-toggle svg { width: 26px; height: 20px; fill: currentColor; display: block; }
+
+/* ── World map (top of sidebar) ──────────────────────── */
+/* Pure B&W aesthetic — grayscale tiles, white circular pins. Pin click
+   filters the gallery to that city's photos. */
+.sb-map-wrap {
+    position: relative;
+    margin: 12px 18px 6px;
+    border: 1px solid var(--dim);
+    background: #050505;
+}
+.sb-map {
+    width: 100%;
+    height: 280px;
+    background: #050505;
+    cursor: grab;
+}
+@media (max-width: 600px) {
+    /* Sidebar is full-screen on mobile, so the map can be even taller. */
+    .sb-map { height: 320px; }
+}
+.sb-map:active { cursor: grabbing; }
+.sb-map.loading::after {
+    content: 'loading map…';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dim);
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    pointer-events: none;
+}
+.sb-map-hint {
+    text-align: center;
+    font-size: 0.5rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--dim);
+    padding: 6px 0 4px;
+    border-top: 1px solid var(--dim);
+}
+/* Force pure B&W on the tile imagery, regardless of which provider is in use. */
+.sb-map .leaflet-tile-pane { filter: grayscale(1) contrast(1.05) brightness(0.85); }
+.sb-map .leaflet-control-attribution {
+    background: rgba(0,0,0,0.55) !important;
+    color: var(--dim) !important;
+    font-size: 9px !important;
+}
+.sb-map .leaflet-control-attribution a { color: var(--muted) !important; }
+/* Zoom +/- buttons restyled to match the B&W chrome. */
+.sb-map .leaflet-control-zoom {
+    border: 1px solid var(--dim);
+    background: rgba(0, 0, 0, 0.72);
+    margin: 8px;
+    box-shadow: none;
+}
+.sb-map .leaflet-control-zoom a {
+    background: transparent !important;
+    color: #fff !important;
+    border-bottom: 1px solid var(--dim);
+    width: 26px;
+    height: 26px;
+    line-height: 26px;
+    font-size: 16px;
+    font-weight: 400;
+    text-decoration: none;
+    transition: color 0.15s, background 0.15s;
+}
+.sb-map .leaflet-control-zoom a:last-child { border-bottom: 0 none; }
+.sb-map .leaflet-control-zoom a:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: var(--accent) !important;
+}
+.sb-map .leaflet-control-zoom a.leaflet-disabled {
+    color: var(--dim) !important;
+    cursor: default;
+}
+/* "Reset view" button — restores the auto-fit bounds. */
+.sb-map-reset {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    z-index: 600;
+    background: rgba(0, 0, 0, 0.72);
+    border: 1px solid var(--dim);
+    color: #fff;
+    font-family: var(--font-sans);
+    font-size: 0.5rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 5px 9px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+}
+.sb-map-reset:hover { color: var(--accent); border-color: var(--accent); }
+.sb-pin {
+    background: #fff;
+    border: 1px solid #000;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-family: var(--font-sans);
+    color: #000;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.18s ease;
+}
+.sb-pin:hover { transform: scale(1.18); }
+.sb-pin.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #000;
+}
+
+/* ── Sidebar (slides in from left, black) ─────────────── */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 380px;
+    max-width: 82vw;
+    height: 100vh;
+    background: #000;
+    border-right: 1px solid var(--dim);
+    z-index: 9700;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.sidebar.open { transform: translateX(0); }
+@media (max-width: 600px) {
+    /* Full-screen on phones — sidebar covers the viewport exactly. */
+    .sidebar { width: 100vw; max-width: 100vw; border-right: 0 none; }
+}
+.sidebar-header {
+    padding: 22px 22px 14px;
+    border-bottom: 1px solid var(--dim);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.sidebar-title {
+    font-size: 0.55rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.sidebar-close {
+    background: none;
+    border: none;
+    color: var(--dim);
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 4px 10px;
+    font-family: inherit;
+    transition: color 0.2s;
+}
+.sidebar-close:hover { color: var(--accent); }
+.sidebar-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 0 24px;
+}
+.sb-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 11px 22px;
+    cursor: pointer;
+    color: var(--muted);
+    transition: background 0.15s, color 0.15s;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+}
+.sb-item:hover { background: #0c0c0c; color: var(--text); }
+.sb-item.active { color: var(--accent); background: #0c0c0c; }
+.sb-item-label {
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 0.62rem;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.sb-item-count {
+    font-size: 0.55rem;
+    color: var(--dim);
+    font-variant-numeric: tabular-nums;
+    flex: 0 0 auto;
+}
+.sb-item.active .sb-item-count { color: var(--accent); opacity: 0.7; }
+.sb-divider {
+    margin: 14px 22px;
+    height: 1px;
+    background: var(--dim);
+    opacity: 0.5;
+}
+a.sb-link, a.sb-link:visited {
+    text-decoration: none;
+    color: var(--muted);
+}
+a.sb-link:hover { color: var(--text); background: #0c0c0c; }
+.sb-section-title {
+    padding: 8px 22px 4px;
+    font-size: 0.5rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--dim);
+}
+.sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 9600;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+.sidebar-overlay.open { opacity: 1; pointer-events: all; }
+
+.sidebar-footer {
+    border-top: var(--rule-thin);
+    padding: 8px 0;
+    flex: 0 0 auto;
+}
+.sb-settings {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 14px 22px;
+    font-family: var(--font-sans);
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+    text-align: left;
+}
+.sb-settings:hover { color: var(--text); background: #0c0c0c; }
+.sb-settings svg { width: 16px; height: 16px; fill: currentColor; flex: 0 0 auto; }
+.sb-settings span:first-of-type { flex: 1; }
+.sb-admin-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: transparent;
+    flex: 0 0 auto;
+    transition: background 0.2s;
+}
+body.admin-mode .sb-admin-dot { background: var(--accent); }
+
+@media (max-width: 600px) {
+    .sidebar-toggle { padding: 6px; }
+    .sidebar-toggle svg { width: 22px; height: 22px; }
+    .bio-card { padding: 12px; }
+    .bio-portrait { flex-basis: 42%; }
+    .bio-blurb { font-size: 0.84rem; }
+}
 </style>
 
 <html>
-<!-- Select mode button -->
-<div class="select-hint" id="select-hint">use this to save photos →</div>
-<button class="select-btn" id="select-btn" aria-label="Select photos" title="Select photos">select</button>
+<!-- Hidden anchors used by JS — settings + select are now triggered from the new meta bar / sidebar -->
+<button class="settings-btn" id="settings-btn" aria-hidden="true" tabindex="-1"></button>
+<button class="select-btn" id="select-btn" aria-hidden="true" tabindex="-1" style="display:none"></button>
+<div class="select-hint" id="select-hint" aria-hidden="true" style="display:none"></div>
 
 <!-- Select bar (shown when photos are selected) -->
 <div class="select-bar" id="select-bar">
@@ -754,12 +1462,47 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
     </div>
 </div>
 
-<!-- Settings gear -->
-<button class="settings-btn" id="settings-btn" aria-label="Admin settings" title="Admin settings">
-    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.92c.04-.34.07-.69.07-1.08s-.03-.74-.07-1.08l2.32-1.81c.21-.16.27-.45.13-.68l-2.2-3.81c-.14-.23-.42-.31-.66-.23l-2.74 1.1c-.57-.44-1.18-.81-1.86-1.08L14.21 2.1c-.05-.26-.28-.44-.55-.44h-4.4c-.27 0-.5.18-.55.44l-.42 2.9c-.68.27-1.29.64-1.86 1.08L3.69 5.04c-.24-.09-.52 0-.66.23L.83 9.08c-.14.23-.08.52.13.68l2.32 1.81C3.24 11.9 3.2 12.25 3.2 12.5s.04.6.08.92L1 15.23c-.21.16-.27.45-.13.68l2.2 3.81c.14.23.42.31.66.23l2.74-1.1c.57.44 1.18.81 1.86 1.08l.42 2.9c.05.26.28.44.55.44h4.4c.27 0 .5-.18.55-.44l.42-2.9c.68-.27 1.29-.64 1.86-1.08l2.74 1.1c.24.09.52 0 .66-.23l2.2-3.81c.14-.23.08-.52-.13-.68l-2.32-1.81z"/>
-    </svg>
-</button>
+<!-- Thin top bar — hamburger lives here so it's always discoverable -->
+<header class="top-bar" role="banner">
+    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Open menu">
+        <svg viewBox="0 0 24 24"><path d="M3 8h18v2H3zm0 6h18v2H3z"/></svg>
+    </button>
+    <div class="top-bar-title">Photography</div>
+    <button class="top-bar-select" id="top-select-btn" type="button" aria-label="Toggle selection mode" title="Select photos to download">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+            <rect x="4" y="4" width="16" height="16" rx="1" stroke-dasharray="2.4 2.4"/>
+            <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" stroke="none"/>
+        </svg>
+        <span class="top-bar-select-label" id="top-select-label">Select</span>
+    </button>
+</header>
+
+<!-- Sidebar (slides from left) -->
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <span class="sidebar-title">Browse</span>
+        <button class="sidebar-close" id="sidebar-close" aria-label="Close">✕</button>
+    </div>
+    <!-- World map of where photos were taken. Click a pin to filter the
+         gallery to that city. Lazy-initialised on first sidebar open. -->
+    <div class="sb-map-wrap">
+        <div class="sb-map" id="sb-map" aria-label="Map of photo locations"></div>
+        <div class="sb-map-hint" id="sb-map-hint">tap a pin to filter</div>
+    </div>
+    <div class="sidebar-list" id="sidebar-list"></div>
+    <div class="sidebar-footer">
+        <button class="sb-settings" id="sb-settings" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.92c.04-.34.07-.69.07-1.08s-.03-.74-.07-1.08l2.32-1.81c.21-.16.27-.45.13-.68l-2.2-3.81c-.14-.23-.42-.31-.66-.23l-2.74 1.1c-.57-.44-1.18-.81-1.86-1.08L14.21 2.1c-.05-.26-.28-.44-.55-.44h-4.4c-.27 0-.5.18-.55.44l-.42 2.9c-.68.27-1.29.64-1.86 1.08L3.69 5.04c-.24-.09-.52 0-.66.23L.83 9.08c-.14.23-.08.52.13.68l2.32 1.81C3.24 11.9 3.2 12.25 3.2 12.5s.04.6.08.92L1 15.23c-.21.16-.27.45-.13.68l2.2 3.81c.14.23.42.31.66.23l2.74-1.1c.57.44 1.18.81 1.86 1.08l.42 2.9c.05.26.28.44.55.44h4.4c.27 0 .5-.18.55-.44l.42-2.9c.68-.27 1.29-.64 1.86-1.08l2.74 1.1c.24.09.52 0 .66-.23l2.2-3.81c.14-.23.08-.52-.13-.68l-2.32-1.81z"/>
+            </svg>
+            <span>Settings</span>
+            <span class="sb-admin-dot" aria-hidden="true"></span>
+        </button>
+    </div>
+</aside>
+
+<!-- (Bio card is rendered inside the gallery grid below — kept here for reference but not emitted) -->
 
 <!-- Auth modal -->
 <div class="auth-overlay" id="auth-overlay" role="dialog" aria-modal="true">
@@ -779,22 +1522,51 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
     </div>
 </div>
 
-<div class="pg-header">
-    <h1>Photographs</h1>
-    <div class="subtitle" id="pg-count">—</div>
-    <div class="admin-badge">admin mode</div>
+<!-- Admin-only strip (only visible when authenticated as admin) -->
+<div class="admin-bar">
+    <span class="admin-badge">admin mode</span>
     <div class="view-toggle">
         <button class="view-toggle-btn active" id="view-masters">masters</button>
         <button class="view-toggle-btn" id="view-raw">raw</button>
     </div>
-    <a class="back-link" href="/">← index</a>
-    <div style="margin-top:10px">
-        <a class="back-link" href="https://instagram.com/gabrielpenman" target="_blank" rel="noopener">instagram ↗</a>
-    </div>
-    <div class="pg-psa">sometimes it takes a few days to colour grade and upload photos</div>
 </div>
 
-<div class="gallery-grid" id="gallery"></div>
+<div class="year-indicator" id="year-indicator" aria-hidden="true"></div>
+
+<div class="page-loading" id="page-loading" aria-hidden="true">loading photographs</div>
+
+<div class="gallery-grid" id="gallery">
+    <!-- Bio tile — sits in the top-right slot of the masonry, sized as one column -->
+    <div class="bio-card" id="bio-card">
+        <div class="bio-row">
+            <div class="bio-portrait">
+                <img src="/api/photography/profile-photo" alt="Portrait of Gabriel"
+                     onload="this.classList.add('loaded')"
+                     onerror="this.parentElement.style.display='none'">
+            </div>
+            <div class="bio-text">
+                <div class="bio-title">Photography</div>
+                <p class="bio-blurb">By <em>Gabriel Penman</em>, with my Nikon D610 (<em>Ruth</em>). Nightlife, street, and the odd landscape.</p>
+                <div class="bio-links">
+                    <a class="bio-link" href="mailto:gabrielpenman@gmail.com" aria-label="Email Gabriel">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm0 2v.4l9 5.6 9-5.6V7H3zm0 2.6V18h18V9.6L12 15 3 9.6z" fill="currentColor"/>
+                        </svg>
+                    </a>
+                    <a class="bio-link" href="https://www.instagram.com/gabrielpenman/" target="_blank" rel="noopener" aria-label="Instagram @gabrielpenman">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M7.03.084c-1.277.06-2.149.264-2.911.563-.789.308-1.458.72-2.123 1.388-.665.668-1.075 1.337-1.38 2.127-.295.764-.496 1.637-.552 2.914C.008 8.354-.005 8.765.001 12.024.008 15.282.022 15.692.084 16.971c.06 1.276.264 2.148.563 2.91.308.789.72 1.458 1.388 2.123.668.665 1.337 1.074 2.129 1.38.763.295 1.636.496 2.913.552 1.278.057 1.689.069 4.947.063 3.257-.007 3.668-.021 4.947-.082 1.28-.06 2.147-.265 2.91-.563.789-.309 1.458-.72 2.123-1.388.665-.668 1.074-1.337 1.38-2.127.296-.765.497-1.636.552-2.914.057-1.278.069-1.689.063-4.948-.006-3.258-.02-3.667-.082-4.947-.06-1.28-.264-2.148-.563-2.912-.309-.789-.72-1.457-1.388-2.123C21.298 1.33 20.628.921 19.838.616c-.764-.296-1.636-.497-2.913-.552C15.647.009 15.236-.005 11.977.001 8.718.008 8.31.022 7.03.084m.14 21.693c-1.17-.05-1.805-.245-2.228-.408-.561-.216-.96-.477-1.382-.895-.422-.418-.681-.819-.9-1.378-.165-.424-.363-1.058-.417-2.228-.06-1.265-.072-1.645-.079-4.849-.007-3.204.005-3.583.061-4.848.05-1.169.245-1.805.408-2.228.216-.561.476-.96.895-1.382.418-.422.818-.681 1.378-.9.424-.165 1.057-.362 2.227-.417 1.266-.06 1.645-.072 4.848-.079 3.204-.007 3.584.005 4.85.061 1.17.05 1.805.245 2.228.408.56.216.96.475 1.382.895.421.419.681.819.9 1.378.164.424.362 1.057.417 2.227.06 1.265.074 1.645.079 4.848.006 3.203-.006 3.583-.061 4.848-.051 1.17-.245 1.805-.408 2.23-.216.56-.476.96-.895 1.38-.419.422-.819.682-1.378.9-.424.166-1.058.363-2.227.418-1.265.06-1.645.072-4.849.079-3.204.007-3.583-.006-4.848-.06M16.953 5.587a1.44 1.44 0 1 0 1.437-1.443 1.44 1.44 0 0 0-1.437 1.443M5.838 12.012a6.174 6.174 0 1 0 12.324-.024 6.174 6.174 0 0 0-12.324.024M8 12.008A4 4 0 1 1 12.008 16 4 4 0 0 1 8 12.008" fill="currentColor"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="bio-foot">
+            <span class="bio-count" id="pg-count">—</span>
+        </div>
+        <div class="bio-psa"><em>sometimes it takes a few days to colour grade and upload photos.</em></div>
+    </div>
+</div>
 
 <div class="load-more-wrap" id="load-more-wrap" style="display:none"></div>
 
@@ -808,12 +1580,15 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
     <button class="lb-nav lb-next" id="lb-next" aria-label="Next">›</button>
     <div class="lb-img-wrap">
         <img class="lb-img" id="lb-img" src="" alt="">
+    </div>
+    <div class="lb-info">
+        <!-- Progress sits where the EXIF typewriter will eventually render.
+             It fades out when the full image arrives, then the typewriter
+             takes over the same vertical slot. -->
         <div class="lb-progress" id="lb-progress">
             <div class="lb-progress-text">loading full photograph</div>
             <div class="lb-progress-bar"><div class="lb-progress-fill" id="lb-progress-fill"></div></div>
         </div>
-    </div>
-    <div class="lb-info">
         <div class="lb-date" id="lb-date"></div>
         <div class="lb-exif" id="lb-exif"></div>
         <div class="lb-place" id="lb-place"></div>
@@ -822,6 +1597,7 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
         <div class="lb-actions">
             <button class="lb-share" id="lb-share">copy link</button>
             <button class="lb-download" id="lb-download">download</button>
+            <button class="lb-star adm-btn" id="lb-star" type="button" aria-label="Toggle highlight">☆ highlight</button>
         </div>
     </div>
 </div>
@@ -834,9 +1610,11 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
     const GAP = 10;
     const MIN_COL_WIDTH = 360;
 
-    let allPhotos = [];
+    let allPhotos = [];        // raw photos from API (full set)
+    let viewPhotos = [];       // current filtered slice rendered in the gallery
+    let currentFilter = 'all'; // 'highlights' | 'all' | {type:'monthplace', monthYear, city}
     let shown = 0;
-    let currentIdx = -1;
+    let currentIdx = -1;        // index into viewPhotos
     let selectMode = false;
     const selectedFiles = new Set();
     let viewMode = 'masters'; // 'masters' or 'raw'
@@ -994,6 +1772,24 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
         return u;
     }
 
+    // Reserve the LQIP wrapper's aspect-ratio so the masonry doesn't jump and
+    // the blurred placeholder has a box to render in. When manifest dimensions
+    // are present we use the exact ratio; otherwise we fall back to 3/2 (the
+    // D610's native landscape) which still gives the wrap a real height. On
+    // image load we override with naturalWidth/Height so portraits and squares
+    // resolve to their true ratio.
+    function applyImgWrapDims(wrap, photo) {
+        let w, h;
+        if (photo.width && photo.height) {
+            const swap = photo.rotation === 90 || photo.rotation === 270;
+            w = swap ? photo.height : photo.width;
+            h = swap ? photo.width  : photo.height;
+        } else {
+            w = 3; h = 2;
+        }
+        wrap.style.aspectRatio = w + ' / ' + h;
+    }
+
     function fullPhotoUrl(filename, rotation) {
         const path = viewMode === 'raw' ? '/api/photography/raw/full/' : '/api/photography/full/';
         return path + encodeURIComponent(filename) + (rotation ? '?r=' + rotation : '');
@@ -1036,20 +1832,30 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
             .then(data => {
                 if (!data) return;
                 photo.isBackground = data.isBackground;
-                updateCardBackgroundState(card, photo);
+                if (card) updateCardBackgroundState(card, photo);
+                // Keep the lightbox star in sync if this is the photo currently open.
+                if (currentIdx !== -1 && viewPhotos[currentIdx] === photo) updateLightboxStar(photo);
+                // Sidebar count + (if viewing highlights) gallery membership both depend on this flag
+                if (typeof buildSidebar === 'function') buildSidebar();
+                if (filterIsHighlights()) applyFilter('highlights');
             })
             .catch(() => {});
     }
 
-    function updateCardBackgroundState(card, photo) {
-        const btn = card.querySelector('.toggle-background-btn');
+    function updateLightboxStar(photo) {
+        const btn = document.getElementById('lb-star');
         if (!btn) return;
-        if (photo.isBackground) {
-            btn.textContent = '🏠 background';
-            btn.classList.add('is-background');
-        } else {
-            btn.textContent = '⬜ background';
-            btn.classList.remove('is-background');
+        const on = !!(photo && photo.isBackground);
+        btn.textContent = on ? '★ highlighted' : '☆ highlight';
+        btn.classList.toggle('is-on', on);
+    }
+
+    function updateCardBackgroundState(card, photo) {
+        const star = card.querySelector('.highlight-star');
+        if (star) {
+            star.textContent = photo.isBackground ? '★' : '☆';
+            star.title = photo.isBackground ? 'Remove from highlights' : 'Add to highlights';
+            star.classList.toggle('is-on', !!photo.isBackground);
         }
     }
 
@@ -1075,14 +1881,24 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
             .then(data => {
                 if (!data || !data.ok) return;
                 photo.rotation = data.rotation;
-                // Reload the card image with new rotation
-                const img = card.querySelector('.card-img');
+                // Reload the card image with new rotation, and refresh the LQIP
+                // background + aspect-ratio so the wrapper stays correct.
+                const img  = card.querySelector('.card-img');
+                const wrap = card.querySelector('.card-img-wrap');
+                if (wrap) {
+                    wrap.classList.remove('loaded');
+                    applyImgWrapDims(wrap, photo);
+                    wrap.style.setProperty('--lqip', `url("${thumbUrl(photo.filename, 32, photo.rotation)}")`);
+                }
                 if (img) {
                     img.classList.remove('loaded');
                     img.src = thumbUrl(photo.filename, 800, photo.rotation);
+                    img.addEventListener('load', () => {
+                        img.classList.add('loaded');
+                        if (wrap) wrap.classList.add('loaded');
+                        layoutMasonry();
+                    }, { once: true });
                 }
-                // Re-layout after image loads (height may change)
-                if (img) img.addEventListener('load', () => { img.classList.add('loaded'); layoutMasonry(); }, { once: true });
             })
             .catch(() => {});
     }
@@ -1221,6 +2037,8 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
         card.className = 'photo-card';
         if (photo.hidden) card.classList.add('is-hidden');
         card.dataset.index = index;
+        const yr = (photo.date_taken || '').slice(0, 4);
+        if (yr) card.dataset.year = yr;
 
         // ── Admin overlay ──
         const adminDiv = document.createElement('div');
@@ -1234,12 +2052,6 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
         hideBtn.className = 'adm-btn toggle-hide-btn';
         hideBtn.textContent = photo.hidden ? 'unhide' : 'hide';
         hideBtn.addEventListener('click', e => { e.stopPropagation(); toggleHide(photo, card); });
-
-        const bgBtn = document.createElement('button');
-        bgBtn.className = 'adm-btn toggle-background-btn';
-        bgBtn.textContent = photo.isBackground ? '🏠 background' : '⬜ background';
-        if (photo.isBackground) bgBtn.classList.add('is-background');
-        bgBtn.addEventListener('click', e => { e.stopPropagation(); toggleBackground(photo, card); });
 
         const rotRow = document.createElement('div');
         rotRow.className = 'adm-rotate-row';
@@ -1278,19 +2090,47 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
 
         adminDiv.appendChild(badge);
         adminDiv.appendChild(hideBtn);
-        adminDiv.appendChild(bgBtn);
         adminDiv.appendChild(rotRow);
         adminDiv.appendChild(editBtn);
 
-        // ── Photo image ──
+        // ── Prominent highlight star (top-right) ──
+        const star = document.createElement('button');
+        star.className = 'highlight-star';
+        star.type = 'button';
+        star.setAttribute('aria-label', 'Toggle highlight');
+        star.textContent = photo.isBackground ? '★' : '☆';
+        star.title = photo.isBackground ? 'Remove from highlights' : 'Add to highlights';
+        if (photo.isBackground) star.classList.add('is-on');
+        star.addEventListener('click', e => { e.stopPropagation(); toggleBackground(photo, card); });
+
+        // ── Photo image (LQIP blur-up) ──
+        const imgWrap = document.createElement('div');
+        imgWrap.className = 'card-img-wrap';
+        applyImgWrapDims(imgWrap, photo);
+        imgWrap.style.setProperty('--lqip', `url("${thumbUrl(photo.filename, 32, photo.rotation)}")`);
+
         const img = document.createElement('img');
         img.className = 'card-img';
         img.loading = 'lazy';
         img.decoding = 'async';
         img.alt = photo.date_taken || photo.filename;
         img.src = thumbUrl(photo.filename, 800, photo.rotation);
-        img.addEventListener('load', () => { img.classList.add('loaded'); layoutMasonry(); });
-        img.addEventListener('error', () => { img.classList.add('loaded'); layoutMasonry(); });
+        img.addEventListener('load', () => {
+            img.classList.add('loaded');
+            imgWrap.classList.add('loaded');
+            // Lock the wrapper to the image's actual displayed ratio so portraits
+            // and squares render correctly even when the manifest had no dims.
+            if (img.naturalWidth && img.naturalHeight) {
+                imgWrap.style.aspectRatio = img.naturalWidth + ' / ' + img.naturalHeight;
+            }
+            layoutMasonry();
+        });
+        img.addEventListener('error', () => {
+            img.classList.add('loaded');
+            imgWrap.classList.add('loaded');
+            layoutMasonry();
+        });
+        imgWrap.appendChild(img);
 
         // ── Meta ──
         const meta = document.createElement('div');
@@ -1379,8 +2219,9 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
         check.className = 'card-check';
 
         card.appendChild(adminDiv);
+        card.appendChild(star);
         card.appendChild(check);
-        card.appendChild(img);
+        card.appendChild(imgWrap);
         card.appendChild(meta);
         card.appendChild(editor);
 
@@ -1399,24 +2240,77 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
 
     function layoutMasonry() {
         const gallery = document.getElementById('gallery');
-        const cards = Array.from(gallery.children).filter(c => c.classList.contains('photo-card'));
-        if (cards.length === 0) { gallery.style.height = '0'; return; }
+        const photoCards = Array.from(gallery.children).filter(c => c.classList.contains('photo-card'));
+        const bioCard    = document.getElementById('bio-card');
+        if (photoCards.length === 0 && !bioCard) { gallery.style.height = '0'; return; }
 
         const containerW = gallery.clientWidth;
         const numCols = Math.max(1, Math.floor((containerW + GAP) / (MIN_COL_WIDTH + GAP)));
         const colW = (containerW - GAP * (numCols - 1)) / numCols;
         const colHeights = new Array(numCols).fill(0);
 
-        cards.forEach((card, i) => {
+        // Bio tile: top-right when there's >1 column, otherwise top of the single column.
+        let bioCol = -1;
+        if (bioCard) {
+            bioCol = numCols > 1 ? numCols - 1 : 0;
+            bioCard.style.width = colW + 'px';
+            bioCard.style.left  = (bioCol * (colW + GAP)) + 'px';
+            bioCard.style.top   = '0px';
+            colHeights[bioCol] = bioCard.offsetHeight + GAP;
+        }
+
+        // Photos: when bio occupies a top-row column, fill the OTHER first-row columns
+        // first (left→right, skipping bio's column), then masonry into shortest column.
+        const firstRowSlots = numCols - (bioCol >= 0 && numCols > 1 ? 1 : 0);
+        photoCards.forEach((card, i) => {
             card.style.width = colW + 'px';
-            // First row fills strictly left→right; then shortest column
-            const col = i < numCols ? i : colHeights.indexOf(Math.min(...colHeights));
+            let col;
+            if (i < firstRowSlots) {
+                // Fill first-row columns in order, skipping the bio's column.
+                col = i;
+                if (bioCol >= 0 && numCols > 1 && col >= bioCol) col = i + 1;
+            } else {
+                col = colHeights.indexOf(Math.min(...colHeights));
+            }
             card.style.left = (col * (colW + GAP)) + 'px';
             card.style.top  = colHeights[col] + 'px';
             colHeights[col] += card.offsetHeight + GAP;
         });
 
         gallery.style.height = Math.max(...colHeights) + 'px';
+    }
+
+    // ── Sticky year indicator ────────────────────────────
+    // Tracks which card is dominant in a band roughly 12-45% down the
+    // viewport, then mirrors that card's year in the corner overlay.
+    const yearEl = document.getElementById('year-indicator');
+    const yearActive = new Set();
+    const yearObserver = ('IntersectionObserver' in window) ? new IntersectionObserver((entries) => {
+        for (const e of entries) {
+            if (e.isIntersecting) yearActive.add(e.target);
+            else yearActive.delete(e.target);
+        }
+        updateYearIndicator();
+    }, { rootMargin: '-12% 0px -55% 0px', threshold: 0 }) : null;
+
+    function updateYearIndicator() {
+        if (!yearEl) return;
+        if (yearActive.size === 0) {
+            yearEl.classList.remove('visible');
+            return;
+        }
+        // Pick the topmost card in the active band.
+        let best = null;
+        let bestTop = Infinity;
+        for (const card of yearActive) {
+            const t = card.getBoundingClientRect().top;
+            if (t < bestTop) { bestTop = t; best = card; }
+        }
+        const year = best && best.dataset.year;
+        if (year) {
+            if (yearEl.textContent !== year) yearEl.textContent = year;
+            yearEl.classList.add('visible');
+        }
     }
 
     // Re-layout on window resize
@@ -1430,21 +2324,40 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
 
     function renderMore() {
         const gallery = document.getElementById('gallery');
-        const end = Math.min(shown + PAGE_SIZE, allPhotos.length);
+        const end = Math.min(shown + PAGE_SIZE, viewPhotos.length);
         const newCards = [];
         for (let i = shown; i < end; i++) {
-            const card = buildCard(allPhotos[i], i);
+            const card = buildCard(viewPhotos[i], i);
             gallery.appendChild(card);
             newCards.push(card);
         }
         shown = end;
         layoutMasonry();
-        // Stagger fade-in for new cards
+        // First-batch reveal: now that the masonry has real cards laid out,
+        // fade the gallery in and dismiss the loading indicator.
+        revealGallery();
+        // Stagger fade-in for new cards (used only on browsers without
+        // scroll-driven CSS animations; the @supports rule ignores .visible
+        // when animation-timeline: view() is available).
         newCards.forEach((card, i) => {
             setTimeout(() => card.classList.add('visible'), i * 40);
+            if (yearObserver) yearObserver.observe(card);
         });
         document.getElementById('load-more-wrap').style.display =
-            shown < allPhotos.length ? 'block' : 'none';
+            shown < viewPhotos.length ? 'block' : 'none';
+    }
+
+    let galleryRevealed = false;
+    function revealGallery() {
+        if (galleryRevealed) return;
+        galleryRevealed = true;
+        const gallery = document.getElementById('gallery');
+        const loader  = document.getElementById('page-loading');
+        if (gallery) gallery.classList.add('ready');
+        if (loader) {
+            loader.classList.add('gone');
+            setTimeout(() => loader.remove(), 600);
+        }
     }
 
     // ── Lightbox ─────────────────────────────────────────
@@ -1460,29 +2373,100 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
         if (fetchController) { fetchController.abort(); fetchController = null; }
     }
 
+    // Browsers without View Transitions just open the lightbox directly.
+    const supportsViewTransitions = typeof document.startViewTransition === 'function';
+
+    // Build a unique <custom-ident> view-transition-name from a photo filename.
+    // Filenames contain dots/hyphens which aren't valid in custom-ident, hence
+    // the strip. Per-photo uniqueness prevents the "duplicate name" error when
+    // two transitions overlap.
+    function vtName(p) {
+        const base = (p && p.filename) ? p.filename : 'x';
+        return 'photo-' + base.replace(/[^A-Za-z0-9_-]/g, '_');
+    }
+
+    // Strip stale view-transition-name from anything still carrying one. Run
+    // this synchronously before assigning new names, in case a previous
+    // transition's cleanup hasn't fired yet (rapid clicks).
+    function clearVTNames() {
+        document.querySelectorAll('[style*="view-transition-name"]').forEach(el => {
+            el.style.viewTransitionName = '';
+        });
+    }
+
+    // Run a View Transition where `fromEl` is the OLD-state element (already
+    // visible to the user) and `toEl` is the NEW-state element (visible after
+    // commit runs). The view-transition-name lives on exactly one element at
+    // a time — required by the spec; assigning the same name to two live
+    // elements simultaneously is the "Unexpected duplicate" error.
+    function runMorph(fromEl, toEl, name, commit) {
+        if (!supportsViewTransitions || !fromEl || !toEl) {
+            commit();
+            return;
+        }
+        clearVTNames();
+        fromEl.style.viewTransitionName = name;
+        const tx = document.startViewTransition(() => {
+            commit();
+            // After commit, the OLD element may still be in the DOM. Hand the
+            // name over to the NEW element so the snapshot has a target.
+            fromEl.style.viewTransitionName = '';
+            toEl.style.viewTransitionName = name;
+        });
+        tx.finished.finally(() => {
+            toEl.style.viewTransitionName = '';
+            fromEl.style.viewTransitionName = '';
+        });
+    }
+
     function openLightbox(idx) {
-        currentIdx = idx;
-        document.body.style.overflow = 'hidden';
-        document.getElementById('lightbox').classList.add('open');
-        const p = allPhotos[idx];
-        if (p) history.replaceState(null, '', '?photo=' + encodeURIComponent(p.filename));
-        loadLightboxPhoto();
+        const p = viewPhotos[idx];
+        const cardImg = document.querySelector('.photo-card[data-index="' + idx + '"] .card-img');
+        const lbImg   = document.getElementById('lb-img');
+
+        const commit = () => {
+            currentIdx = idx;
+            document.body.style.overflow = 'hidden';
+            document.getElementById('lightbox').classList.add('open');
+            if (p) history.replaceState(null, '', '?photo=' + encodeURIComponent(p.filename));
+            // loadLightboxPhoto blanks lb-img.src; restore the thumbnail
+            // afterwards so the morph has a target and the user sees the photo
+            // immediately while the full quality fetch runs.
+            loadLightboxPhoto();
+            if (p) {
+                lbImg.src = thumbUrl(p.filename, 800, p.rotation);
+                lbImg.classList.add('ready');
+            }
+        };
+
+        runMorph(cardImg, lbImg, vtName(p), commit);
     }
 
     function closeLightbox() {
-        document.getElementById('lightbox').classList.remove('open');
-        const img = document.getElementById('lb-img');
-        img.classList.remove('ready');
-        img.src = '';
-        stopLoadingMessages();
-        stopTypewriters();
-        document.getElementById('lb-progress').classList.remove('active', 'fading');
-        abortFetch();
-        revokeBlobUrl();
-        resetZoom();
-        document.body.style.overflow = '';
-        currentIdx = -1;
-        history.replaceState(null, '', window.location.pathname);
+        const lbImg = document.getElementById('lb-img');
+        const idx = currentIdx;
+        const p = idx !== -1 ? viewPhotos[idx] : null;
+        const cardImg = idx !== -1
+            ? document.querySelector('.photo-card[data-index="' + idx + '"] .card-img')
+            : null;
+
+        const commit = () => {
+            document.getElementById('lightbox').classList.remove('open');
+            lbImg.classList.remove('ready', 'refined');
+            lbImg.src = '';
+            stopLoadingMessages();
+            stopTypewriters();
+            document.getElementById('lb-progress').classList.remove('active', 'fading');
+            abortFetch();
+            revokeBlobUrl();
+            resetZoom();
+            document.body.style.overflow = '';
+            currentIdx = -1;
+            history.replaceState(null, '', window.location.pathname);
+        };
+
+        // Reverse direction: from the lightbox image back to the gallery card.
+        runMorph(lbImg, cardImg, vtName(p), commit);
     }
 
     // ── Loading message cycling ───────────────────────────
@@ -1597,7 +2581,7 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
     }
 
     function loadLightboxPhoto() {
-        const p = allPhotos[currentIdx];
+        const p = viewPhotos[currentIdx];
         const img = document.getElementById('lb-img');
         const progress = document.getElementById('lb-progress');
         const fill = document.getElementById('lb-progress-fill');
@@ -1606,7 +2590,7 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
         revokeBlobUrl();
         img.onload = null;
         img.onerror = null;
-        img.classList.remove('ready');
+        img.classList.remove('ready', 'refined');
         img.src = '';
         fill.style.transition = 'none';
         fill.style.width = '0%';
@@ -1616,7 +2600,7 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
         startLoadingMessages();
         fetchController = new AbortController();
 
-        document.getElementById('lb-counter').textContent = (currentIdx + 1) + ' / ' + allPhotos.length;
+        document.getElementById('lb-counter').textContent = (currentIdx + 1) + ' / ' + viewPhotos.length;
         stopTypewriters();
         document.getElementById('lb-date').textContent    = '';
         document.getElementById('lb-exif').textContent    = '';
@@ -1625,6 +2609,7 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
         document.getElementById('lb-camera').textContent  = '';
         document.getElementById('lb-desc').textContent    = '';
         document.getElementById('lb-desc').style.display  = ''; // always shown — reserves min-height
+        updateLightboxStar(p);
 
         const url = fullPhotoUrl(p.filename, p.rotation);
 
@@ -1644,10 +2629,14 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
                             img.onload  = () => {
                                 stopLoadingMessages();
                                 fill.style.width = '100%';
-                                // Hold at full for 280ms, then fade bar out
+                                // Hold at full for 280ms, then fade bar out and
+                                // trigger the smooth expand-into-focus on the
+                                // photo (scale 0.94 → 1 + colour correct).
                                 setTimeout(() => {
                                     progress.classList.add('fading');
-                                    // After bar fades (350ms), show photo
+                                    img.classList.add('refined');
+                                    // After bar fades (350ms), free up the slot
+                                    // for the EXIF typewriter that follows.
                                     setTimeout(() => {
                                         progress.classList.remove('active', 'fading');
                                         img.classList.add('ready');
@@ -1656,7 +2645,11 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
                                     }, 350);
                                 }, 280);
                             };
-                            img.onerror = () => { stopLoadingMessages(); progress.classList.remove('active', 'fading'); img.classList.add('ready'); };
+                            img.onerror = () => {
+                                stopLoadingMessages();
+                                progress.classList.remove('active', 'fading');
+                                img.classList.add('ready', 'refined');
+                            };
                             img.src = currentBlobUrl;
                             return;
                         }
@@ -1680,11 +2673,11 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
 
     function navigate(dir) {
         const next = currentIdx + dir;
-        if (next < 0 || next >= allPhotos.length) return;
+        if (next < 0 || next >= viewPhotos.length) return;
         abortFetch();
         resetZoom();
         currentIdx = next;
-        const p = allPhotos[currentIdx];
+        const p = viewPhotos[currentIdx];
         if (p) history.replaceState(null, '', '?photo=' + encodeURIComponent(p.filename));
         loadLightboxPhoto();
     }
@@ -1698,7 +2691,7 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
 
     document.getElementById('lb-download').addEventListener('click', async e => {
         e.stopPropagation();
-        const p = allPhotos[currentIdx];
+        const p = viewPhotos[currentIdx];
         if (p) await downloadFile(p.filename, p.rotation || 0);
     });
 
@@ -1724,11 +2717,28 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
     document.getElementById('lb-prev').addEventListener('click', e => { e.stopPropagation(); navigate(-1); });
     document.getElementById('lb-next').addEventListener('click', e => { e.stopPropagation(); navigate(1); });
 
+    document.getElementById('lb-star').addEventListener('click', e => {
+        e.stopPropagation();
+        if (!isAdmin() || currentIdx === -1) return;
+        const photo = viewPhotos[currentIdx];
+        if (!photo) return;
+        const card = document.querySelector('.photo-card[data-index="' + currentIdx + '"]');
+        toggleBackground(photo, card || null);
+    });
+
     document.addEventListener('keydown', e => {
         if (currentIdx === -1) return;
         if (e.key === 'Escape')      closeLightbox();
         if (e.key === 'ArrowLeft')   navigate(-1);
         if (e.key === 'ArrowRight')  navigate(1);
+        // Admin-only shortcut: toggle highlight on the photo currently open.
+        if ((e.key === 'h' || e.key === 'H') && isAdmin()) {
+            const photo = viewPhotos[currentIdx];
+            if (!photo) return;
+            e.preventDefault();
+            const card = document.querySelector('.photo-card[data-index="' + currentIdx + '"]');
+            toggleBackground(photo, card || null);
+        }
     });
 
     // ── Lightbox zoom ────────────────────────────────────
@@ -1770,7 +2780,7 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
     // ── Infinite scroll ───────────────────────────────────
     const sentinel = document.getElementById('load-more-wrap');
     const scrollObserver = new IntersectionObserver(entries => {
-        if (entries[0].isIntersecting && shown < allPhotos.length) {
+        if (entries[0].isIntersecting && shown < viewPhotos.length) {
             renderMore();
         }
     }, { rootMargin: '200px' });
@@ -1788,14 +2798,362 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
         if (Math.abs(dx) > 50) navigate(dx < 0 ? 1 : -1);
     }, { passive: true });
 
+    // ── Filtering, sidebar, count label ───────────────────
+
+    function filterIsHighlights() { return currentFilter === 'highlights'; }
+    function filterIsAll()        { return currentFilter === 'all'; }
+    function filterIsGroup()      { return typeof currentFilter === 'object' && currentFilter && currentFilter.type === 'monthplace'; }
+    function filterIsPlace()      { return typeof currentFilter === 'object' && currentFilter && currentFilter.type === 'place'; }
+
+    function computeViewPhotos() {
+        if (filterIsHighlights()) return allPhotos.filter(p => p.isBackground);
+        if (filterIsAll())        return allPhotos.slice();
+        if (filterIsGroup()) {
+            return allPhotos.filter(p =>
+                p.date_taken &&
+                p.date_taken.slice(0, 7) === currentFilter.monthYear &&
+                (p.city || 'Unknown') === currentFilter.city
+            );
+        }
+        if (filterIsPlace()) {
+            return allPhotos.filter(p => (p.city || '') === currentFilter.city);
+        }
+        return allPhotos.slice();
+    }
+
+    function buildGroups() {
+        const map = new Map();
+        for (const p of allPhotos) {
+            if (!p.date_taken) continue;
+            const my = p.date_taken.slice(0, 7);
+            const city = p.city || 'Unknown';
+            const key = my + '|' + city;
+            if (!map.has(key)) {
+                const month = MONTHS[parseInt(my.slice(5, 7), 10) - 1];
+                const year = my.slice(0, 4);
+                map.set(key, {
+                    key, monthYear: my, city, count: 0,
+                    label: month + ' ' + year + ' · ' + city
+                });
+            }
+            map.get(key).count++;
+        }
+        // Photos arrive newest-first; preserve discovery order so groups are also newest-first.
+        return Array.from(map.values());
+    }
+
+    function currentFilterKey() {
+        if (filterIsHighlights()) return 'highlights';
+        if (filterIsAll())        return 'all';
+        if (filterIsGroup())      return currentFilter.monthYear + '|' + currentFilter.city;
+        if (filterIsPlace())      return 'place|' + currentFilter.city;
+        return '';
+    }
+
+    function buildSidebar() {
+        const list = document.getElementById('sidebar-list');
+        list.innerHTML = '';
+
+        const highlightCount = allPhotos.filter(p => p.isBackground).length;
+
+        list.appendChild(makeSbItem('Latest (all)', allPhotos.length, 'all', 'all'));
+        list.appendChild(makeSbItem('Highlights', highlightCount, 'highlights', 'highlights'));
+
+        const groups = buildGroups();
+        if (groups.length) {
+            const div = document.createElement('div');
+            div.className = 'sb-divider';
+            list.appendChild(div);
+            const heading = document.createElement('div');
+            heading.className = 'sb-section-title';
+            heading.textContent = 'Chapters';
+            list.appendChild(heading);
+
+            for (const g of groups) {
+                list.appendChild(makeSbItem(
+                    g.label, g.count,
+                    { type: 'monthplace', monthYear: g.monthYear, city: g.city },
+                    g.key
+                ));
+            }
+        }
+
+        // Off-page link — only "← Index" stays in the sidebar; Instagram lives on the bio card.
+        const linkDivider = document.createElement('div');
+        linkDivider.className = 'sb-divider';
+        list.appendChild(linkDivider);
+        list.appendChild(makeSbLink('← Index', '/', false));
+
+        updateSidebarActive();
+    }
+
+    function makeSbLink(label, href, external) {
+        const a = document.createElement('a');
+        a.className = 'sb-item sb-link';
+        a.href = href;
+        if (external) { a.target = '_blank'; a.rel = 'noopener'; }
+        const span = document.createElement('span');
+        span.className = 'sb-item-label';
+        span.textContent = label;
+        a.appendChild(span);
+        return a;
+    }
+
+    function makeSbItem(label, count, filter, key) {
+        const btn = document.createElement('button');
+        btn.className = 'sb-item';
+        btn.dataset.key = key;
+        const lbl = document.createElement('span');
+        lbl.className = 'sb-item-label';
+        lbl.textContent = label;
+        const cnt = document.createElement('span');
+        cnt.className = 'sb-item-count';
+        cnt.textContent = count;
+        btn.appendChild(lbl);
+        btn.appendChild(cnt);
+        btn.addEventListener('click', () => applyFilter(filter));
+        return btn;
+    }
+
+    function updateSidebarActive() {
+        const key = currentFilterKey();
+        document.querySelectorAll('.sb-item').forEach(b => {
+            b.classList.toggle('active', b.dataset.key === key);
+        });
+    }
+
+    function updateCountLabel() {
+        const el = document.getElementById('pg-count');
+        if (!el) return;
+        if (allPhotos.length === 0) { el.textContent = 'no photographs yet'; return; }
+        const n = viewPhotos.length;
+        const total = allPhotos.length;
+        if (filterIsAll())              el.textContent = total + ' photographs · Nikon D610';
+        else if (filterIsHighlights())  el.textContent = (n || 0) + ' highlights · ' + total + ' total';
+        else if (filterIsGroup())       el.textContent = n + ' photos · ' + currentFilter.city;
+        else if (filterIsPlace())       el.textContent = n + ' photos · ' + currentFilter.city;
+    }
+
+    function applyFilter(filter, options) {
+        const opts = options || {};
+        currentFilter = filter;
+        viewPhotos = computeViewPhotos();
+        const gallery = document.getElementById('gallery');
+        if (gallery) {
+            // Remove only photo cards — keep the bio-card tile intact.
+            gallery.querySelectorAll('.photo-card').forEach(c => {
+                if (yearObserver) yearObserver.unobserve(c);
+                yearActive.delete(c);
+                c.remove();
+            });
+            gallery.style.height = '0';
+            updateYearIndicator();
+        }
+        shown = 0;
+        const msg = document.getElementById('gallery-msg');
+        if (viewPhotos.length === 0) {
+            if (msg) {
+                msg.textContent = filterIsHighlights()
+                    ? 'No highlights yet — open admin and toggle the home/background icon on photos to feature them here.'
+                    : 'No photos in this chapter.';
+                msg.style.display = 'block';
+            }
+            layoutMasonry();
+            revealGallery();
+        } else {
+            if (msg) msg.style.display = 'none';
+            renderMore();
+        }
+        updateSidebarActive();
+        updateCountLabel();
+        closeSidebar();
+        // Skip the smooth-scroll on the very first render to avoid Safari quirks; only scroll on user-driven filter changes.
+        if (opts.scroll !== false) {
+            try { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+            catch (_) { try { window.scrollTo(0, 0); } catch (_) {} }
+        }
+    }
+
+    // ── Sidebar open/close ────────────────────────────────
+    function openSidebar() {
+        const s = document.getElementById('sidebar');
+        const o = document.getElementById('sidebar-overlay');
+        if (s) s.classList.add('open');
+        if (o) o.classList.add('open');
+        // Map is lazy-initialised — only fetch Leaflet the first time the
+        // sidebar opens, then refresh size every open in case the sidebar
+        // was hidden when initialised (Leaflet needs invalidateSize then).
+        ensureMap();
+    }
+    function closeSidebar() {
+        const s = document.getElementById('sidebar');
+        const o = document.getElementById('sidebar-overlay');
+        if (s) s.classList.remove('open');
+        if (o) o.classList.remove('open');
+    }
+    document.getElementById('sidebar-toggle').addEventListener('click', openSidebar);
+    document.getElementById('sidebar-close').addEventListener('click', closeSidebar);
+    document.getElementById('sidebar-overlay').addEventListener('click', closeSidebar);
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && document.getElementById('sidebar').classList.contains('open')) closeSidebar();
+    });
+
+    // ── Lazy-loaded world map (Leaflet via CDN) ──────────
+    // Loads Leaflet's CSS + JS the first time the sidebar opens. After init,
+    // each open just nudges Leaflet to recompute size in case the container
+    // had width 0 while hidden.
+    let leafletPromise = null;
+    let mapInstance = null;
+    let mapMarkers = {};   // city → marker
+
+    function loadLeaflet() {
+        if (leafletPromise) return leafletPromise;
+        leafletPromise = new Promise((resolve, reject) => {
+            const css = document.createElement('link');
+            css.rel = 'stylesheet';
+            css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+            document.head.appendChild(css);
+            const js = document.createElement('script');
+            js.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            js.async = true;
+            js.onload = () => window.L ? resolve(window.L) : reject(new Error('no L'));
+            js.onerror = () => reject(new Error('leaflet script failed'));
+            document.head.appendChild(js);
+        });
+        return leafletPromise;
+    }
+
+    function ensureMap() {
+        const el = document.getElementById('sb-map');
+        if (!el) return;
+        if (mapInstance) {
+            // Sidebar may have been display:none while off-screen; nudge so
+            // Leaflet re-measures and re-renders tiles correctly.
+            setTimeout(() => mapInstance.invalidateSize(), 60);
+            return;
+        }
+        el.classList.add('loading');
+        Promise.all([
+            loadLeaflet(),
+            fetch('/api/photography/locations').then(r => r.ok ? r.json() : { cities: {} }).catch(() => ({ cities: {} })),
+        ]).then(([L, data]) => {
+            try { initMap(L, data.cities || {}); }
+            catch (e) { console.warn('map init failed', e); }
+            el.classList.remove('loading');
+        }).catch(() => {
+            el.classList.remove('loading');
+            el.textContent = 'map unavailable';
+        });
+    }
+
+    function cityCounts() {
+        const counts = new Map();
+        for (const p of allPhotos) {
+            if (!p.city) continue;
+            counts.set(p.city, (counts.get(p.city) || 0) + 1);
+        }
+        return counts;
+    }
+
+    function initMap(L, cities) {
+        const el = document.getElementById('sb-map');
+        if (!el) return;
+        // Centre on the user's photo footprint — Southeast Asia weighted —
+        // then we'll fitBounds once markers are added.
+        mapInstance = L.map(el, {
+            zoomControl: true,           // +/- buttons (restyled in CSS)
+            attributionControl: true,
+            scrollWheelZoom: true,       // scroll only fires when cursor is over the map div, so it doesn't fight page scroll
+            doubleClickZoom: true,
+            touchZoom: true,
+            dragging: true,
+            tap: true,
+            minZoom: 2,
+            maxZoom: 12,
+        }).setView([15, 100], 3);
+
+        // CARTO Voyager (light) — already near-monochrome; CSS filter on
+        // .leaflet-tile-pane forces pure B&W on top.
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> · CARTO',
+            subdomains: 'abcd',
+            maxZoom: 18,
+        }).addTo(mapInstance);
+
+        const counts = cityCounts();
+        const bounds = [];
+        for (const [city, info] of Object.entries(cities)) {
+            const n = counts.get(city) || 0;
+            if (n === 0) continue; // skip locations with no actual photos in this view
+            const size = Math.max(14, Math.min(28, 12 + Math.round(Math.log2(n + 1) * 3)));
+            const icon = L.divIcon({
+                className: '',
+                html: `<div class="sb-pin" style="width:${size}px;height:${size}px" title="${city} · ${n} photo${n === 1 ? '' : 's'}">${n}</div>`,
+                iconSize: [size, size],
+                iconAnchor: [size / 2, size / 2],
+            });
+            const marker = L.marker([info.lat, info.lng], { icon, riseOnHover: true })
+                .on('click', () => {
+                    applyFilter({ type: 'place', city });
+                    // closeSidebar(); — applyFilter already calls closeSidebar
+                });
+            marker.addTo(mapInstance);
+            mapMarkers[city] = marker;
+            bounds.push([info.lat, info.lng]);
+        }
+        const fitToBounds = () => {
+            if (bounds.length >= 2) {
+                mapInstance.fitBounds(bounds, { padding: [16, 16], maxZoom: 6 });
+            } else if (bounds.length === 1) {
+                mapInstance.setView(bounds[0], 6);
+            }
+        };
+        fitToBounds();
+
+        // Reset-view button so users can recover after zooming around.
+        const resetBtn = document.createElement('button');
+        resetBtn.type = 'button';
+        resetBtn.className = 'sb-map-reset';
+        resetBtn.textContent = 'reset view';
+        resetBtn.addEventListener('click', () => fitToBounds());
+        const wrap = el.parentElement; // .sb-map-wrap
+        if (wrap) wrap.appendChild(resetBtn);
+
+        // Leaflet renders blank tiles when the container had zero size at init —
+        // forcing a re-measure on the next animation frame fixes it.
+        requestAnimationFrame(() => mapInstance && mapInstance.invalidateSize());
+    }
+
+    // Settings entry inside sidebar — opens the existing auth modal
+    document.getElementById('sb-settings').addEventListener('click', () => {
+        closeSidebar();
+        openModal();
+    });
+
+    // Select toggle lives in the top-bar (icon + label). State mirrored via
+    // .active class and the label swaps Select ↔ Cancel.
+    const topSelectBtn = document.getElementById('top-select-btn');
+    const topSelectLabel = document.getElementById('top-select-label');
+    if (topSelectBtn) {
+        topSelectBtn.addEventListener('click', () => {
+            toggleSelectMode();
+            topSelectBtn.classList.toggle('active', selectMode);
+            topSelectBtn.setAttribute('aria-pressed', String(selectMode));
+            topSelectBtn.title = selectMode ? 'Cancel selection' : 'Select photos to download';
+            if (topSelectLabel) topSelectLabel.textContent = selectMode ? 'Cancel' : 'Select';
+        });
+    }
+
     // ── Load photos ──────────────────────────────────────
 
     function loadPhotos() {
         const gallery = document.getElementById('gallery');
-        gallery.innerHTML = '';
+        // Wipe any photo cards but keep the bio-card tile.
+        gallery.querySelectorAll('.photo-card').forEach(c => c.remove());
         gallery.style.height = '0';
         shown = 0;
         allPhotos = [];
+        viewPhotos = [];
 
         const headers = isAdmin() ? adminHeaders() : {};
         const endpoint = viewMode === 'raw' ? '/api/photography/photos/raw' : '/api/photography/photos';
@@ -1804,22 +3162,50 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
             .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
             .then(data => {
                 allPhotos = data.photos || [];
-                const countEl = document.getElementById('pg-count');
-                if (allPhotos.length === 0) { countEl.textContent = 'no photographs yet'; return; }
-                countEl.textContent = data.count + ' photographs · Nikon D610';
-                renderMore();
-                // Deep-link: open photo from ?photo=filename
+                if (allPhotos.length === 0) {
+                    document.getElementById('pg-count').textContent = 'no photographs yet';
+                    try { buildSidebar(); } catch (e) { console.error('buildSidebar (empty):', e); }
+                    layoutMasonry();
+                    revealGallery();
+                    return;
+                }
+                // Each step wrapped so a downstream failure doesn't black-hole the gallery.
+                try { buildSidebar(); }
+                catch (e) { console.error('buildSidebar:', e); }
+
                 const targetFilename = new URLSearchParams(window.location.search).get('photo');
                 if (targetFilename) {
-                    const idx = allPhotos.findIndex(p => p.filename === targetFilename);
+                    const target = allPhotos.find(p => p.filename === targetFilename);
+                    if (target && !target.isBackground) currentFilter = 'all';
+                }
+
+                try { applyFilter(currentFilter, { scroll: false }); }
+                catch (e) {
+                    console.error('applyFilter failed, falling back to all:', e);
+                    // Last-ditch: bypass the filter logic and just render everything.
+                    viewPhotos = allPhotos.slice();
+                    shown = 0;
+                    const gal = document.getElementById('gallery');
+                    if (gal) { gal.querySelectorAll('.photo-card').forEach(c => c.remove()); gal.style.height = '0'; }
+                    try { renderMore(); }
+                    catch (e2) { console.error('fallback renderMore failed:', e2); }
+                    document.getElementById('pg-count').textContent =
+                        allPhotos.length + ' photographs · Nikon D610 (filter error: ' + (e.message || e) + ')';
+                }
+
+                if (targetFilename) {
+                    const idx = viewPhotos.findIndex(p => p.filename === targetFilename);
                     if (idx !== -1) openLightbox(idx);
                 }
             })
-            .catch(() => {
+            .catch(err => {
+                // Strictly a fetch/network failure now — render-time errors are caught above.
+                console.error('photo fetch failed:', err);
                 document.getElementById('pg-count').textContent = 'could not load';
                 const msg = document.getElementById('gallery-msg');
-                msg.textContent = 'Failed to load photographs.';
+                msg.textContent = 'Failed to fetch photos: ' + (err && err.message ? err.message : err);
                 msg.style.display = 'block';
+                revealGallery();
             });
     }
 
@@ -1840,18 +3226,13 @@ body.select-mode .photo-card:hover .card-check { border-color: var(--accent); }
 
     loadPhotos();
 
-    // ── Select button hint + flash on load ───────────────
+    // ── Briefly flash the top-bar select icon on load so people notice it. ──
     setTimeout(() => {
-        const hint = document.getElementById('select-hint');
-        const btn  = document.getElementById('select-btn');
-        // Fade hint in
-        hint.style.opacity = '1';
-        // Fade hint out after 3s visible
-        setTimeout(() => { hint.style.opacity = '0'; }, 3000);
-        // Flash button 5×
+        const btn = document.getElementById('top-select-btn');
+        if (!btn) return;
         btn.classList.add('flashing');
         btn.addEventListener('animationend', () => btn.classList.remove('flashing'), { once: true });
-    }, 600);
+    }, 700);
 
 })();
 </script>

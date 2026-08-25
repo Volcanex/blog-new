@@ -281,7 +281,8 @@ class ModularBlogCompiler:
         # Calculate relative path to favicon based on nesting level
         # Add 1 because the file is index.html inside a directory
         nesting_level = slug.count('/') + 1
-        favicon_path = '../' * nesting_level + 'favicon.svg' if nesting_level > 0 else 'favicon.svg'
+        favicon_file = config.get('favicon', 'favicon.svg')
+        favicon_path = '../' * nesting_level + favicon_file if nesting_level > 0 else favicon_file
 
         # Check for artist-specific favicon
         if str(relative_path).startswith('artists/'):
@@ -303,6 +304,7 @@ class ModularBlogCompiler:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">{meta_section}
+    <script defer src="https://baselinelabs.ai/js/tracker.js" data-site="09f6d274c6a90724de51d9a3"></script>
     <title>{config.get('title', 'Blog Post')}</title>
     <link rel="icon" href="{favicon_path}">
     {css_content}
@@ -415,6 +417,8 @@ class ModularBlogCompiler:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="x-geo-butler-verify" content="012AB09C9E49C2F7">
+    <script defer src="https://baselinelabs.ai/js/tracker.js" data-site="09f6d274c6a90724de51d9a3"></script>
+    <link rel="icon" href="favicon.svg">
     <title>Gabrielpenman.com</title>
     <style>
     :root {
@@ -454,7 +458,7 @@ class ModularBlogCompiler:
     }
 
     h1 {
-        text-align: left;
+        text-align: center;
         font-size: 2.5em;
         margin: 0 auto 1ch auto;
         color: #00FFFF;
@@ -686,6 +690,7 @@ class ModularBlogCompiler:
     .widget.wg-mgmt { background-color: #005500; }
     .widget.wg-templeos { background-color: #AA00AA; }
     .widget.wg-xp { background-color: #0055AA; }
+    .widget.wg-services { background-color: #336699; }
     .widget.wg-default { background-color: #0000AA; }
 
     /* CPU grid styling - 4 rows of 4 characters */
@@ -734,7 +739,7 @@ class ModularBlogCompiler:
     }
 
 
-    /* Loading screen */
+    /* Loading screen — CRT power-on effect */
     #loading-screen {
         position: fixed;
         top: 0;
@@ -744,37 +749,76 @@ class ModularBlogCompiler:
         background-color: #000000;
         z-index: 9999;
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
-        color: #FFFFFF;
-        font-family: 'Courier New', monospace;
-        transition: opacity 0.5s ease-out;
+        overflow: hidden;
+        transition: background-color 0.25s ease-out 0.55s;
+    }
+
+    .crt-dot {
+        width: 5px;
+        height: 5px;
+        background: #ffffff;
+        border-radius: 50%;
+        box-shadow:
+            0 0 3px 1px rgba(255, 255, 255, 0.95),
+            0 0 10px 3px rgba(220, 255, 230, 0.55),
+            0 0 28px 8px rgba(170, 220, 195, 0.22);
+        animation: crt-dot-pulse 1.6s ease-in-out infinite;
+        will-change: width, height, opacity, border-radius;
+    }
+
+    @keyframes crt-dot-pulse {
+        0%, 100% { opacity: 0.85; transform: scale(0.92); }
+        50%      { opacity: 1;    transform: scale(1.08); }
     }
 
     #loading-screen.hidden {
-        opacity: 0;
         pointer-events: none;
+        background-color: transparent;
     }
 
-    .loading-text {
-        font-size: 1.5em;
-        margin-bottom: 20px;
-        animation: pulse 1.5s ease-in-out infinite;
+    #loading-screen.hidden .crt-dot {
+        animation: crt-power-on 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
 
-    .loading-dots {
-        font-size: 2em;
-    }
-
-    .loading-status {
-        font-size: 1.5em;
-        animation: pulse 1.5s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-        0%, 100% { opacity: 0.4; }
-        50% { opacity: 1; }
+    @keyframes crt-power-on {
+        0% {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            opacity: 1;
+            background: #ffffff;
+            box-shadow:
+                0 0 3px 1px rgba(255, 255, 255, 0.95),
+                0 0 10px 3px rgba(220, 255, 230, 0.55);
+        }
+        28% {
+            width: 100vw;
+            height: 3px;
+            border-radius: 0;
+            opacity: 1;
+            background: #ffffff;
+            box-shadow:
+                0 0 22px 6px rgba(255, 255, 255, 0.9),
+                0 0 50px 14px rgba(220, 255, 230, 0.5);
+        }
+        58% {
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+            opacity: 1;
+            background: #ffffff;
+            box-shadow: none;
+        }
+        100% {
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+            opacity: 0;
+            background: #ffffff;
+            box-shadow: none;
+        }
     }
 
     @media (max-width: 768px) {
@@ -1000,9 +1044,9 @@ class ModularBlogCompiler:
     </script>
 </head>
 <body>
-    <!-- Loading Screen -->
+    <!-- Loading Screen — CRT power-on -->
     <div id="loading-screen">
-        <div class="loading-status">Loading...</div>
+        <div class="crt-dot"></div>
     </div>
 
     <div id="page-content" class="crt">

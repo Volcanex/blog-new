@@ -50,44 +50,73 @@ class PhotoBackgroundController {
     async apply() {
         console.log('[PhotoBG] Initializing photo background with glitchGL');
 
-        // Load saved settings
-        await this.loadSettings();
-
-        // Fetch random background photo from API
-        const photo = await this.fetchRandomBackgroundPhoto();
-
-        if (!photo) {
-            console.log('[PhotoBG] No background photo available');
+        // Hard cap on the loading screen — R2 can be slow; never trap the page.
+        const failsafe = setTimeout(() => {
+            console.warn('[PhotoBG] Failsafe timeout — forcing loading screen off');
+            this.applyColorFallback();
             this.hideLoadingScreen();
-            return;
+        }, 4000);
+
+        try {
+            await this.loadSettings();
+
+            const photo = await this.fetchRandomBackgroundPhoto();
+
+            if (!photo) {
+                console.log('[PhotoBG] No background photo available, using color fallback');
+                this.applyColorFallback();
+                return;
+            }
+
+            console.log(`[PhotoBG] Selected photo: ${photo}`);
+
+            await this.setupBackgroundLayer();
+
+            try {
+                await this.loadPhoto(photo, 3500);
+                this.initGlitchGL();
+            } catch (err) {
+                console.error('[PhotoBG] Photo load failed, falling back to colour:', err);
+                this.applyColorFallback();
+                if (this.backgroundImage) {
+                    this.backgroundImage.remove();
+                    this.backgroundImage = null;
+                }
+            }
+
+            console.log('[PhotoBG] Photo background initialized');
+        } catch (err) {
+            console.error('[PhotoBG] apply() error, falling back to colour:', err);
+            this.applyColorFallback();
+        } finally {
+            clearTimeout(failsafe);
+            this.hideLoadingScreen();
         }
-
-        console.log(`[PhotoBG] Selected photo: ${photo}`);
-
-        // Setup background layer
-        await this.setupBackgroundLayer();
-
-        // Load and display photo
-        await this.loadPhoto(photo);
-
-        // Initialize glitchGL on the photo
-        this.initGlitchGL();
-
-        // Hide loading screen
-        this.hideLoadingScreen();
-
-        console.log('[PhotoBG] Photo background initialized');
     }
 
     async fetchRandomBackgroundPhoto() {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
         try {
-            const response = await fetch('/api/photography/random-background');
+            const response = await fetch('/api/photography/random-background', { signal: controller.signal });
             const data = await response.json();
             return data.photo || null;
         } catch (error) {
             console.error('[PhotoBG] Failed to fetch random background:', error);
             return null;
+        } finally {
+            clearTimeout(timeout);
         }
+    }
+
+    applyColorFallback() {
+        const colors = [
+            '#0d1b2a', '#1a0d2e', '#0d2e1a', '#2e1a0d',
+            '#0d2e2e', '#2e0d1a', '#1a2e0d', '#0a0a1a'
+        ];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        document.body.style.backgroundColor = color;
+        console.log(`[PhotoBG] Color fallback: ${color}`);
     }
 
     async setupBackgroundLayer() {
@@ -117,20 +146,31 @@ class PhotoBackgroundController {
         }
     }
 
-    async loadPhoto(filename) {
+    async loadPhoto(filename, timeoutMs = 3500) {
         return new Promise((resolve, reject) => {
             // Use thumbnail API for faster loading (1920px is good for backgrounds)
             const imageUrl = `/api/photography/thumbnail/${encodeURIComponent(filename)}?size=1920`;
 
+            let settled = false;
+            const settle = (fn, arg) => {
+                if (settled) return;
+                settled = true;
+                clearTimeout(timer);
+                fn(arg);
+            };
+
+            const timer = setTimeout(() => {
+                settle(reject, new Error(`Photo load timed out after ${timeoutMs}ms: ${filename}`));
+            }, timeoutMs);
+
             this.backgroundImage.onload = () => {
                 console.log(`[PhotoBG] ✅ Photo loaded: ${filename}`);
-                console.log(`[PhotoBG] Image dimensions: ${this.backgroundImage.naturalWidth}x${this.backgroundImage.naturalHeight}`);
-                resolve();
+                settle(resolve);
             };
 
             this.backgroundImage.onerror = (error) => {
                 console.error(`[PhotoBG] ❌ Failed to load photo: ${filename}`, error);
-                reject(error);
+                settle(reject, error || new Error('image error'));
             };
 
             // Set crossOrigin before src (required for glitchGL)
@@ -382,7 +422,7 @@ class PhotoBackgroundController {
         if (!loadingScreen) return;
 
         loadingScreen.classList.add('hidden');
-        setTimeout(() => loadingScreen.remove(), 500);
+        setTimeout(() => loadingScreen.remove(), 1100);
     }
 
     // ── Admin Mode ────────────────────────────────────────────────────────────

@@ -1,0 +1,170 @@
+[
+  {
+    "id": "k1",
+    "category": "Shelter",
+    "name": "Tent",
+    "weight_g": 1800,
+    "packed": false,
+    "notes": ""
+  },
+  {
+    "id": "k2",
+    "category": "Shelter",
+    "name": "Sleeping bag (3 season)",
+    "weight_g": 800,
+    "packed": false,
+    "notes": ""
+  },
+  {
+    "id": "k3",
+    "category": "Shelter",
+    "name": "Sleeping mat",
+    "weight_g": 400,
+    "packed": false,
+    "notes": ""
+  },
+  {
+    "id": "k4",
+    "category": "Navigation",
+    "name": "OS Maps app (offline)",
+    "weight_g": 0,
+    "packed": false,
+    "notes": ""
+  },
+  {
+    "id": "k5",
+    "category": "Navigation",
+    "name": "Compass",
+    "weight_g": 30,
+    "packed": false,
+    "notes": ""
+  },
+  {
+    "id": "k6",
+    "category": "Clothing",
+    "name": "Waterproof jacket",
+    "weight_g": 400,
+    "packed": false,
+    "notes": ""
+  },
+  {
+    "id": "k7",
+    "category": "Clothing",
+    "name": "Waterproof trousers",
+    "weight_g": 300,
+    "packed": false,
+    "notes": ""
+  },
+  {
+    "id": "k8",
+    "category": "Clothing",
+    "name": "Merino base layer ×2",
+    "weight_g": 400,
+    "packed": false,
+    "notes": ""
+  },
+  {
+    "id": "k9",
+    "category": "Clothing",
+    "name": "Mid layer fleece",
+    "weight_g": 350,
+    "packed": false,
+    "notes": ""
+  },
+  {
+    "id": "k10",
+    "category": "Clothing",
+    "name": "Hiking boots",
+    "weight_g": 900,
+    "packed": false,
+    "notes": ""
+  },
+  {
+    "id": "k11",
+    "category": "Clothing",
+    "name": "Gaiters",
+    "weight_g": 200,
+    "packed": false,
+    "notes": "Essential — boggy sections"
+  },
+  {
+    "id": "k12",
+    "category": "Food & Water",
+    "name": "Backpacking stove + fuel",
+    "weight_g": 350,
+    "packed": false,
+    "notes": ""
+  },
+  {
+    "id": "k13",
+    "category": "Food & Water",
+    "name": "Cooking pot",
+    "weight_g": 200,
+    "packed": false,
+    "notes": ""
+  },
+  {
+    "id": "k14",
+    "category": "Food & Water",
+    "name": "Water filter (Sawyer Squeeze)",
+    "weight_g": 90,
+    "packed": false,
+    "notes": "Scottish water clean but use it anyway"
+  },
+  {
+    "id": "k15",
+    "category": "First Aid",
+    "name": "First aid kit",
+    "weight_g": 200,
+    "packed": false,
+    "notes": ""
+  },
+  {
+    "id": "k16",
+    "category": "First Aid",
+    "name": "Blister kit (Compeed)",
+    "weight_g": 50,
+    "packed": false,
+    "notes": "Bring more than you think"
+  },
+  {
+    "id": "k17",
+    "category": "Safety",
+    "name": "Midge head net",
+    "weight_g": 40,
+    "packed": false,
+    "notes": "Non-negotiable June–August"
+  },
+  {
+    "id": "k18",
+    "category": "Safety",
+    "name": "Smidge repellent",
+    "weight_g": 75,
+    "packed": false,
+    "notes": "Smidge > DEET for Scottish midges"
+  },
+  {
+    "id": "k19",
+    "category": "Safety",
+    "name": "Emergency bivvy bag",
+    "weight_g": 130,
+    "packed": false,
+    "notes": ""
+  },
+  {
+    "id": "k20",
+    "category": "Electronics",
+    "name": "Headtorch + batteries",
+    "weight_g": 80,
+    "packed": false,
+    "notes": ""
+  },
+  {
+    "id": "k21",
+    "category": "Electronics",
+    "name": "Power bank (20 000 mAh)",
+    "weight_g": 440,
+    "packed": false,
+    "notes": ""
+  }
+]

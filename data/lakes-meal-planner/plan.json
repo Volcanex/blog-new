@@ -1,0 +1,85 @@
+{
+  "plan": {
+    "days": [
+      {
+        "label": "Day 1",
+        "meals": {
+          "breakfast": null,
+          "lunch": "pub lunch",
+          "dinner": "Curry"
+        },
+        "activities": [
+          "Short walk",
+          "mushrooms ;)"
+        ]
+      },
+      {
+        "label": "Day 2",
+        "meals": {
+          "breakfast": null,
+          "lunch": "picky bits",
+          "dinner": null
+        },
+        "activities": [
+          "Rent small boat + beer / zoot",
+          "swimming"
+        ]
+      }
+    ],
+    "shopping_list": [
+      {
+        "section": "Produce",
+        "items": [
+          "3kg onions",
+          "1kg garlic",
+          "2kg tomatoes",
+          "1kg ginger",
+          "fresh coriander",
+          "fresh chillies"
+        ]
+      },
+      {
+        "section": "Meat & Fish",
+        "items": [
+          "3kg chicken breast",
+          "1kg lamb"
+        ]
+      },
+      {
+        "section": "Pantry & Spices",
+        "items": [
+          "3 tins coconut milk",
+          "3 tins chopped tomatoes",
+          "2kg basmati rice",
+          "curry powder",
+          "cumin",
+          "coriander seeds",
+          "turmeric",
+          "garam masala"
+        ]
+      },
+      {
+        "section": "Deli & Charcuterie",
+        "items": [
+          "500g cured meats",
+          "500g cheese selection",
+          "crackers",
+          "olives",
+          "pickled vegetables"
+        ]
+      },
+      {
+        "section": "Beverages",
+        "items": [
+          "12 beers",
+          "2 bottles wine"
+        ]
+      }
+    ],
+    "notes": "Weekend itinerary locked in: Day 1 short walk + mushroom foraging before curry dinner, Day 2 boat rental with swimming and grazing snacks."
+  },
+  "generated_at": "2026-08-24T19:53:46.815223Z",
+  "idea_count": 10,
+  "group_size": 10,
+  "model": "anthropic/claude-haiku-4.5"
+}

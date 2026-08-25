@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script defer src="https://baselinelabs.ai/js/tracker.js" data-site="09f6d274c6a90724de51d9a3"></script>
+    <title>Scotland Trip</title>
+    <link rel="icon" href="../favicon.svg">
+    <style>
+:root {
+  --bg:      #f3ede3;
+  --bg-in:   #ebe4d6;
+  --bg-card: #faf7f0;
+  --fg:      #1a1a1a;
+  --muted:   #6b6260;
+  --faint:   #a8a09a;
+  --rule:    #d8cfc0;
+  --green:   #3a5c2e;
+  --green-l: #d4e8cc;
+  --blue:    #2c5580;
+  --blue-l:  #ccddf0;
+  --heather: #7a4a78;
+  --heat-l:  #ead4e8;
+  --amber:   #b86a20;
+  --amber-l: #f0dcc4;
+  --red:     #a03020;
+  --red-l:   #f0c8bc;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --serif: Georgia, 'Times New Roman', serif;
+  --measure: 720px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 16px; line-height: 1.5; }
+.page { max-width: var(--measure); margin: 0 auto; padding: 0 0 80px; }
+.section { padding: 24px 16px; border-top: 1px solid var(--rule); }
+.section:first-child { border-top: none; }
+h1 { font-family: var(--serif); font-size: clamp(28px, 5vw, 42px); font-weight: normal; font-style: italic; line-height: 1.1; color: var(--green); }
+h2 { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+h3 { font-size: 14px; font-weight: 600; color: var(--fg); }
+a { color: var(--green); }
+
+/* MAP */
+#map { width: 100%; height: 420px; background: var(--bg-in); position: relative; }
+#map-placing-banner { display: none; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: var(--green); color: #fff; padding: 6px 14px; border-radius: 4px; font-size: 13px; z-index: 1000; white-space: nowrap; }
+
+/* STATS BAR */
+#stats-bar { background: var(--green); color: #fff; display: flex; justify-content: space-around; padding: 12px 16px; font-size: 13px; }
+.stat { text-align: center; }
+.stat-val { font-size: 20px; font-weight: 700; display: block; }
+.stat-lbl { opacity: 0.75; }
+
+/* ELEVATION */
+#elev-wrap { padding: 16px; background: var(--bg-in); border-top: 1px solid var(--rule); }
+#elev-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+#elev-svg { width: 100%; height: 110px; overflow: visible; }
+#elev-loading { font-size: 12px; color: var(--faint); padding: 8px 0; }
+
+/* ROUTE */
+.stage-block { margin-bottom: 20px; }
+.stage-hdr { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+.stage-pill { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 3px; }
+.stage-dist { font-size: 12px; color: var(--muted); }
+
+.node-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--rule); }
+.node-row:last-child { border-bottom: none; }
+.node-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; border: 2px solid rgba(0,0,0,.15); }
+.node-body { flex: 1; min-width: 0; }
+.node-name { font-size: 15px; font-weight: 600; }
+.node-desc { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.node-meta { display: flex; gap: 10px; margin-top: 4px; flex-wrap: wrap; }
+.node-badge { font-size: 11px; padding: 2px 6px; border-radius: 3px; }
+.node-cost { font-size: 12px; color: var(--muted); }
+.seg-arrow { font-size: 12px; color: var(--faint); padding: 4px 0 2px 22px; display: flex; align-items: center; gap: 6px; }
+
+/* ADD NODE FORM */
+details.add-form { margin-top: 14px; }
+details.add-form summary { font-size: 13px; font-weight: 600; color: var(--green); cursor: pointer; padding: 6px 0; list-style: none; }
+details.add-form summary::-webkit-details-marker { display: none; }
+details.add-form summary::before { content: '+ '; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.form-full { grid-column: 1 / -1; }
+.form-field { display: flex; flex-direction: column; gap: 4px; }
+label { font-size: 12px; color: var(--muted); font-weight: 500; }
+input, textarea, select { font-family: var(--font); font-size: 14px; background: var(--bg-card); border: 1px solid var(--rule); border-radius: 4px; padding: 7px 10px; color: var(--fg); width: 100%; }
+input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); outline-offset: -1px; border-color: transparent; }
+textarea { resize: vertical; min-height: 64px; }
+.btn { display: inline-block; padding: 8px 18px; border-radius: 4px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; font-family: var(--font); }
+.btn-primary { background: var(--green); color: #fff; }
+.btn-primary:hover { background: #2d4823; }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-ghost { background: transparent; border: 1px solid var(--rule); color: var(--muted); }
+.btn-ghost:hover { border-color: var(--green); color: var(--green); }
+.map-place-btn { width: 100%; background: var(--bg-in); border: 1px dashed var(--rule); color: var(--muted); font-size: 13px; padding: 8px; border-radius: 4px; cursor: pointer; margin-bottom: 8px; }
+.map-place-btn:hover { border-color: var(--green); color: var(--green); }
+
+/* KIT */
+.kit-category { margin-bottom: 18px; }
+.kit-cat-hdr { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 4px 0; }
+.kit-cat-name { font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.kit-cat-weight { font-size: 12px; color: var(--faint); }
+.kit-items { margin-top: 6px; }
+.kit-item { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--rule); cursor: pointer; }
+.kit-item:last-child { border-bottom: none; }
+.kit-item.packed .kit-item-name { text-decoration: line-through; color: var(--faint); }
+.kit-item.packed .kit-item-weight { color: var(--faint); }
+.kit-check { width: 18px; height: 18px; border: 2px solid var(--rule); border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: background .1s, border-color .1s; }
+.kit-check.checked { background: var(--green); border-color: var(--green); }
+.kit-check.checked::after { content: '✓'; color: #fff; font-size: 11px; line-height: 1; }
+.kit-item-name { flex: 1; font-size: 14px; }
+.kit-item-weight { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.kit-item-notes { font-size: 12px; color: var(--faint); grid-column: 1/-1; padding-left: 28px; padding-bottom: 4px; display: none; }
+.kit-item.expanded .kit-item-notes { display: block; }
+.kit-totals { padding: 10px 0; font-size: 14px; display: flex; gap: 20px; }
+.kit-total-val { font-weight: 700; }
+
+/* COMMENTS */
+.comment-form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+.comment-form-row { display: flex; gap: 10px; }
+.comment-form-row input { flex: 1; }
+#comment-node-select { max-width: 200px; }
+.comment-list { display: flex; flex-direction: column; gap: 12px; }
+.comment-card { background: var(--bg-card); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 14px; }
+.comment-meta { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; flex-wrap: wrap; }
+.comment-author { font-size: 13px; font-weight: 600; }
+.comment-time { font-size: 12px; color: var(--faint); }
+.comment-node-tag { font-size: 11px; padding: 2px 6px; border-radius: 3px; background: var(--bg-in); color: var(--muted); }
+.comment-body { font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
+.comment-del { font-size: 11px; color: var(--faint); cursor: pointer; margin-left: auto; }
+.comment-del:hover { color: var(--red); }
+
+/* API DOCS */
+details.api-docs { margin: 20px 16px 0; }
+details.api-docs summary { font-size: 12px; color: var(--faint); cursor: pointer; }
+details.api-docs summary::-webkit-details-marker { display: none; }
+.api-block { margin-top: 10px; background: #1a1a1a; color: #d4e8cc; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; padding: 14px; border-radius: 4px; overflow-x: auto; line-height: 1.7; white-space: pre; }
+
+/* MISC */
+.empty { color: var(--faint); font-size: 14px; padding: 8px 0; font-style: italic; }
+.error-msg { color: var(--red); font-size: 13px; padding: 6px 0; }
+</style>
+</head>
+<body>
+    <script>
+  (function(){
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(link);
+  })();
+</script>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="section" style="padding-bottom:0;">
+    <h1>Scotland</h1>
+    <p style="font-size:15px;color:var(--muted);margin-top:6px;">West Highland Way &mdash; a living route document. Anyone can add nodes, comments, or kit.</p>
+  </div>
+
+  <!-- MAP -->
+  <div style="position:relative;">
+    <div id="map"></div>
+    <div id="map-placing-banner">Click the map to place the node</div>
+  </div>
+
+  <!-- STATS BAR -->
+  <div id="stats-bar">
+    <div class="stat"><span class="stat-val" id="stat-km">—</span><span class="stat-lbl">km trail</span></div>
+    <div class="stat"><span class="stat-val" id="stat-nodes">—</span><span class="stat-lbl">stops</span></div>
+    <div class="stat"><span class="stat-val" id="stat-stages">—</span><span class="stat-lbl">stages</span></div>
+    <div class="stat"><span class="stat-val" id="stat-cost">—</span><span class="stat-lbl">est. cost</span></div>
+  </div>
+
+  <!-- ELEVATION PROFILE -->
+  <div id="elev-wrap">
+    <div id="elev-label">Elevation profile (SRTM30m)</div>
+    <div id="elev-loading">Loading elevation data…</div>
+    <svg id="elev-svg" style="display:none;"></svg>
+  </div>
+
+  <!-- ROUTE -->
+  <div class="section" id="route-section">
+    <h2>Route</h2>
+    <div id="route-table"><div class="empty">Loading…</div></div>
+
+    <details class="add-form" id="add-node-details">
+      <summary>Add a node</summary>
+      <div class="form-grid" style="margin-top:12px;">
+        <div class="form-full">
+          <button class="map-place-btn" id="map-place-btn" type="button">&#9654; Click on map to set location</button>
+        </div>
+        <div class="form-field form-full">
+          <label>Name</label>
+          <input id="nn-name" type="text" placeholder="e.g. Beinn Dorain wild camp">
+        </div>
+        <div class="form-field">
+          <label>Latitude</label>
+          <input id="nn-lat" type="number" step="any" placeholder="56.4…">
+        </div>
+        <div class="form-field">
+          <label>Longitude</label>
+          <input id="nn-lng" type="number" step="any" placeholder="-4.7…">
+        </div>
+        <div class="form-field">
+          <label>Type</label>
+          <select id="nn-type">
+            <option value="wild">Wild camp</option>
+            <option value="campsite">Campsite</option>
+            <option value="hostel">Hostel / bunkhouse</option>
+            <option value="bothy">Bothy</option>
+            <option value="hotel">Hotel</option>
+            <option value="resupply">Resupply</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Cost (£)</label>
+          <input id="nn-cost" type="number" step="0.5" min="0" placeholder="0">
+        </div>
+        <div class="form-field form-full">
+          <label>Description</label>
+          <textarea id="nn-desc" placeholder="Any notes about this stop…"></textarea>
+        </div>
+        <div class="form-field form-full">
+          <label>URL (optional)</label>
+          <input id="nn-url" type="url" placeholder="https://…">
+        </div>
+        <div class="form-full" style="display:flex;gap:8px;">
+          <button class="btn btn-primary" id="nn-submit">Add node</button>
+          <span id="nn-error" class="error-msg"></span>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- KIT -->
+  <div class="section" id="kit-section">
+    <h2>Kit list</h2>
+    <div id="kit-list"><div class="empty">Loading…</div></div>
+    <div id="kit-totals" class="kit-totals" style="display:none;"></div>
+
+    <details class="add-form" id="add-kit-details" style="margin-top:14px;">
+      <summary>Add item</summary>
+      <div class="form-grid" style="margin-top:12px;">
+        <div class="form-field">
+          <label>Name</label>
+          <input id="nk-name" type="text" placeholder="e.g. Gaiters">
+        </div>
+        <div class="form-field">
+          <label>Category</label>
+          <input id="nk-cat" type="text" placeholder="e.g. Clothing">
+        </div>
+        <div class="form-field">
+          <label>Weight (g)</label>
+          <input id="nk-weight" type="number" min="0" placeholder="0">
+        </div>
+        <div class="form-field">
+          <label>Notes</label>
+          <input id="nk-notes" type="text" placeholder="Optional">
+        </div>
+        <div class="form-full" style="display:flex;gap:8px;">
+          <button class="btn btn-primary" id="nk-submit">Add item</button>
+          <span id="nk-error" class="error-msg"></span>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- COMMENTS -->
+  <div class="section" id="comments-section">
+    <h2>Comments</h2>
+    <div class="comment-form">
+      <div class="comment-form-row">
+        <input id="c-author" type="text" placeholder="Your name" style="max-width:160px;">
+        <select id="c-node" style="flex:1;max-width:220px;">
+          <option value="">About the whole trip</option>
+        </select>
+      </div>
+      <textarea id="c-body" placeholder="Leave a note, suggestion, or update…" rows="3"></textarea>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="btn btn-primary" id="c-submit">Post</button>
+        <span id="c-error" class="error-msg"></span>
+      </div>
+    </div>
+    <div id="comments-list"><div class="empty">No comments yet.</div></div>
+  </div>
+
+  <!-- API DOCS -->
+  <details class="api-docs">
+    <summary>API reference (for AIs and scripts)</summary>
+    <div class="api-block">GET  /api/scotland-trip/data           — full snapshot (nodes, comments, kit)
+
+POST /api/scotland-trip/nodes          — add node
+     body: {name, lat, lng, type?, description?, cost_gbp?, url?, order?}
+
+PUT  /api/scotland-trip/nodes/:id      — update node fields
+DELETE /api/scotland-trip/nodes/:id   — remove node
+
+POST /api/scotland-trip/comments       — add comment
+     body: {body, author?, node_id?}
+DELETE /api/scotland-trip/comments/:id
+
+POST /api/scotland-trip/kit            — add kit item
+     body: {name, category?, weight_g?, notes?}
+PUT  /api/scotland-trip/kit/:id        — update {name?, category?, weight_g?, packed?, notes?}
+DELETE /api/scotland-trip/kit/:id
+
+POST /api/scotland-trip/seed           — reset nodes + kit to WHW defaults</div>
+  </details>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ─── constants ────────────────────────────────────────────────────────────────
+const API = '/api/scotland-trip';
+const TRAIL_FACTOR = 1.3;
+const STAGE_KM = 50;
+
+const TYPE_CFG = {
+  wild:     { label: 'Wild camp',        color: '#4a7c59', bg: '#d4e8cc' },
+  campsite: { label: 'Campsite',         color: '#2d6a9f', bg: '#ccddf0' },
+  hostel:   { label: 'Hostel',           color: '#8b5e3c', bg: '#f0dcc4' },
+  bothy:    { label: 'Bothy',            color: '#7b4f8a', bg: '#ead4e8' },
+  hotel:    { label: 'Hotel',            color: '#b86a20', bg: '#f0dcc4' },
+  resupply: { label: 'Resupply',         color: '#8a5020', bg: '#f5e8d0' },
+  start:    { label: 'Start',            color: '#1a3a1a', bg: '#d4e8cc' },
+  end:      { label: 'End',              color: '#8a1010', bg: '#f0c8bc' },
+};
+
+const STAGE_COLORS = ['#3a5c2e', '#2c5580', '#7a4a78', '#b86a20', '#8a1010', '#4a6080'];
+
+// ─── state ────────────────────────────────────────────────────────────────────
+let leafletMap = null;
+let mapMarkers = [];
+let mapLines   = [];
+let placingNode = false;
+let placedLat = null, placedLng = null;
+
+// ─── utils ────────────────────────────────────────────────────────────────────
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371, r = Math.PI / 180;
+  const dLat = (lat2 - lat1) * r, dLng = (lng2 - lng1) * r;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*r) * Math.cos(lat2*r) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function computeStats(nodes) {
+  const sorted = [...nodes].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  let cum = 0;
+  return sorted.map((n, i) => {
+    const seg = i === 0 ? 0 : haversine(sorted[i-1].lat, sorted[i-1].lng, n.lat, n.lng) * TRAIL_FACTOR;
+    cum += seg;
+    return { ...n, segKm: Math.round(seg * 10) / 10, cumKm: Math.round(cum * 10) / 10, stage: Math.floor((cum - 0.01) / STAGE_KM) + 1 };
+  });
+}
+
+function typeCfg(type)  { return TYPE_CFG[type] || { label: type, color: '#666', bg: '#eee' }; }
+function stageColor(s)  { return STAGE_COLORS[(s - 1) % STAGE_COLORS.length]; }
+function fmtKm(km)      { return km < 1 ? `${Math.round(km*1000)}m` : `${km.toFixed(1)} km`; }
+function fmtWeight(g)   { return g >= 1000 ? `${(g/1000).toFixed(1)} kg` : `${g} g`; }
+function fmtCost(c)     { return c > 0 ? `£${c}` : 'free'; }
+function fmtAge(iso) {
+  const diff = (Date.now() - new Date(iso)) / 1000;
+  if (diff < 60)   return 'just now';
+  if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+  return `${Math.floor(diff/86400)}d ago`;
+}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ─── API ─────────────────────────────────────────────────────────────────────
+async function apiGet(path)       { const r = await fetch(API + path); return r.json(); }
+async function apiPost(path, body){ const r = await fetch(API + path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }); return r.json(); }
+async function apiPut(path, body) { const r = await fetch(API + path, { method:'PUT',  headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }); return r.json(); }
+async function apiDel(path)       { const r = await fetch(API + path, { method:'DELETE' }); return r.json(); }
+
+// ─── MAP ─────────────────────────────────────────────────────────────────────
+function initMap() {
+  leafletMap = L.map('map', { zoomControl: true }).setView([56.4, -4.7], 9);
+  L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a> contributors, SRTM | © <a href="https://opentopomap.org">OpenTopoMap</a>',
+    maxZoom: 17,
+  }).addTo(leafletMap);
+
+  leafletMap.on('click', (e) => {
+    if (!placingNode) return;
+    placedLat = Math.round(e.latlng.lat * 10000) / 10000;
+    placedLng = Math.round(e.latlng.lng * 10000) / 10000;
+    document.getElementById('nn-lat').value = placedLat;
+    document.getElementById('nn-lng').value = placedLng;
+    setPlacingMode(false);
+    document.getElementById('nn-name').focus();
+  });
+}
+
+function setPlacingMode(on) {
+  placingNode = on;
+  document.getElementById('map-placing-banner').style.display = on ? 'block' : 'none';
+  leafletMap.getContainer().style.cursor = on ? 'crosshair' : '';
+}
+
+function renderMap(nodeStats) {
+  mapMarkers.forEach(m => m.remove());
+  mapLines.forEach(l => l.remove());
+  mapMarkers = []; mapLines = [];
+
+  if (!nodeStats.length) return;
+
+  // Draw polyline segments by stage
+  const byStage = {};
+  nodeStats.forEach((n, i) => {
+    if (i === 0) return;
+    const s = n.stage;
+    if (!byStage[s]) byStage[s] = [];
+    byStage[s].push([nodeStats[i-1], n]);
+  });
+  Object.entries(byStage).forEach(([stage, segs]) => {
+    segs.forEach(([a, b]) => {
+      const line = L.polyline([[a.lat, a.lng], [b.lat, b.lng]], {
+        color: stageColor(+stage), weight: 4, opacity: 0.85,
+      }).addTo(leafletMap);
+      mapLines.push(line);
+    });
+  });
+
+  // Markers
+  nodeStats.forEach(n => {
+    const cfg = typeCfg(n.type);
+    const marker = L.circleMarker([n.lat, n.lng], {
+      radius: n.type === 'start' || n.type === 'end' ? 10 : 8,
+      fillColor: cfg.color, color: '#fff', weight: 2, fillOpacity: 0.95,
+    });
+
+    const segInfo = n.segKm > 0 ? `<div style="margin-top:4px;font-size:12px;color:#888;">+${fmtKm(n.segKm)} from prev · ${fmtKm(n.cumKm)} total</div>` : '';
+    const costStr = n.cost_gbp > 0 ? `<div style="font-size:12px;margin-top:2px;">£${n.cost_gbp}/night</div>` : '';
+    const urlStr = n.url ? `<div style="margin-top:4px;"><a href="${esc(n.url)}" target="_blank" style="font-size:12px;">More info ↗</a></div>` : '';
+    marker.bindPopup(`
+      <div style="min-width:180px;">
+        <strong style="font-size:14px;">${esc(n.name)}</strong>
+        <div style="font-size:11px;color:${cfg.color};font-weight:600;margin:2px 0;">${cfg.label}</div>
+        ${n.description ? `<div style="font-size:13px;margin-top:4px;">${esc(n.description)}</div>` : ''}
+        ${costStr}${segInfo}${urlStr}
+      </div>
+    `);
+
+    marker.addTo(leafletMap);
+    mapMarkers.push(marker);
+  });
+
+  // Fit bounds
+  const bounds = L.latLngBounds(nodeStats.map(n => [n.lat, n.lng]));
+  leafletMap.fitBounds(bounds, { padding: [30, 30] });
+}
+
+// ─── ELEVATION ────────────────────────────────────────────────────────────────
+function loadElevation(nodeStats) {
+  if (!nodeStats.length) return;
+  const cacheKey = 'scot_elev_' + nodeStats.map(n => n.id).join(',');
+  const cached = sessionStorage.getItem(cacheKey);
+  if (cached) { drawElevation(nodeStats, JSON.parse(cached)); return; }
+
+  const locs = nodeStats.map(n => `${n.lat},${n.lng}`).join('|');
+  fetch(`https://api.opentopodata.org/v1/srtm30m?locations=${locs}`)
+    .then(r => r.json())
+    .then(data => {
+      if (!data.results) return;
+      const elevs = data.results.map(r => r.elevation ?? 0);
+      sessionStorage.setItem(cacheKey, JSON.stringify(elevs));
+      drawElevation(nodeStats, elevs);
+    })
+    .catch(() => {
+      document.getElementById('elev-loading').textContent = 'Elevation unavailable offline';
+    });
+}
+
+function drawElevation(nodeStats, elevs) {
+  const svg = document.getElementById('elev-svg');
+  const loading = document.getElementById('elev-loading');
+  loading.style.display = 'none';
+  svg.style.display = 'block';
+
+  const W = svg.parentElement.clientWidth || 600;
+  const H = 110;
+  const PAD = { t: 16, r: 10, b: 28, l: 40 };
+  const iW = W - PAD.l - PAD.r;
+  const iH = H - PAD.t - PAD.b;
+
+  const total = nodeStats[nodeStats.length - 1].cumKm || 1;
+  const minE = Math.min(...elevs) - 10;
+  const maxE = Math.max(...elevs) + 30;
+  const eRange = maxE - minE;
+
+  const xS = km  => PAD.l + (km / total) * iW;
+  const yS = elev => PAD.t + iH - ((elev - minE) / eRange) * iH;
+
+  const pts = nodeStats.map((n, i) => ({ x: xS(n.cumKm), y: yS(elevs[i]), name: n.name, stage: n.stage }));
+  const pathD = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const fillD = pathD + ` L${pts[pts.length-1].x.toFixed(1)},${(PAD.t+iH).toFixed(1)} L${pts[0].x.toFixed(1)},${(PAD.t+iH).toFixed(1)} Z`;
+
+  // Stage-colored gradient segments
+  const segPaths = pts.slice(1).map((p, i) => {
+    const prev = pts[i];
+    const col = stageColor(p.stage);
+    const fd = `M${prev.x.toFixed(1)},${prev.y.toFixed(1)} L${p.x.toFixed(1)},${p.y.toFixed(1)} L${p.x.toFixed(1)},${(PAD.t+iH).toFixed(1)} L${prev.x.toFixed(1)},${(PAD.t+iH).toFixed(1)} Z`;
+    return `<path d="${fd}" fill="${col}" fill-opacity="0.18"/>`;
+  }).join('');
+
+  // Y-axis labels
+  const yLabels = [minE, (minE + maxE) / 2, maxE].map(e => {
+    const y = yS(e);
+    return `<text x="${PAD.l - 5}" y="${y.toFixed(1)}" text-anchor="end" dominant-baseline="middle" font-size="10" fill="#a0998f">${Math.round(e)}m</text>`;
+  }).join('');
+
+  // X-axis tick every ~25km
+  const tickInterval = total > 100 ? 50 : 25;
+  const xTicks = [];
+  for (let km = 0; km <= total; km += tickInterval) {
+    const x = xS(km);
+    xTicks.push(`<line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${(PAD.t+iH).toFixed(1)}" y2="${(PAD.t+iH+4).toFixed(1)}" stroke="#c0b8ad" stroke-width="1"/>
+    <text x="${x.toFixed(1)}" y="${(PAD.t+iH+14).toFixed(1)}" text-anchor="middle" font-size="10" fill="#a0998f">${Math.round(km)}km</text>`);
+  }
+
+  // Node dots
+  const dots = pts.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="#fff" stroke="${stageColor(p.stage)}" stroke-width="1.5"/>`).join('');
+
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', H);
+  svg.innerHTML = `
+    ${segPaths}
+    <path d="${pathD}" fill="none" stroke="#3a5c2e" stroke-width="1.5"/>
+    ${yLabels}
+    ${xTicks.join('')}
+    <line x1="${PAD.l}" x2="${PAD.l}" y1="${PAD.t}" y2="${PAD.t + iH}" stroke="#d8cfc0" stroke-width="1"/>
+    <line x1="${PAD.l}" x2="${PAD.l + iW}" y1="${(PAD.t+iH).toFixed(1)}" y2="${(PAD.t+iH).toFixed(1)}" stroke="#d8cfc0" stroke-width="1"/>
+    ${dots}
+  `;
+}
+
+// ─── STATS BAR ────────────────────────────────────────────────────────────────
+function renderStats(nodeStats) {
+  const totalKm  = nodeStats.length ? nodeStats[nodeStats.length - 1].cumKm : 0;
+  const stages   = nodeStats.length ? nodeStats[nodeStats.length - 1].stage : 0;
+  const totalCost = nodeStats.reduce((s, n) => s + (n.cost_gbp || 0), 0);
+  document.getElementById('stat-km').textContent    = totalKm.toFixed(0);
+  document.getElementById('stat-nodes').textContent  = nodeStats.length;
+  document.getElementById('stat-stages').textContent = stages;
+  document.getElementById('stat-cost').textContent   = `£${totalCost}`;
+}
+
+// ─── ROUTE TABLE ──────────────────────────────────────────────────────────────
+function renderRoute(nodeStats) {
+  const el = document.getElementById('route-table');
+  if (!nodeStats.length) { el.innerHTML = '<div class="empty">No nodes yet — add one below.</div>'; return; }
+
+  const stages = {};
+  nodeStats.forEach(n => { if (!stages[n.stage]) stages[n.stage] = []; stages[n.stage].push(n); });
+
+  let html = '';
+  Object.entries(stages).forEach(([s, nodes]) => {
+    const sc = stageColor(+s);
+    const stageKm = nodes[nodes.length - 1].cumKm - (nodes[0].segKm > 0 ? nodes[0].cumKm - nodes[0].segKm : 0);
+    html += `<div class="stage-block">
+      <div class="stage-hdr">
+        <span class="stage-pill" style="background:${sc};color:#fff;">Day ${s}</span>
+        <span class="stage-dist">${fmtKm(stageKm)} this stage</span>
+      </div>`;
+
+    nodes.forEach((n, i) => {
+      const cfg = typeCfg(n.type);
+      html += `<div class="node-row">
+        <div class="node-dot" style="background:${cfg.color};"></div>
+        <div class="node-body">
+          <div class="node-name">${esc(n.name)}</div>
+          ${n.description ? `<div class="node-desc">${esc(n.description)}</div>` : ''}
+          <div class="node-meta">
+            <span class="node-badge" style="background:${cfg.bg};color:${cfg.color};">${cfg.label}</span>
+            ${n.cost_gbp > 0 ? `<span class="node-cost">${fmtCost(n.cost_gbp)}/night</span>` : ''}
+            ${n.cumKm > 0 ? `<span class="node-cost">${fmtKm(n.cumKm)} total</span>` : ''}
+          </div>
+        </div>
+      </div>`;
+
+      if (i < nodes.length - 1 || +s < Math.max(...Object.keys(stages).map(Number))) {
+        const nextNode = nodeStats[nodeStats.indexOf(n) + 1];
+        if (nextNode) {
+          html += `<div class="seg-arrow"><span style="color:${sc};">&#x2193;</span> ${fmtKm(nextNode.segKm)}</div>`;
+        }
+      }
+    });
+    html += `</div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+// ─── KIT LIST ────────────────────────────────────────────────────────────────
+function renderKit(kit) {
+  const el = document.getElementById('kit-list');
+  const totEl = document.getElementById('kit-totals');
+  if (!kit.length) { el.innerHTML = '<div class="empty">No kit items yet.</div>'; totEl.style.display = 'none'; return; }
+
+  const cats = {};
+  kit.forEach(k => { if (!cats[k.category]) cats[k.category] = []; cats[k.category].push(k); });
+
+  let html = '';
+  Object.entries(cats).forEach(([cat, items]) => {
+    const catW = items.reduce((s, k) => s + (k.weight_g || 0), 0);
+    const catPacked = items.filter(k => k.packed).length;
+    html += `<div class="kit-category">
+      <div class="kit-cat-hdr">
+        <span class="kit-cat-name">${esc(cat)}</span>
+        <span class="kit-cat-weight">${fmtWeight(catW)} &middot; ${catPacked}/${items.length}</span>
+      </div>
+      <div class="kit-items">`;
+    items.forEach(k => {
+      html += `<div class="kit-item${k.packed ? ' packed' : ''}" data-id="${esc(k.id)}" onclick="togglePacked('${esc(k.id)}')">
+        <div class="kit-check${k.packed ? ' checked' : ''}"></div>
+        <span class="kit-item-name">${esc(k.name)}</span>
+        <span class="kit-item-weight">${k.weight_g ? fmtWeight(k.weight_g) : '—'}</span>
+      </div>
+      ${k.notes ? `<div class="kit-item-notes">${esc(k.notes)}</div>` : ''}`;
+    });
+    html += `</div></div>`;
+  });
+
+  el.innerHTML = html;
+
+  const totalW  = kit.reduce((s, k) => s + (k.weight_g || 0), 0);
+  const packedW = kit.reduce((s, k) => s + (k.packed ? (k.weight_g || 0) : 0), 0);
+  totEl.innerHTML = `
+    <span>Total: <strong class="kit-total-val">${fmtWeight(totalW)}</strong></span>
+    <span>Packed: <strong class="kit-total-val">${fmtWeight(packedW)}</strong></span>
+    <span>Remaining: <strong class="kit-total-val">${fmtWeight(totalW - packedW)}</strong></span>
+  `;
+  totEl.style.display = 'flex';
+}
+
+// ─── COMMENTS ────────────────────────────────────────────────────────────────
+function populateNodeSelect(nodes) {
+  const sel = document.getElementById('c-node');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">About the whole trip</option>';
+  nodes.forEach(n => {
+    const opt = document.createElement('option');
+    opt.value = n.id;
+    opt.textContent = n.name;
+    sel.appendChild(opt);
+  });
+  if (cur) sel.value = cur;
+}
+
+function renderComments(comments, nodes) {
+  const el = document.getElementById('comments-list');
+  if (!comments.length) { el.innerHTML = '<div class="empty">No comments yet — be the first.</div>'; return; }
+
+  const nodeMap = {};
+  nodes.forEach(n => { nodeMap[n.id] = n.name; });
+
+  const sorted = [...comments].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  el.innerHTML = sorted.map(c => `
+    <div class="comment-card">
+      <div class="comment-meta">
+        <span class="comment-author">${esc(c.author || 'Anonymous')}</span>
+        <span class="comment-time">${fmtAge(c.created_at)}</span>
+        ${c.node_id && nodeMap[c.node_id] ? `<span class="comment-node-tag">re: ${esc(nodeMap[c.node_id])}</span>` : ''}
+        <span class="comment-del" onclick="deleteComment('${esc(c.id)}')" title="Delete">&#10005;</span>
+      </div>
+      <div class="comment-body">${esc(c.body)}</div>
+    </div>
+  `).join('');
+}
+
+// ─── ACTIONS ─────────────────────────────────────────────────────────────────
+let _kitState = [];
+
+async function togglePacked(id) {
+  const item = _kitState.find(k => k.id === id);
+  if (!item) return;
+  const result = await apiPut(`/kit/${id}`, { packed: !item.packed });
+  if (result.kit) { _kitState = result.kit; renderKit(_kitState); }
+}
+
+async function deleteComment(id) {
+  if (!confirm('Delete this comment?')) return;
+  await apiDel(`/comments/${id}`);
+  const data = await apiGet('/data');
+  renderComments(data.comments, data.nodes);
+}
+
+// ─── FORMS ───────────────────────────────────────────────────────────────────
+function setupForms() {
+  // Restore saved author name
+  const savedAuthor = localStorage.getItem('scot_author');
+  if (savedAuthor) document.getElementById('c-author').value = savedAuthor;
+
+  // Map-place button
+  document.getElementById('map-place-btn').addEventListener('click', () => {
+    document.getElementById('add-node-details').open = true;
+    setPlacingMode(true);
+    leafletMap.getContainer().scrollIntoView({ behavior: 'smooth' });
+  });
+
+  // Add node
+  document.getElementById('nn-submit').addEventListener('click', async () => {
+    const name = document.getElementById('nn-name').value.trim();
+    const lat  = parseFloat(document.getElementById('nn-lat').value);
+    const lng  = parseFloat(document.getElementById('nn-lng').value);
+    const errEl = document.getElementById('nn-error');
+
+    if (!name) { errEl.textContent = 'Name required'; return; }
+    if (isNaN(lat) || isNaN(lng)) { errEl.textContent = 'Click the map or enter coordinates'; return; }
+
+    errEl.textContent = '';
+    const result = await apiPost('/nodes', {
+      name, lat, lng,
+      type: document.getElementById('nn-type').value,
+      cost_gbp: parseFloat(document.getElementById('nn-cost').value) || 0,
+      description: document.getElementById('nn-desc').value.trim(),
+      url: document.getElementById('nn-url').value.trim(),
+    });
+
+    if (result.error) { errEl.textContent = result.error; return; }
+
+    // Reset form
+    ['nn-name', 'nn-lat', 'nn-lng', 'nn-cost', 'nn-desc', 'nn-url'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('add-node-details').open = false;
+
+    const ns = computeStats(result.nodes);
+    renderMap(ns); renderStats(ns); renderRoute(ns);
+    populateNodeSelect(result.nodes);
+    loadElevation(ns);
+  });
+
+  // Add kit item
+  document.getElementById('nk-submit').addEventListener('click', async () => {
+    const name = document.getElementById('nk-name').value.trim();
+    const errEl = document.getElementById('nk-error');
+    if (!name) { errEl.textContent = 'Name required'; return; }
+    errEl.textContent = '';
+
+    const result = await apiPost('/kit', {
+      name, category: document.getElementById('nk-cat').value.trim() || 'Other',
+      weight_g: parseInt(document.getElementById('nk-weight').value) || 0,
+      notes: document.getElementById('nk-notes').value.trim(),
+    });
+    if (result.error) { errEl.textContent = result.error; return; }
+    ['nk-name','nk-cat','nk-weight','nk-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('add-kit-details').open = false;
+    _kitState = result.kit;
+    renderKit(_kitState);
+  });
+
+  // Add comment
+  document.getElementById('c-submit').addEventListener('click', async () => {
+    const body   = document.getElementById('c-body').value.trim();
+    const author = document.getElementById('c-author').value.trim() || 'Anonymous';
+    const nodeId = document.getElementById('c-node').value;
+    const errEl  = document.getElementById('c-error');
+    if (!body) { errEl.textContent = 'Write something first'; return; }
+    errEl.textContent = '';
+    localStorage.setItem('scot_author', author);
+
+    const result = await apiPost('/comments', { body, author, node_id: nodeId || null });
+    if (result.error) { errEl.textContent = result.error; return; }
+    document.getElementById('c-body').value = '';
+    const data = await apiGet('/data');
+    renderComments(data.comments, data.nodes);
+  });
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+async function init() {
+  initMap();
+  let data;
+  try {
+    data = await apiGet('/data');
+  } catch(e) {
+    document.getElementById('route-table').innerHTML = '<div class="error-msg">Could not connect to API — is flask_server.py running?</div>';
+    return;
+  }
+
+  _kitState = data.kit;
+  const nodeStats = computeStats(data.nodes);
+
+  renderMap(nodeStats);
+  renderStats(nodeStats);
+  renderRoute(nodeStats);
+  renderKit(data.kit);
+  renderComments(data.comments, data.nodes);
+  populateNodeSelect(data.nodes);
+  setupForms();
+
+  // Elevation loads async, shows when ready
+  loadElevation(nodeStats);
+}
+
+init();
+</script>
+</body>
+</html>

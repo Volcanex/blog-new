@@ -1,0 +1,134 @@
+[
+  {
+    "id": "n1",
+    "order": 0,
+    "name": "Milngavie",
+    "type": "start",
+    "lat": 55.9424,
+    "lng": -4.3148,
+    "description": "Start of the West Highland Way. Train from Glasgow Queen St (20 min).",
+    "cost_gbp": 0,
+    "url": ""
+  },
+  {
+    "id": "n2",
+    "order": 1,
+    "name": "Drymen",
+    "type": "resupply",
+    "lat": 56.0728,
+    "lng": -4.4543,
+    "description": "Small village with a Co-op. Easy resupply before Loch Lomond.",
+    "cost_gbp": 0,
+    "url": ""
+  },
+  {
+    "id": "n3",
+    "order": 2,
+    "name": "Balmaha",
+    "type": "campsite",
+    "lat": 56.0866,
+    "lng": -4.5378,
+    "description": "Campsite on Loch Lomond shores. Midge hell in summer — bring a net.",
+    "cost_gbp": 12,
+    "url": ""
+  },
+  {
+    "id": "n4",
+    "order": 3,
+    "name": "Rowardennan",
+    "type": "campsite",
+    "lat": 56.1487,
+    "lng": -4.5969,
+    "description": "Forestry campsite. Basic facilities. Start of the rough loch-side path.",
+    "cost_gbp": 8,
+    "url": ""
+  },
+  {
+    "id": "n5",
+    "order": 4,
+    "name": "Inverarnan",
+    "type": "hostel",
+    "lat": 56.3128,
+    "lng": -4.718,
+    "description": "The Drovers Inn — ancient, atmospheric, slightly chaotic pub hostel.",
+    "cost_gbp": 22,
+    "url": ""
+  },
+  {
+    "id": "n6",
+    "order": 5,
+    "name": "Crianlarich",
+    "type": "hostel",
+    "lat": 56.3894,
+    "lng": -4.6159,
+    "description": "SYHA hostel. Good resupply point. Village has a Co-op.",
+    "cost_gbp": 25,
+    "url": ""
+  },
+  {
+    "id": "n7",
+    "order": 6,
+    "name": "Tyndrum",
+    "type": "campsite",
+    "lat": 56.4336,
+    "lng": -4.7221,
+    "description": "By The Way campsite. Good facilities, hot showers. Real Food Cafe nearby.",
+    "cost_gbp": 14,
+    "url": ""
+  },
+  {
+    "id": "n8",
+    "order": 7,
+    "name": "Bridge of Orchy",
+    "type": "hostel",
+    "lat": 56.5075,
+    "lng": -4.7663,
+    "description": "Bridge of Orchy Hotel bunkhouse. Last shelter before Rannoch Moor.",
+    "cost_gbp": 28,
+    "url": ""
+  },
+  {
+    "id": "n9",
+    "order": 8,
+    "name": "Rannoch Moor (wild)",
+    "type": "wild",
+    "lat": 56.58,
+    "lng": -4.82,
+    "description": "Wild camp on the moor. Utterly exposed, utterly beautiful. Check weather.",
+    "cost_gbp": 0,
+    "url": ""
+  },
+  {
+    "id": "n10",
+    "order": 9,
+    "name": "Kingshouse Hotel",
+    "type": "hostel",
+    "lat": 56.6065,
+    "lng": -4.8622,
+    "description": "Kingshouse bunkhouse. Gateway to the Devil's Staircase.",
+    "cost_gbp": 32,
+    "url": ""
+  },
+  {
+    "id": "n11",
+    "order": 10,
+    "name": "Kinlochleven",
+    "type": "hostel",
+    "lat": 56.7134,
+    "lng": -4.9503,
+    "description": "Blackwater Hostel. Laundry available. Local pub and Co-op.",
+    "cost_gbp": 20,
+    "url": ""
+  },
+  {
+    "id": "n12",
+    "order": 11,
+    "name": "Fort William",
+    "type": "end",
+    "lat": 56.8198,
+    "lng": -5.1052,
+    "description": "End of the WHW. Celebrations at the Grog & Gruel. Train back to Glasgow.",
+    "cost_gbp": 0,
+    "url": ""
+  }
+]

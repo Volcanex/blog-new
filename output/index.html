@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="x-geo-butler-verify" content="012AB09C9E49C2F7">
+    <script defer src="https://baselinelabs.ai/js/tracker.js" data-site="09f6d274c6a90724de51d9a3"></script>
+    <link rel="icon" href="favicon.svg">
     <title>Gabrielpenman.com</title>
     <style>
     :root {
@@ -43,7 +45,7 @@
     }
 
     h1 {
-        text-align: left;
+        text-align: center;
         font-size: 2.5em;
         margin: 0 auto 1ch auto;
         color: #00FFFF;
@@ -275,6 +277,7 @@
     .widget.wg-mgmt { background-color: #005500; }
     .widget.wg-templeos { background-color: #AA00AA; }
     .widget.wg-xp { background-color: #0055AA; }
+    .widget.wg-services { background-color: #336699; }
     .widget.wg-default { background-color: #0000AA; }
 
     /* CPU grid styling - 4 rows of 4 characters */
@@ -323,7 +326,7 @@
     }
 
 
-    /* Loading screen */
+    /* Loading screen — CRT power-on effect */
     #loading-screen {
         position: fixed;
         top: 0;
@@ -333,37 +336,76 @@
         background-color: #000000;
         z-index: 9999;
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
-        color: #FFFFFF;
-        font-family: 'Courier New', monospace;
-        transition: opacity 0.5s ease-out;
+        overflow: hidden;
+        transition: background-color 0.25s ease-out 0.55s;
+    }
+
+    .crt-dot {
+        width: 5px;
+        height: 5px;
+        background: #ffffff;
+        border-radius: 50%;
+        box-shadow:
+            0 0 3px 1px rgba(255, 255, 255, 0.95),
+            0 0 10px 3px rgba(220, 255, 230, 0.55),
+            0 0 28px 8px rgba(170, 220, 195, 0.22);
+        animation: crt-dot-pulse 1.6s ease-in-out infinite;
+        will-change: width, height, opacity, border-radius;
+    }
+
+    @keyframes crt-dot-pulse {
+        0%, 100% { opacity: 0.85; transform: scale(0.92); }
+        50%      { opacity: 1;    transform: scale(1.08); }
     }
 
     #loading-screen.hidden {
-        opacity: 0;
         pointer-events: none;
+        background-color: transparent;
     }
 
-    .loading-text {
-        font-size: 1.5em;
-        margin-bottom: 20px;
-        animation: pulse 1.5s ease-in-out infinite;
+    #loading-screen.hidden .crt-dot {
+        animation: crt-power-on 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
 
-    .loading-dots {
-        font-size: 2em;
-    }
-
-    .loading-status {
-        font-size: 1.5em;
-        animation: pulse 1.5s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-        0%, 100% { opacity: 0.4; }
-        50% { opacity: 1; }
+    @keyframes crt-power-on {
+        0% {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            opacity: 1;
+            background: #ffffff;
+            box-shadow:
+                0 0 3px 1px rgba(255, 255, 255, 0.95),
+                0 0 10px 3px rgba(220, 255, 230, 0.55);
+        }
+        28% {
+            width: 100vw;
+            height: 3px;
+            border-radius: 0;
+            opacity: 1;
+            background: #ffffff;
+            box-shadow:
+                0 0 22px 6px rgba(255, 255, 255, 0.9),
+                0 0 50px 14px rgba(220, 255, 230, 0.5);
+        }
+        58% {
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+            opacity: 1;
+            background: #ffffff;
+            box-shadow: none;
+        }
+        100% {
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+            opacity: 0;
+            background: #ffffff;
+            box-shadow: none;
+        }
     }
 
     @media (max-width: 768px) {
@@ -589,9 +631,9 @@
     </script>
 </head>
 <body>
-    <!-- Loading Screen -->
+    <!-- Loading Screen — CRT power-on -->
     <div id="loading-screen">
-        <div class="loading-status">Loading...</div>
+        <div class="crt-dot"></div>
     </div>
 
     <div id="page-content" class="crt">
@@ -617,6 +659,7 @@
         <a href="/api/manage" class="widget wg-mgmt" data-block-id="widget-mgmt"><div class="widget-icon"><svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.6 3.6 0 0112 15.6z"/></svg></div><h3>SITE MGMT</h3><div class="widget-label">manage</div></a>
         <a href="/dev/6081/" class="widget wg-templeos" data-block-id="widget-templeos"><div class="widget-icon"><svg viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg></div><h3>TEMPLE OS</h3><div class="widget-label">:6081</div><div class="widget-status" id="templeos-port-status">OFF</div></a>
         <a href="/dev/6080/" class="widget wg-xp" data-block-id="widget-xp"><div class="widget-icon"><svg viewBox="0 0 24 24"><path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7l-2 3v1h8v-1l-2-3h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 12H3V4h18v10z"/></svg></div><h3>WINDOWS XP</h3><div class="widget-label">:6080</div><div class="widget-status" id="xpvnc-port-status">OFF</div></a>
+        <a href="https://gabrielpenman.co.uk" target="_blank" class="widget wg-services" data-block-id="widget-services"><div class="widget-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg></div><h3>PROFESSIONAL SERVICES</h3><div class="widget-label">gabrielpenman.co.uk</div></a>
         <div class="ascii-block dev-ports" data-block-id="dev-ports">
             <h3>DEV PORTS</h3>
             <div><a href="/dev/3005/"><svg class="port-icon" viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>Trading :3005</a> <span id="trading-port-status">OFF</span></div>
@@ -629,38 +672,74 @@
         <div class="ascii-block blog-post color-red" data-categories="photography,art" data-block-id="post-photography" onclick="window.location.href='/photography'">
             <h3>Photography</h3>
             <div class="description">Photos I've taken whilst travelling around with my Nikon D610 (Ruth). Mostly focused on nightlife, street photography and the odd landscape.</div>
-            <video class="preview-video" src="/assets/videos/photography-preview.webm" autoplay muted loop playsinline></video>
+            
             <a href="/photography">/photography</a>
         </div>
         <div class="ascii-block blog-post color-blue" data-categories="music,creative" data-block-id="post-music" onclick="window.location.href='/music'">
             <h3>Music</h3>
             <div class="description">Made using my residual music production skills from the six months I wanted to be a producer from 17-18.</div>
-            <video class="preview-video" src="/assets/videos/music-preview.webm" autoplay muted loop playsinline></video>
+            
             <a href="/music">/music</a>
         </div>
-        <div class="ascii-block blog-post color-yellow" data-categories="games,dating,comedy" data-block-id="post-red-flag-dating-game" onclick="window.location.href='/red-flag-dating-game'">
+        <div class="ascii-block blog-post color-yellow" data-categories="games,cards,tracker" data-block-id="post-cambio-tracker" onclick="window.location.href='/cambio-tracker'">
+            <h3>Cambio Tracker</h3>
+            <div class="description">Points tracker for the Cambio card game. Track multiple games and player groups.</div>
+            
+            <a href="/cambio-tracker">/cambio-tracker</a>
+        </div>
+        <div class="ascii-block blog-post color-cyan" data-categories="trips,outdoors,planning" data-block-id="post-scotland-trip" onclick="window.location.href='/scotland-trip'">
+            <h3>Scotland Trip</h3>
+            <div class="description">Living route planner for the West Highland Way — nodes, distances, kit, comments. Anyone can add to it.</div>
+            
+            <a href="/scotland-trip">/scotland-trip</a>
+        </div>
+        <div class="ascii-block blog-post color-magenta" data-categories="food,planning,trips" data-block-id="post-lakes-meal-planner" onclick="window.location.href='/lakes-meal-planner'">
+            <h3>Lakes Meal Planner</h3>
+            <div class="description">Plan meals for a weekend at the lakes — pick from the menu, vote, decide together.</div>
+            
+            <a href="/lakes-meal-planner">/lakes-meal-planner</a>
+        </div>
+        <div class="ascii-block blog-post color-green" data-categories="food,planning,trips" data-block-id="post-lakes-shopping-list" onclick="window.location.href='/lakes-shopping-list'">
+            <h3>Lakes Plan & Shopping List</h3>
+            <div class="description">Auto-generated 2-day plan and shopping list for 10, synthesised from the group's voted ideas.</div>
+            
+            <a href="/lakes-shopping-list">/lakes-shopping-list</a>
+        </div>
+        <div class="ascii-block blog-post color-red" data-categories="machine-learning,planetary-science,deep-learning" data-block-id="post-titan-terrain-map" onclick="window.location.href='/titan-terrain-map'">
+            <h3>Titan Terrain Map — AI Segmentation of Saturn's Largest Moon</h3>
+            <div class="description">Interactive global terrain classification map of Titan, generated using deep learning on Cassini SAR imagery</div>
+            
+            <a href="/titan-terrain-map">/titan-terrain-map</a>
+        </div>
+        <div class="ascii-block blog-post color-blue" data-categories="games,dating,comedy" data-block-id="post-red-flag-dating-game" onclick="window.location.href='/red-flag-dating-game'">
             <h3>Red Flag Dating Game</h3>
             <div class="description">The ultimate dating simulation - navigate 5 stages from First Date to Honeymoon, picking red and green flags along the way</div>
             
             <a href="/red-flag-dating-game">/red-flag-dating-game</a>
         </div>
-        <div class="ascii-block blog-post color-cyan" data-categories="games,dating,comedy" data-block-id="post-red-flag-game" onclick="window.location.href='/red-flag-game'">
+        <div class="ascii-block blog-post color-yellow" data-categories="games,dating,comedy" data-block-id="post-red-flag-game" onclick="window.location.href='/red-flag-game'">
             <h3>Red Flag Generator</h3>
             <div class="description">Discover random dating red flags - from mild to absolutely terrifying</div>
             
             <a href="/red-flag-game">/red-flag-game</a>
         </div>
-        <div class="ascii-block blog-post color-magenta" data-categories="games,multiplayer,websockets,party" data-block-id="post-party-rooms" onclick="window.location.href='/party-rooms'">
+        <div class="ascii-block blog-post color-cyan" data-categories="games,multiplayer,websockets,party" data-block-id="post-party-rooms" onclick="window.location.href='/party-rooms'">
             <h3>Party Rooms - Multiplayer Game Hub</h3>
             <div class="description">Create or join real-time multiplayer rooms for pub games with friends</div>
             
             <a href="/party-rooms">/party-rooms</a>
         </div>
-        <div class="ascii-block blog-post color-green" data-categories="games,party,mafia" data-block-id="post-mafia-game" onclick="window.location.href='/mafia-game'">
+        <div class="ascii-block blog-post color-magenta" data-categories="games,party,mafia" data-block-id="post-mafia-game" onclick="window.location.href='/mafia-game'">
             <h3>Mafia Game - Role Assigner</h3>
             <div class="description">Interactive Mafia game role assignment for playing with friends at the pub</div>
             
             <a href="/mafia-game">/mafia-game</a>
+        </div>
+        <div class="ascii-block blog-post color-green" data-categories="health,science,interactive" data-block-id="post-coffee-hormones" onclick="window.location.href='/coffee-hormones'">
+            <h3>Why Coffee Makes You Tired</h3>
+            <div class="description">Interactive visualization showing how coffee timing affects cortisol, adenosine, and energy levels throughout the day</div>
+            
+            <a href="/coffee-hormones">/coffee-hormones</a>
         </div>
         <div class="ascii-block blog-post color-red" data-categories="architecture,networking,devops,infrastructure" data-block-id="post-server-networking-overview" onclick="window.location.href='/server-networking-overview'">
             <h3>Server Networking Overview - Current State</h3>

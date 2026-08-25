@@ -60,10 +60,10 @@ class CRTEffectsController {
         const loadingScreen = document.getElementById('loading-screen');
         if (loadingScreen) {
             loadingScreen.classList.add('hidden');
-            // Remove it completely after fade animation
+            // Remove it completely after CRT power-on animation
             setTimeout(() => {
                 loadingScreen.remove();
-            }, 500);
+            }, 1100);
         }
     }
 

@@ -1,0 +1,7 @@
+{
+    "title": "Titan Terrain Map — AI Segmentation of Saturn's Largest Moon",
+    "slug": "titan-terrain-map",
+    "date": "2026-03-30",
+    "description": "Interactive global terrain classification map of Titan, generated using deep learning on Cassini SAR imagery",
+    "categories": ["machine-learning", "planetary-science", "deep-learning"]
+}

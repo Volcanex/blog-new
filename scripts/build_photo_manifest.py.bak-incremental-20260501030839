@@ -1,0 +1,136 @@
+#!/usr/bin/env python3
+"""Build /home/gabriel/blog-new/data/photography/manifest.json by iterating the
+masters directory once and extracting EXIF. api.py reads from this instead of
+walking every file on each /photos request.
+"""
+import json
+import os
+import sys
+import time
+from fractions import Fraction
+from pathlib import Path
+
+from PIL import Image
+from PIL.ExifTags import TAGS
+
+MASTERS = Path("/home/gabriel/photo-sync-server/storage/photos/masters")
+RAW = Path("/home/gabriel/photo-sync-server/storage/photos/raw")
+OUT = Path("/home/gabriel/blog-new/data/photography/manifest.json")
+OUT.parent.mkdir(parents=True, exist_ok=True)
+
+MIN_PHOTO_BYTES = 50_000
+
+
+def shutter_str(exposure_time):
+    try:
+        et = float(exposure_time)
+        if et >= 1:
+            return f"{et:.1f}s"
+        frac = Fraction(et).limit_denominator(10000)
+        return f"1/{frac.denominator}"
+    except Exception:
+        return str(exposure_time)
+
+
+def extract_exif(path: Path) -> dict:
+    try:
+        with Image.open(path) as img:
+            w, h = img.size
+            raw = img._getexif()
+        out: dict = {"width": int(w), "height": int(h)}
+        if not raw:
+            return out
+        exif = {TAGS.get(tag_id, str(tag_id)): val for tag_id, val in raw.items()}
+        dt = exif.get("DateTimeOriginal", "")
+        if dt:
+            out["date_taken"] = dt[:10].replace(":", "-")
+            out["datetime_sort"] = dt.replace(":", "-", 2)
+        if "Model" in exif:
+            out["camera"] = exif["Model"].strip()
+        if "LensModel" in exif:
+            out["lens"] = exif["LensModel"].strip()
+        fl = exif.get("FocalLength")
+        if fl is not None:
+            try:
+                out["focal_length"] = f"{int(float(fl))}mm"
+            except Exception:
+                pass
+        fn = exif.get("FNumber")
+        if fn is not None:
+            try:
+                out["aperture"] = f"f/{float(fn):.1f}"
+            except Exception:
+                pass
+        et = exif.get("ExposureTime")
+        if et is not None:
+            out["shutter"] = shutter_str(et)
+        iso = exif.get("ISOSpeedRatings")
+        if iso is not None:
+            out["iso"] = f"ISO {iso}"
+        return out
+    except Exception as e:
+        return {"_exif_error": str(e)}
+
+
+def build_category(directory: Path, exts: set[str], min_bytes: int,
+                   do_exif: bool = True) -> dict:
+    manifest: dict[str, dict] = {}
+    files = sorted(f for f in directory.iterdir() if f.is_file())
+    total = len(files)
+    for i, f in enumerate(files, 1):
+        if f.name.startswith("."):
+            continue
+        if f.suffix.lower() not in exts:
+            continue
+        try:
+            stat = f.stat()
+        except OSError:
+            continue
+        if stat.st_size < min_bytes:
+            continue
+        entry = {"size_bytes": stat.st_size, "mtime": stat.st_mtime}
+        if do_exif:
+            entry.update(extract_exif(f))
+        manifest[f.name] = entry
+        if i % 50 == 0:
+            print(f"  [{i}/{total}] {f.name}", flush=True)
+    return manifest
+
+
+def _write_manifest(masters: dict, raws: dict) -> None:
+    manifest = {
+        "version": 1,
+        "generated_at": time.time(),
+        "masters": masters,
+        "raw": raws,
+    }
+    tmp = OUT.with_suffix(".tmp")
+    tmp.write_text(json.dumps(manifest, default=str))
+    os.replace(tmp, OUT)
+
+
+def main():
+    t0 = time.time()
+    print(f"Building photo manifest to {OUT}")
+
+    print(f"\nMasters ({MASTERS}):")
+    masters = build_category(MASTERS, {".jpg", ".jpeg"}, MIN_PHOTO_BYTES, do_exif=True)
+    _write_manifest(masters, {})
+    print(f"  masters done: {len(masters)} entries — partial manifest saved")
+
+    print(f"\nRaw ({RAW}):")
+    # EXIF skipped for raw — PIL can't open NEF/ARW/etc., attempting it
+    # pulls the whole multi-MB file from R2 just to fail. The Flask endpoint
+    # doesn't return EXIF for raw anyway.
+    raws = build_category(
+        RAW,
+        {".arw", ".cr2", ".cr3", ".nef", ".orf", ".raf", ".rw2", ".dng", ".raw"},
+        MIN_PHOTO_BYTES,
+        do_exif=False,
+    )
+    _write_manifest(masters, raws)
+    print(f"\nWrote {OUT}: {len(masters)} masters + {len(raws)} raws in {time.time()-t0:.1f}s")
+
+
+if __name__ == "__main__":
+    main()

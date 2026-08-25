@@ -1,11 +1,11 @@
 {
     "title": "Photography",
     "slug": "photography",
+    "favicon": "favicon-photo.svg",
     "date": "2026-02-15",
     "description": "Photos I've taken whilst travelling around with my Nikon D610 (Ruth). Mostly focused on nightlife, street photography and the odd landscape.",
     "categories": [
         "photography",
         "art"
-    ],
-    "preview_video": "/assets/videos/photography-preview.webm"
+    ]
 }

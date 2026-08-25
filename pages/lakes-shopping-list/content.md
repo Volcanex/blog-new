@@ -1,0 +1,480 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg: #fcfaf3;
+  --bg-sunk: #f5f1e4;
+  --fg: #1a1a1a;
+  --fg-muted: #6b6b6b;
+  --fg-faint: #a0a0a0;
+  --rule: #e8e2cf;
+  --accent: #2d4a6b;
+  --accent-alt: #a04628;
+  --food-fill:   #ffd9c2;
+  --act-fill:    #cfe1d0;
+  --font-serif: 'Newsreader', Georgia, serif;
+  --font-sans:  'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --measure: 720px;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-serif);
+  font-size: 18px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 24px 16px 80px;
+}
+
+.crumb {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+.crumb a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+
+h1 {
+  font-family: var(--font-serif);
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 0 0 4px;
+}
+.sublabel {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--fg-muted);
+  margin: 0 0 18px;
+}
+
+h2 {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fg-muted);
+  margin: 28px 0 10px;
+}
+h3 {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 500;
+  margin: 14px 0 4px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.btn {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 999px;
+  padding: 12px 22px;
+  cursor: pointer;
+}
+.btn:active { transform: scale(0.97); }
+.btn[disabled] { opacity: 0.55; cursor: wait; }
+.meta {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+.days {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+@media (max-width: 560px) {
+  .days { grid-template-columns: 1fr; }
+}
+
+.day {
+  background: var(--bg-sunk);
+  border-radius: 14px;
+  padding: 16px 16px 18px;
+}
+.day-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+.meal-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-family: var(--font-serif);
+  font-size: 17px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--rule);
+  min-height: 56px;
+}
+.meal-row:last-of-type { border-bottom: none; }
+.meal-row .icon {
+  width: 34px; height: 34px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: #fff;
+  border-radius: 10px;
+  color: var(--accent);
+}
+.meal-row .icon svg { width: 22px; height: 22px; }
+.meal-row.empty .icon { color: var(--fg-faint); background: transparent; border: 1px dashed var(--rule); }
+.meal-row .body { flex: 1; min-width: 0; padding-top: 2px; }
+.meal-row .when {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  margin-bottom: 2px;
+}
+.meal-row.empty .meal-name { color: var(--fg-faint); font-style: italic; font-size: 15px; }
+.meal-name { line-height: 1.25; }
+
+.activities {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule);
+  font-family: var(--font-sans);
+  font-size: 13px;
+}
+.activities .col-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  margin-bottom: 6px;
+}
+.activities span {
+  display: inline-block;
+  background: #fff;
+  color: #2a4a30;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 3px 9px;
+  margin: 2px 4px 2px 0;
+}
+.activities .none { color: var(--fg-faint); font-style: italic; }
+
+.shopping {
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+.section-head {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-alt);
+  margin: 14px 0 6px;
+}
+.section-head:first-child { margin-top: 0; }
+.shopping ul { margin: 0 0 4px; padding-left: 18px; }
+.shopping li {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  padding: 3px 0;
+  color: var(--fg);
+}
+
+.notes {
+  margin-top: 18px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--accent);
+  background: var(--bg-sunk);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--fg);
+  border-radius: 0 8px 8px 0;
+}
+
+.empty {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--fg-muted);
+  padding: 30px 0;
+  text-align: center;
+}
+
+.loader {
+  margin: 28px 0 22px;
+  text-align: center;
+}
+.loader .bar {
+  width: 100%;
+  height: 3px;
+  background: var(--bg-sunk);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+.loader .fill {
+  position: absolute;
+  top: 0; left: 0;
+  height: 100%;
+  width: 30%;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: slide 1.6s ease-in-out infinite;
+}
+@keyframes slide {
+  0%   { left: -30%; }
+  100% { left: 100%; }
+}
+.loader .message {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fg-muted);
+  letter-spacing: 0.01em;
+  margin-top: 16px;
+  min-height: 1.5em;
+  transition: opacity 280ms ease;
+}
+.loader .message.fade { opacity: 0; }
+.loader[hidden] { display: none; }
+
+.err {
+  background: #fde9e0;
+  color: #7a2e10;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  margin-top: 10px;
+}
+</style>
+
+<html>
+
+<div class="page">
+  <div class="crumb"><a href="/lakes-meal-planner/">&larr; back to bubbles</a></div>
+  <h1>Plan &amp; Shopping List</h1>
+  <p class="sublabel">For 10 people, 2 days. Synthesised by Claude Haiku from the group's most-voted ideas. Refreshes every minute.</p>
+
+  <div class="controls">
+    <button class="btn" id="regen">Regenerate now</button>
+    <span class="meta" id="meta">No plan yet.</span>
+  </div>
+  <div id="err"></div>
+
+  <div id="loader" class="loader" hidden>
+    <div class="bar"><div class="fill"></div></div>
+    <div class="message" id="loaderMsg"></div>
+  </div>
+
+  <div id="plan"></div>
+</div>
+
+<script>
+(function () {
+  const API = '/api/lakes-meal-planner';
+  const $ = (id) => document.getElementById(id);
+  const planEl = $('plan');
+  const metaEl = $('meta');
+  const errEl  = $('err');
+  const btn    = $('regen');
+
+  function escape(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  // Lucide-style inline SVGs — no emoji.
+  const SVGS = {
+    pizza:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 11h.01"/><path d="M11 15h.01"/><path d="M16 16h.01"/><path d="m2 16 20 6-6-20A20 20 0 0 0 2 16"/><path d="M5.71 17.11a17.04 17.04 0 0 1 11.4-11.4"/></svg>',
+    sandwich: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v3a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-3"/><path d="M12 19H4a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-3.83"/><path d="m3 11 7.77-6.04a2 2 0 0 1 2.46 0L21 11H3Z"/></svg>',
+    soup:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9Z"/><path d="M7 21h10"/><path d="M19.5 12 22 6"/><path d="M16.25 3c.27.1.8.53.75 1.36-.06.83-.93 1.2-1 2.02-.05.78.34 1.24.73 1.62"/><path d="M11.25 3c.27.1.8.53.74 1.36-.05.83-.93 1.2-.98 2.02-.06.78.33 1.24.72 1.62"/><path d="M6.25 3c.27.1.8.53.75 1.36-.06.83-.93 1.2-1 2.02-.05.78.34 1.24.74 1.62"/></svg>',
+    salad:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21h10"/><path d="M19.5 12 22 6"/><path d="M2 12h20a10 10 0 0 1-10 10A10 10 0 0 1 2 12Z"/><path d="M5 8c2 0 5-2 7-5 2 3 5 5 7 5"/></svg>',
+    fish:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.47-3.44 6-7 6s-7.56-2.53-8.5-6Z"/><path d="M18 12v.5"/><path d="M16 17.93a9.77 9.77 0 0 1 0-11.86"/><path d="M7 10.67C7 8 5.58 5.97 2.73 5.5c-1 1.5-1 5 .23 6.5-1.24 1.5-1.24 5-.23 6.5C5.58 18.03 7 16 7 13.33"/><path d="M10.46 7.26C10.2 5.88 9.17 4.24 8 3h5.8a2 2 0 0 1 1.98 1.67l.23 1.4"/><path d="m16.01 17.93-.23 1.4A2 2 0 0 1 13.8 21H9.5a5.96 5.96 0 0 0 1.49-3.98"/></svg>',
+    egg:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c6.23-.05 7.87-5.57 7.5-10-.36-4.34-3.95-9.96-7.5-10-3.55.04-7.14 5.66-7.5 10-.37 4.43 1.27 9.95 7.5 10z"/></svg>',
+    coffee:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/></svg>',
+    croissant:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4.6 13.11 5.79-3.21c1.89-1.05 4.79 1.78 3.71 3.71l-3.22 5.81C8.8 23.16.79 15.23 4.6 13.11Z"/><path d="m10.5 9.5-1-2.29C9.2 6.48 8.8 6 8 6H4.5C2.79 6 2 6.5 2 8.5a7.71 7.71 0 0 0 2 4.83"/><path d="M8 6c0-1.55.24-4-2-4-2 0-2.5 2.17-2.5 4"/><path d="m14.5 13.5 2.29 1c.73.3 1.21.7 1.21 1.5v3.5c0 1.71-.5 2.5-2.5 2.5a7.71 7.71 0 0 1-4.83-2"/><path d="M18 16c1.55 0 4-.24 4 2 0 2-2.17 2.5-4 2.5"/></svg>',
+    pasta:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9Z"/><path d="M7 21h10"/><path d="M8 12V8"/><path d="M12 12V8"/><path d="M16 12V8"/></svg>',
+    burger:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18a8 8 0 0 0-16 0H3Z"/><path d="M2 15h20"/><path d="M3 19a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2H3v2Z"/></svg>',
+    chicken:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.6 2.7a10 10 0 1 0 5.7 5.7"/><circle cx="12" cy="12" r="2"/><path d="M13.4 10.6 19 5"/></svg>',
+    bowl:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11c0 5-4 9-9 9s-9-4-9-9"/><path d="M2 11h20"/><path d="m4 6 4 2"/><path d="m20 6-4 2"/><path d="m12 4 0 4"/></svg>',
+    cake:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3"/><path d="M12 8v3"/><path d="M17 8v3"/><path d="M7 4h.01"/><path d="M12 4h.01"/><path d="M17 4h.01"/></svg>',
+    utensils: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>',
+    plate:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/></svg>',
+  };
+
+  const ICON_RULES = [
+    [/\bpizza\b/i,                                  'pizza'],
+    [/\b(sandwich|wrap|baguette|toastie|panini)\b/i,'sandwich'],
+    [/\b(soup|broth|chowder|ramen|pho)\b/i,         'soup'],
+    [/\b(salad|slaw|greens)\b/i,                    'salad'],
+    [/\b(fish|cod|haddock|salmon|tuna|chips)\b/i,   'fish'],
+    [/\b(egg|omelet|omelette|shakshuka|scramble)\b/i,'egg'],
+    [/\b(coffee|espresso|latte|brew)\b/i,           'coffee'],
+    [/\b(croissant|pastry|pain au|brioche|toast|bagel)\b/i,'croissant'],
+    [/\b(pasta|spaghetti|carbonara|lasagne|lasagna|tagliatelle|penne|risotto|noodle)\b/i,'pasta'],
+    [/\b(burger|patty|sloppy joe)\b/i,              'burger'],
+    [/\b(chicken|roast|turkey|duck)\b/i,            'chicken'],
+    [/\b(curry|stew|chilli|chili|tagine|biriyani|biryani|rice|bowl)\b/i,'bowl'],
+    [/\b(cake|brownie|cookie|dessert|crumble|pie|tart|pudding)\b/i,'cake'],
+    [/\b(breakfast|brunch)\b/i,                     'egg'],
+    [/\b(lunch)\b/i,                                'sandwich'],
+    [/\b(dinner|supper|feast)\b/i,                  'utensils'],
+  ];
+
+  function iconFor(text, when) {
+    const hay = ((text || '') + ' ' + (when || '')).toLowerCase();
+    for (const [re, key] of ICON_RULES) if (re.test(hay)) return SVGS[key];
+    return SVGS.plate;
+  }
+
+  function fmtAgo(iso) {
+    if (!iso) return '';
+    const t = new Date(iso.endsWith('Z') ? iso : iso + 'Z').getTime();
+    const s = Math.max(0, Math.round((Date.now() - t) / 1000));
+    if (s < 60) return `${s}s ago`;
+    if (s < 3600) return `${Math.round(s/60)}m ago`;
+    return `${Math.round(s/3600)}h ago`;
+  }
+
+  const LOADER_MSGS = [
+    'Making the shopping list from the most vibey ideas.',
+    'Remember bag is illegal',
+    'Loading mad sesh weekend',
+    'Making the shopping list',
+  ];
+  const loaderEl = $('loader');
+  const loaderMsg = $('loaderMsg');
+  let loaderTimer = null;
+
+  function showLoader() {
+    planEl.innerHTML = '';
+    loaderEl.hidden = false;
+    let i = 0;
+    loaderMsg.textContent = LOADER_MSGS[i];
+    loaderMsg.classList.remove('fade');
+    clearInterval(loaderTimer);
+    loaderTimer = setInterval(() => {
+      loaderMsg.classList.add('fade');
+      setTimeout(() => {
+        i = (i + 1) % LOADER_MSGS.length;
+        loaderMsg.textContent = LOADER_MSGS[i];
+        loaderMsg.classList.remove('fade');
+      }, 280);
+    }, 2200);
+  }
+  function hideLoader() {
+    clearInterval(loaderTimer); loaderTimer = null;
+    loaderEl.hidden = true;
+  }
+
+  function renderPlan(record) {
+    if (!record || !record.plan) {
+      planEl.innerHTML = '<div class="empty">No ideas voted in yet — head back to the bubbles and add some.</div>';
+      metaEl.textContent = 'No plan yet.';
+      return;
+    }
+    const p = record.plan;
+    metaEl.textContent = `Generated ${fmtAgo(record.generated_at)} · ${record.idea_count} ideas · ${record.group_size} people`;
+
+    let html = '<div class="days">';
+    for (const day of (p.days || [])) {
+      html += `<div class="day"><div class="day-label">${escape(day.label || '')}</div>`;
+      const meals = day.meals || {};
+      for (const slot of ['breakfast', 'lunch', 'dinner']) {
+        const m = meals[slot];
+        if (m && String(m).trim() && String(m).toLowerCase() !== 'null') {
+          html += `<div class="meal-row"><div class="icon">${iconFor(m, slot)}</div><div class="body"><div class="when">${slot}</div><div class="meal-name">${escape(m)}</div></div></div>`;
+        } else {
+          html += `<div class="meal-row empty"><div class="icon">${SVGS.plate}</div><div class="body"><div class="when">${slot}</div><div class="meal-name">(no idea voted in yet)</div></div></div>`;
+        }
+      }
+      html += `<div class="activities"><div class="col-label">Activities</div>`;
+      const acts = (day.activities || []).filter(a => a && String(a).trim());
+      html += acts.length
+        ? acts.map(a => `<span>${escape(a)}</span>`).join('')
+        : `<span class="none">no activities voted in yet</span>`;
+      html += `</div>`;
+      html += `</div>`;
+    }
+    html += `</div>`;
+
+    html += `<h2>Shopping list — for 10 people</h2><div class="shopping">`;
+    for (const sec of (p.shopping_list || [])) {
+      html += `<div class="section-head">${escape(sec.section || '')}</div><ul>`;
+      for (const item of (sec.items || [])) html += `<li>${escape(item)}</li>`;
+      html += `</ul>`;
+    }
+    html += `</div>`;
+
+    if (p.notes) html += `<div class="notes">${escape(p.notes)}</div>`;
+
+    planEl.innerHTML = html;
+  }
+
+  async function loadPlan() {
+    try {
+      const r = await fetch(`${API}/plan`, { cache: 'no-store' });
+      if (!r.ok) return;
+      const data = await r.json();
+      renderPlan(data && data.generated_at ? data : null);
+    } catch (e) { /* ignore */ }
+  }
+
+  async function regenerate(force, withLoader) {
+    errEl.innerHTML = '';
+    btn.disabled = true;
+    btn.textContent = 'Thinking…';
+    if (withLoader) showLoader();
+    try {
+      const r = await fetch(`${API}/plan/synthesise`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ force: !!force }),
+      });
+      const data = await r.json();
+      if (!r.ok) {
+        errEl.innerHTML = `<div class="err">${escape(data.error || 'failed')}</div>`;
+        if (withLoader) hideLoader();
+      } else {
+        hideLoader();
+        renderPlan(data);
+      }
+    } catch (e) {
+      errEl.innerHTML = `<div class="err">network error: ${escape(e.message)}</div>`;
+      hideLoader();
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Regenerate now';
+    }
+  }
+
+  btn.addEventListener('click', () => regenerate(true, true));
+  // auto-regenerate on page load with loading bar; server caches within 20s
+  regenerate(true, true);
+  setInterval(loadPlan, 15000);
+})();
+</script>

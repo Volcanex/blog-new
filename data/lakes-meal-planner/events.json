@@ -1,0 +1,362 @@
+[
+  {
+    "id": "df8d9085",
+    "idea_id": "d7a217948a",
+    "name": "Sam",
+    "delta": -1,
+    "text": "swimming",
+    "kind": "activity",
+    "ts": "2026-05-20T13:08:35.523865Z"
+  },
+  {
+    "id": "d60039b2",
+    "idea_id": "d7a217948a",
+    "name": "Sam",
+    "delta": -1,
+    "text": "swimming",
+    "kind": "activity",
+    "ts": "2026-05-20T13:08:35.923416Z"
+  },
+  {
+    "id": "6b9d7211",
+    "idea_id": "d7a217948a",
+    "name": "Sam",
+    "delta": -1,
+    "text": "swimming",
+    "kind": "activity",
+    "ts": "2026-05-20T13:08:36.569549Z"
+  },
+  {
+    "id": "1a873801",
+    "idea_id": "86ce21a4d1",
+    "name": "Sam",
+    "delta": -1,
+    "text": "Curry",
+    "kind": "food",
+    "ts": "2026-05-20T13:08:40.729467Z"
+  },
+  {
+    "id": "29820167",
+    "idea_id": "86ce21a4d1",
+    "name": "Sam",
+    "delta": 1,
+    "text": "Curry",
+    "kind": "food",
+    "ts": "2026-05-20T13:08:42.896435Z"
+  },
+  {
+    "id": "4e28e524",
+    "idea_id": "40849700dc",
+    "name": "Olivia",
+    "delta": 1,
+    "text": "picky bits",
+    "kind": "food",
+    "ts": "2026-05-20T14:15:06.612872Z"
+  },
+  {
+    "id": "89a91480",
+    "idea_id": "40849700dc",
+    "name": "Olivia",
+    "delta": 1,
+    "text": "picky bits",
+    "kind": "food",
+    "ts": "2026-05-20T14:15:09.013109Z"
+  },
+  {
+    "id": "fe433727",
+    "idea_id": "70a0bd33d1",
+    "name": "Rachael",
+    "delta": 1,
+    "text": "pub lunch",
+    "kind": "activity",
+    "ts": "2026-05-20T14:40:30.498278Z"
+  },
+  {
+    "id": "257cb376",
+    "idea_id": "70a0bd33d1",
+    "name": "Rachael",
+    "delta": 1,
+    "text": "pub lunch",
+    "kind": "activity",
+    "ts": "2026-05-20T14:40:36.906187Z"
+  },
+  {
+    "id": "72f47fb9",
+    "idea_id": "70a0bd33d1",
+    "name": "Rachael",
+    "delta": 1,
+    "text": "pub lunch",
+    "kind": "activity",
+    "ts": "2026-05-20T14:40:37.743566Z"
+  },
+  {
+    "id": "e1d86f37",
+    "idea_id": "40849700dc",
+    "name": "Rachael",
+    "delta": 1,
+    "text": "picky bits",
+    "kind": "food",
+    "ts": "2026-05-20T14:40:46.658706Z"
+  },
+  {
+    "id": "a07b5f55",
+    "idea_id": "665a6c2657",
+    "name": "Rachael",
+    "delta": -1,
+    "text": "mushrooms ;)",
+    "kind": "activity",
+    "ts": "2026-05-20T14:40:51.833333Z"
+  },
+  {
+    "id": "e20b3f51",
+    "idea_id": "58eb2332a9",
+    "name": "Rachael",
+    "delta": 1,
+    "text": "bag",
+    "kind": "food",
+    "ts": "2026-05-20T14:41:00.020728Z"
+  },
+  {
+    "id": "6d9e299f",
+    "idea_id": "70a0bd33d1",
+    "name": "Tianna",
+    "delta": 1,
+    "text": "pub lunch",
+    "kind": "activity",
+    "ts": "2026-05-20T14:42:12.602545Z"
+  },
+  {
+    "id": "ae635566",
+    "idea_id": "86ce21a4d1",
+    "name": "Tianna",
+    "delta": 1,
+    "text": "Curry",
+    "kind": "food",
+    "ts": "2026-05-20T14:44:38.042609Z"
+  },
+  {
+    "id": "47fda197",
+    "idea_id": "b04ed4c0f4",
+    "name": "Sam",
+    "delta": -1,
+    "text": "Short walk",
+    "kind": "food",
+    "ts": "2026-05-20T15:17:48.869290Z"
+  },
+  {
+    "id": "a4ce93df",
+    "idea_id": "b04ed4c0f4",
+    "name": "Sam",
+    "delta": -1,
+    "text": "Short walk",
+    "kind": "food",
+    "ts": "2026-05-20T15:17:54.748001Z"
+  },
+  {
+    "id": "d4f4c0cf",
+    "idea_id": "665a6c2657",
+    "name": "Sam",
+    "delta": 1,
+    "text": "mushrooms ;)",
+    "kind": "activity",
+    "ts": "2026-05-20T15:17:57.714282Z"
+  },
+  {
+    "id": "268ec5cc",
+    "idea_id": "665a6c2657",
+    "name": "Sam",
+    "delta": -1,
+    "text": "mushrooms ;)",
+    "kind": "activity",
+    "ts": "2026-05-20T15:18:02.016512Z"
+  },
+  {
+    "id": "dd46e6de",
+    "idea_id": "665a6c2657",
+    "name": "Sam",
+    "delta": 1,
+    "text": "mushrooms ;)",
+    "kind": "activity",
+    "ts": "2026-05-20T15:18:11.536391Z"
+  },
+  {
+    "id": "b31c8688",
+    "idea_id": "b04ed4c0f4",
+    "name": "Sam",
+    "delta": 1,
+    "text": "Short walk",
+    "kind": "food",
+    "ts": "2026-05-20T15:23:36.963230Z"
+  },
+  {
+    "id": "0968248e",
+    "idea_id": "b04ed4c0f4",
+    "name": "Sam",
+    "delta": 1,
+    "text": "Short walk",
+    "kind": "food",
+    "ts": "2026-05-20T15:23:37.280033Z"
+  },
+  {
+    "id": "b5516e5b",
+    "idea_id": "b04ed4c0f4",
+    "name": "Gabriel",
+    "delta": 1,
+    "text": "Short walk",
+    "kind": "food",
+    "ts": "2026-05-20T15:23:45.160604Z"
+  },
+  {
+    "id": "2830a3ca",
+    "idea_id": "70a0bd33d1",
+    "name": "Maddy",
+    "delta": 1,
+    "text": "pub lunch",
+    "kind": "activity",
+    "ts": "2026-05-20T17:04:53.907113Z"
+  },
+  {
+    "id": "fb614f0f",
+    "idea_id": "58eb2332a9",
+    "name": "Maddy",
+    "delta": -1,
+    "text": "bag",
+    "kind": "food",
+    "ts": "2026-05-20T17:04:57.863886Z"
+  },
+  {
+    "id": "d659b85d",
+    "idea_id": "f9a4b80747",
+    "name": "Maddy",
+    "delta": 1,
+    "text": "Long walk",
+    "kind": "food",
+    "ts": "2026-05-20T17:05:02.030607Z"
+  },
+  {
+    "id": "e7f07b74",
+    "idea_id": "b04ed4c0f4",
+    "name": "Maddy",
+    "delta": 1,
+    "text": "Short walk",
+    "kind": "food",
+    "ts": "2026-05-20T17:05:03.879890Z"
+  },
+  {
+    "id": "35dee2cd",
+    "idea_id": "86ce21a4d1",
+    "name": "Maddy",
+    "delta": 1,
+    "text": "Curry",
+    "kind": "food",
+    "ts": "2026-05-20T17:05:05.913192Z"
+  },
+  {
+    "id": "9f7e3d12",
+    "idea_id": "665a6c2657",
+    "name": "Maddy",
+    "delta": 1,
+    "text": "mushrooms ;)",
+    "kind": "activity",
+    "ts": "2026-05-20T17:05:08.460390Z"
+  },
+  {
+    "id": "a6e59708",
+    "idea_id": "d7a217948a",
+    "name": "Maddy",
+    "delta": 1,
+    "text": "swimming",
+    "kind": "activity",
+    "ts": "2026-05-20T17:05:11.138294Z"
+  },
+  {
+    "id": "c974c589",
+    "idea_id": "40849700dc",
+    "name": "Maddy",
+    "delta": 1,
+    "text": "picky bits",
+    "kind": "food",
+    "ts": "2026-05-20T17:05:13.118549Z"
+  },
+  {
+    "id": "6ade09a1",
+    "idea_id": "58eb2332a9",
+    "name": "Gabriel",
+    "delta": 1,
+    "text": "bag",
+    "kind": "food",
+    "ts": "2026-05-20T18:11:30.068188Z"
+  },
+  {
+    "id": "2a62e872",
+    "idea_id": "58eb2332a9",
+    "name": "Gabriel",
+    "delta": -1,
+    "text": "bag",
+    "kind": "food",
+    "ts": "2026-05-20T18:11:32.862380Z"
+  },
+  {
+    "id": "1954b9f6",
+    "idea_id": "d7a217948a",
+    "name": "Gabriel",
+    "delta": -1,
+    "text": "swimming",
+    "kind": "activity",
+    "ts": "2026-05-20T18:11:36.130567Z"
+  },
+  {
+    "id": "443b74d4",
+    "idea_id": "d7a217948a",
+    "name": "Gabriel",
+    "delta": -1,
+    "text": "swimming",
+    "kind": "activity",
+    "ts": "2026-05-20T18:11:45.542450Z"
+  },
+  {
+    "id": "c604470c",
+    "idea_id": "9e81abcf8b",
+    "name": "Gabriel",
+    "delta": 1,
+    "text": "Big lovely pasta (spicy?)",
+    "kind": "food",
+    "ts": "2026-05-20T18:22:31.141448Z"
+  },
+  {
+    "id": "a79a4b0d",
+    "idea_id": "9e81abcf8b",
+    "name": "Gabriel",
+    "delta": 1,
+    "text": "Big lovely pasta (spicy?)",
+    "kind": "food",
+    "ts": "2026-05-20T18:22:31.524222Z"
+  },
+  {
+    "id": "661d4b54",
+    "idea_id": "9e81abcf8b",
+    "name": "Gabriel",
+    "delta": 1,
+    "text": "Big lovely pasta (spicy?)",
+    "kind": "food",
+    "ts": "2026-05-20T18:22:32.164225Z"
+  },
+  {
+    "id": "af8ca972",
+    "idea_id": "6d86b24bf2",
+    "name": "Gabriel",
+    "delta": 1,
+    "text": "Rent small boats + beers",
+    "kind": "activity",
+    "ts": "2026-05-20T18:23:23.952861Z"
+  },
+  {
+    "id": "22f40804",
+    "idea_id": "699d9aca7e",
+    "name": "Gabriel",
+    "delta": 1,
+    "text": "Rent small boat + beer / zoot",
+    "kind": "activity",
+    "ts": "2026-05-20T18:23:50.381451Z"
+  }
+]

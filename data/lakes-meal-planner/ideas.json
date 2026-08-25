@@ -1,0 +1,160 @@
+[
+  {
+    "id": "665a6c2657",
+    "text": "mushrooms ;)",
+    "kind": "activity",
+    "ups": 4,
+    "downs": 1,
+    "who_ups": [
+      "Tianna",
+      "Gabriel",
+      "Sam",
+      "Maddy"
+    ],
+    "who_downs": [
+      "Rachael"
+    ],
+    "votes": 3,
+    "created": "2026-05-20T11:44:29.140479Z",
+    "created_by": "Gabriel"
+  },
+  {
+    "id": "40849700dc",
+    "text": "picky bits",
+    "kind": "food",
+    "ups": 3,
+    "downs": 0,
+    "who_ups": [
+      "Gabriel",
+      "Rachael",
+      "Maddy"
+    ],
+    "who_downs": [],
+    "votes": 3,
+    "created": "2026-05-20T11:49:04.965893Z",
+    "created_by": "Gabriel"
+  },
+  {
+    "id": "58eb2332a9",
+    "text": "bag",
+    "kind": "food",
+    "ups": 1,
+    "downs": 3,
+    "who_ups": [
+      "Rachael"
+    ],
+    "who_downs": [
+      "Tianna",
+      "Maddy",
+      "Gabriel"
+    ],
+    "votes": -2,
+    "created": "2026-05-20T11:58:42.458832Z",
+    "created_by": "Gabriel"
+  },
+  {
+    "id": "70a0bd33d1",
+    "text": "pub lunch",
+    "kind": "activity",
+    "ups": 4,
+    "downs": 0,
+    "who_ups": [
+      "Gabriel",
+      "Rachael",
+      "Tianna",
+      "Maddy"
+    ],
+    "who_downs": [],
+    "votes": 4,
+    "created": "2026-05-20T12:03:38.070983Z",
+    "created_by": "Gabriel"
+  },
+  {
+    "id": "d7a217948a",
+    "text": "swimming",
+    "kind": "activity",
+    "ups": 1,
+    "downs": 0,
+    "who_ups": [
+      "Maddy"
+    ],
+    "who_downs": [],
+    "votes": 1,
+    "created": "2026-05-20T12:04:07.310879Z",
+    "created_by": "Gabriel"
+  },
+  {
+    "id": "86ce21a4d1",
+    "text": "Curry",
+    "kind": "food",
+    "ups": 4,
+    "downs": 0,
+    "who_ups": [
+      "Gabriel",
+      "Sam",
+      "Tianna",
+      "Maddy"
+    ],
+    "who_downs": [],
+    "votes": 4,
+    "created": "2026-05-20T12:19:21.582289Z",
+    "created_by": "Sam"
+  },
+  {
+    "id": "b04ed4c0f4",
+    "text": "Short walk",
+    "kind": "food",
+    "ups": 2,
+    "downs": 0,
+    "who_ups": [
+      "Gabriel",
+      "Maddy"
+    ],
+    "who_downs": [],
+    "votes": 2,
+    "created": "2026-05-20T14:44:51.711026Z",
+    "created_by": "Tianna"
+  },
+  {
+    "id": "f9a4b80747",
+    "text": "Long walk",
+    "kind": "food",
+    "ups": 1,
+    "downs": 0,
+    "who_ups": [
+      "Maddy"
+    ],
+    "who_downs": [],
+    "votes": 1,
+    "created": "2026-05-20T14:44:55.068109Z",
+    "created_by": "Tianna"
+  },
+  {
+    "id": "9e81abcf8b",
+    "text": "Big lovely pasta (spicy?)",
+    "kind": "food",
+    "ups": 1,
+    "downs": 0,
+    "who_ups": [
+      "Gabriel"
+    ],
+    "who_downs": [],
+    "votes": 1,
+    "created": "2026-05-20T18:22:25.807594Z",
+    "created_by": "Gabriel"
+  },
+  {
+    "id": "699d9aca7e",
+    "text": "Rent small boat + beer / zoot",
+    "kind": "activity",
+    "ups": 1,
+    "downs": 0,
+    "who_ups": [
+      "Gabriel"
+    ],
+    "who_downs": [],
+    "votes": 1,
+    "created": "2026-05-20T18:23:48.243626Z",
+    "created_by": "Gabriel"
+  }
+]

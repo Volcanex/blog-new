@@ -28,6 +28,12 @@ else
     echo "   Using system Python"
 fi
 
+# Rebuild photo manifest first (so new photos appear)
+if [ -f "scripts/build_photo_manifest.py" ]; then
+    echo "📸 Rebuilding photo manifest..."
+#    $PYTHON_CMD scripts/build_photo_manifest.py || echo "⚠️  Photo manifest rebuild failed (non-fatal)"
+fi
+
 # Run the compiler
 echo "📝 Running modular blog compiler..."
 $PYTHON_CMD compile.py

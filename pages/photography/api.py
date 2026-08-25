@@ -13,6 +13,10 @@ State persisted via SimpleNoSQLDB in data/photography/:
 
 import os
 import io
+import subprocess
+import sys
+import threading
+import time
 from flask import Blueprint, jsonify, send_file, request, abort
 from PIL import Image
 from PIL.ExifTags import TAGS
@@ -28,12 +32,198 @@ RAW_DIR = Path('/home/gabriel/photo-sync-server/storage/photos/raw')
 THUMB_DIR = Path('/home/gabriel/blog-new/data/photography-thumbnails')
 THUMB_DIR.mkdir(parents=True, exist_ok=True)
 
+# Pre-built EXIF manifest — see scripts/build_photo_manifest.py.
+# Iterating MASTERS_DIR over rclone→R2 is too slow per request (1067 × EXIF reads),
+# so /photos and /photos/raw read from this cached JSON instead.
+MANIFEST_PATH = Path('/home/gabriel/blog-new/data/photography/manifest.json')
+
+# Hand-curated city → {lat, lng, country} for the world map. The user edits
+# this file directly; we just serve it as JSON.
+LOCATIONS_PATH = Path('/home/gabriel/blog-new/data/photography/locations.json')
+
+
+MANIFEST_REBUILD_SCRIPT = Path("/home/gabriel/blog-new/scripts/build_photo_manifest.py")
+_MANIFEST_REBUILD_LOCK = threading.Lock()
+_MANIFEST_REBUILD_STATE = {
+    "running": False,
+    "started_at": 0.0,
+    "finished_at": 0.0,
+    "ok": None,
+    "returncode": None,
+    "error": "",
+    "stdout_tail": "",
+    "stderr_tail": "",
+    "masters": 0,
+    "raw": 0,
+}
+
+
+def _tail_text(value, limit=4000):
+    value = value or ""
+    return value[-limit:]
+
+
+def _manifest_counts():
+    manifest = _load_manifest()
+    return len(manifest.get("masters", {})), len(manifest.get("raw", {}))
+
+
+def _run_manifest_rebuild():
+    with _MANIFEST_REBUILD_LOCK:
+        _MANIFEST_REBUILD_STATE.update({
+            "running": True,
+            "started_at": time.time(),
+            "finished_at": 0.0,
+            "ok": None,
+            "returncode": None,
+            "error": "",
+            "stdout_tail": "",
+            "stderr_tail": "",
+        })
+        try:
+            result = subprocess.run(
+                [sys.executable, str(MANIFEST_REBUILD_SCRIPT)],
+                cwd="/home/gabriel/blog-new",
+                capture_output=True,
+                text=True,
+                timeout=900,
+            )
+            masters, raw = _manifest_counts()
+            _MANIFEST_REBUILD_STATE.update({
+                "ok": result.returncode == 0,
+                "returncode": result.returncode,
+                "stdout_tail": _tail_text(result.stdout),
+                "stderr_tail": _tail_text(result.stderr),
+                "masters": masters,
+                "raw": raw,
+            })
+        except Exception as e:
+            masters, raw = _manifest_counts()
+            _MANIFEST_REBUILD_STATE.update({
+                "ok": False,
+                "error": str(e),
+                "masters": masters,
+                "raw": raw,
+            })
+        finally:
+            _MANIFEST_REBUILD_STATE["finished_at"] = time.time()
+            _MANIFEST_REBUILD_STATE["running"] = False
+
+
+def _manifest_rebuild_snapshot():
+    state = dict(_MANIFEST_REBUILD_STATE)
+    if not state.get("masters") and not state.get("raw"):
+        masters, raw = _manifest_counts()
+        state["masters"] = masters
+        state["raw"] = raw
+    return state
+
+
+def _load_manifest():
+    """Return the photo manifest dict, or an empty skeleton if missing.
+
+    Called per-request; the JSON is small (~1 MB for 1k photos) so re-reading
+    on each call is cheap and avoids staleness if a rebuild happens.
+    """
+    import json
+    try:
+        with open(MANIFEST_PATH) as f:
+            return json.load(f)
+    except (FileNotFoundError, ValueError):
+        return {"masters": {}, "raw": {}, "version": 0}
+
 MIN_PHOTO_BYTES = 50_000
 ADMIN_TOKEN = os.environ.get('DEV_ADMIN_TOKEN', 'Lasshamster5!01022366')
 WEBFULL_QUALITY = 85
 
+# Thumbnail size ladder. When a master fetch is required (R2-mounted, slow),
+# we generate every smaller size we'll plausibly need from the same in-memory
+# image so the next LQIP / list request hits the disk cache rather than the
+# mount. The endpoint clamps to [24, 1600], so 32/200/800 cover the realistic
+# request sizes.
+SIBLING_THUMB_SIZES = (32, 200, 800)
+
 # RAW file extensions
 RAW_EXTENSIONS = {'.arw', '.cr2', '.cr3', '.nef', '.orf', '.raf', '.rw2', '.dng', '.raw'}
+
+
+def _normalize_to_rgb(img):
+    """Flatten any mode that JPEG can't encode directly onto a white canvas."""
+    if img.mode in ('RGBA', 'LA', 'P'):
+        bg = Image.new('RGB', img.size, (255, 255, 255))
+        if img.mode == 'P':
+            img = img.convert('RGBA')
+        mask = img.split()[-1] if img.mode in ('RGBA', 'LA') else None
+        bg.paste(img, mask=mask)
+        return bg
+    if img.mode != 'RGB':
+        return img.convert('RGB')
+    return img
+
+
+def _ensure_thumb(cache_key_prefix, filename, size, rotation, source_loader):
+    """Return the cache path for a thumbnail, generating it if needed.
+
+    cache_key_prefix: '' for masters, 'raw_' for RAW files.
+    source_loader: callable that returns a PIL.Image when the master/raw
+        actually has to be opened. Only invoked when no larger cached
+        thumbnail at the same rotation exists.
+
+    On cold cache (source must be opened), also writes every smaller size in
+    SIBLING_THUMB_SIZES to disk — one R2 fetch covers LQIP, list, and full
+    thumbnail in one go. On warm cache (a larger cached thumbnail exists at
+    the same rotation), this becomes a pure disk-to-disk resize.
+    """
+    cache_path = THUMB_DIR / f"{cache_key_prefix}{filename}_{size}_r{rotation}.jpg"
+    if cache_path.exists():
+        return cache_path
+
+    # Fast path: derive from the largest cached thumbnail at this rotation.
+    for src_size in (1600, 800, 200):
+        if src_size <= size:
+            continue
+        candidate = THUMB_DIR / f"{cache_key_prefix}{filename}_{src_size}_r{rotation}.jpg"
+        if candidate.exists():
+            img = Image.open(candidate)
+            img.thumbnail((size, size), Image.Resampling.LANCZOS)
+            img = _normalize_to_rgb(img)
+            img.save(cache_path, 'JPEG', quality=88, optimize=True)
+            return cache_path
+
+    # Slow path: open the master/raw. Apply rotation once.
+    img = source_loader()
+    img = _normalize_to_rgb(img)
+    if rotation:
+        img = img.rotate(rotation, expand=True)
+
+    # Generate the requested size + every smaller sibling size in one go.
+    sizes_to_write = sorted({size, *(s for s in SIBLING_THUMB_SIZES if s <= size)}, reverse=True)
+    for s in sizes_to_write:
+        sib_img = img.copy()
+        sib_img.thumbnail((s, s), Image.Resampling.LANCZOS)
+        sib_path = THUMB_DIR / f"{cache_key_prefix}{filename}_{s}_r{rotation}.jpg"
+        sib_img.save(sib_path, 'JPEG', quality=88, optimize=True)
+
+    return cache_path
+
+
+# ── Manifest rebuild ─────────────────────────────────────────────────────────
+
+@bp.route("/rebuild-manifest", methods=["POST"])
+def rebuild_manifest():
+    require_admin()
+    if _MANIFEST_REBUILD_STATE.get("running"):
+        return jsonify({"ok": True, "started": False, "state": _manifest_rebuild_snapshot()}), 202
+
+    thread = threading.Thread(target=_run_manifest_rebuild, daemon=True)
+    thread.start()
+    return jsonify({"ok": True, "started": True, "state": _manifest_rebuild_snapshot()}), 202
+
+
+@bp.route("/rebuild-manifest", methods=["GET"])
+def rebuild_manifest_status():
+    require_admin()
+    return jsonify({"ok": True, "state": _manifest_rebuild_snapshot()})
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
@@ -183,37 +373,36 @@ def list_photos():
     background_photos = get_background_photos()
     photos = []
 
-    for f in MASTERS_DIR.iterdir():
-        if not f.is_file():
+    manifest_masters = _load_manifest().get('masters', {})
+    for filename, entry in manifest_masters.items():
+        if filename.startswith('.'):
             continue
-        if f.suffix.lower() not in ('.jpg', '.jpeg'):
-            continue
-        if f.name.startswith('.'):
-            continue
-        if f.stat().st_size < MIN_PHOTO_BYTES:
+        if entry.get('size_bytes', 0) < MIN_PHOTO_BYTES:
             continue
 
-        is_hidden = f.name in hidden
+        is_hidden = filename in hidden
         if is_hidden and not admin:
             continue
 
-        exif = extract_exif(f)
-        meta = metadata.get(f.name, {})
-        is_background = f.name in background_photos
+        meta = metadata.get(filename, {})
+        is_background = filename in background_photos
+
+        exif = {k: v for k, v in entry.items()
+                if k not in ('size_bytes', 'mtime', '_exif_error')}
 
         photo = {
-            'filename': f.name,
-            'size_mb': round(f.stat().st_size / (1024 ** 2), 1),
-            'rotation': rotations.get(f.name, 0),
+            'filename': filename,
+            'size_mb': round(entry.get('size_bytes', 0) / (1024 ** 2), 1),
+            'rotation': rotations.get(filename, 0),
             'description': meta.get('description', ''),
             'location': meta.get('location', ''),
             'city': meta.get('city', ''),
             'country': meta.get('country', ''),
-            **exif
+            'isBackground': is_background,  # public: doubles as "highlight" flag for the gallery sidebar
+            **exif,
         }
         if admin:
             photo['hidden'] = is_hidden
-            photo['isBackground'] = is_background
 
         photos.append(photo)
 
@@ -303,6 +492,33 @@ def toggle_background():
     })
 
 
+PROFILE_DIR = Path('/home/gabriel/blog-new/data/photography/profile')
+
+
+@bp.route('/locations')
+def locations():
+    """Return the hand-edited city → coords map. Used by the gallery's
+    world-map sidebar to drop one pin per city the user has photos in."""
+    import json
+    try:
+        with open(LOCATIONS_PATH) as f:
+            data = json.load(f)
+    except (FileNotFoundError, ValueError):
+        data = {"version": 0, "cities": {}}
+    return jsonify(data)
+
+
+@bp.route('/profile-photo')
+def profile_photo():
+    """Serve the photographer portrait (scp'd to data/photography/profile/portrait.jpg)."""
+    path = PROFILE_DIR / 'portrait.jpg'
+    if not path.exists():
+        abort(404)
+    response = send_file(path, mimetype='image/jpeg')
+    response.headers['Cache-Control'] = 'public, max-age=3600'
+    return response
+
+
 @bp.route('/random-background')
 def random_background():
     """Return a random photo from the background photos set."""
@@ -312,18 +528,17 @@ def random_background():
     if not background_photos:
         return jsonify({'photo': None, 'message': 'No background photos flagged'})
 
-    # Filter to only existing files
-    available = []
-    for filename in background_photos:
+    # Pick randomly and verify only the chosen file. Statting all flagged files
+    # over the rclone->R2 mount takes ~13s for the full set and, under eventlet's
+    # single thread, blocks every other request — far past the frontend failsafe.
+    candidates = list(background_photos)
+    random.shuffle(candidates)
+    for filename in candidates[:5]:
         photo_path = MASTERS_DIR / filename
         if photo_path.exists() and photo_path.is_file():
-            available.append(filename)
+            return jsonify({'photo': filename, 'count': len(background_photos)})
 
-    if not available:
-        return jsonify({'photo': None, 'message': 'No available background photos'})
-
-    selected = random.choice(available)
-    return jsonify({'photo': selected, 'count': len(available)})
+    return jsonify({'photo': None, 'message': 'No available background photos'})
 
 
 @bp.route('/glitch-settings', methods=['GET'])
@@ -416,6 +631,96 @@ def update_metadata():
 
 
 
+# Background pre-warm progress, shared across requests. The worker thread is
+# daemonised so a server restart kills it cleanly. A short sleep between
+# masters keeps the rclone mount + Flask worker responsive to user requests.
+_PREWARM_LOCK = __import__('threading').Lock()
+_PREWARM_STATE = {'running': False, 'generated': 0, 'skipped': 0,
+                  'failed': 0, 'total': 0, 'target_size': 0,
+                  'started_at': 0.0, 'finished_at': 0.0}
+
+
+def _prewarm_worker(target_size):
+    import time
+    state = _PREWARM_STATE
+    try:
+        manifest_masters = _load_manifest().get('masters', {})
+        rotations = get_rotations()
+        hidden = get_hidden()
+        state['total'] = len(manifest_masters)
+
+        for filename in manifest_masters:
+            if filename.startswith('.') or filename in hidden:
+                state['skipped'] += 1
+                continue
+            rotation = rotations.get(filename, 0)
+            cache_path = THUMB_DIR / f"{filename}_{target_size}_r{rotation}.jpg"
+            if cache_path.exists():
+                state['skipped'] += 1
+                continue
+            source = MASTERS_DIR / filename
+            if not source.exists():
+                state['skipped'] += 1
+                continue
+            try:
+                _ensure_thumb('', filename, target_size, rotation,
+                              lambda src=source: Image.open(src))
+                state['generated'] += 1
+            except Exception:
+                state['failed'] += 1
+            # Yield briefly so concurrent /photos and /thumbnail requests
+            # from real users can interleave on the single-thread worker.
+            time.sleep(0.05)
+    finally:
+        state['finished_at'] = time.time()
+        state['running'] = False
+
+
+@bp.route('/pre-warm', methods=['POST'])
+def pre_warm():
+    """Admin: kick off a background pre-warm of the thumbnail cache.
+
+    Returns immediately. Worker thread iterates the manifest and triggers
+    _ensure_thumb at size=target_size (default 800). The helper writes 32
+    and 200 from the same in-memory image, so one R2 read covers LQIP +
+    list + full thumb for that photo.
+
+        curl -X POST -H "X-Admin-Password: $TOKEN" \
+            http://127.0.0.1:5000/api/photography/pre-warm
+
+    GET returns current progress (no auth needed for status — it leaks no
+    sensitive info, just counts):
+
+        curl http://127.0.0.1:5000/api/photography/pre-warm
+    """
+    require_admin()
+    try:
+        target_size = int(request.args.get('size', 800))
+        target_size = max(32, min(target_size, 1600))
+    except (ValueError, TypeError):
+        target_size = 800
+
+    import time
+    import threading
+    with _PREWARM_LOCK:
+        if _PREWARM_STATE['running']:
+            return jsonify({'ok': False, 'error': 'pre-warm already running',
+                            'state': _PREWARM_STATE})
+        _PREWARM_STATE.update({
+            'running': True, 'generated': 0, 'skipped': 0, 'failed': 0,
+            'total': 0, 'target_size': target_size,
+            'started_at': time.time(), 'finished_at': 0.0,
+        })
+        threading.Thread(target=_prewarm_worker, args=(target_size,),
+                         daemon=True).start()
+    return jsonify({'ok': True, 'started': True, 'state': _PREWARM_STATE})
+
+
+@bp.route('/pre-warm', methods=['GET'])
+def pre_warm_status():
+    return jsonify({'ok': True, 'state': _PREWARM_STATE})
+
+
 @bp.route('/full/<path:filename>')
 def full_photo(filename):
     """
@@ -485,7 +790,7 @@ def thumbnail(filename):
 
     try:
         size = int(request.args.get('size', 800))
-        size = max(200, min(size, 1600))
+        size = max(24, min(size, 1600))
     except (ValueError, TypeError):
         size = 800
 
@@ -499,29 +804,11 @@ def thumbnail(filename):
     except (ValueError, TypeError):
         rotation = 0
 
-    cache_path = THUMB_DIR / f"{filename}_{size}_r{rotation}.jpg"
-
-    if not cache_path.exists():
-        try:
-            img = Image.open(source)
-            img.thumbnail((size, size), Image.Resampling.LANCZOS)
-
-            if img.mode in ('RGBA', 'LA', 'P'):
-                bg = Image.new('RGB', img.size, (255, 255, 255))
-                if img.mode == 'P':
-                    img = img.convert('RGBA')
-                mask = img.split()[-1] if img.mode in ('RGBA', 'LA') else None
-                bg.paste(img, mask=mask)
-                img = bg
-            elif img.mode != 'RGB':
-                img = img.convert('RGB')
-
-            if rotation:
-                img = img.rotate(rotation, expand=True)
-
-            img.save(cache_path, 'JPEG', quality=88, optimize=True)
-        except Exception:
-            abort(500)
+    try:
+        cache_path = _ensure_thumb('', filename, size, rotation,
+                                   lambda: Image.open(source))
+    except Exception:
+        abort(500)
 
     response = send_file(cache_path, mimetype='image/jpeg')
     response.headers['Cache-Control'] = 'public, max-age=86400'
@@ -547,32 +834,30 @@ def list_raw_photos():
     metadata = get_metadata_raw()
     photos = []
 
-    for f in RAW_DIR.iterdir():
-        if not f.is_file():
+    manifest_raw = _load_manifest().get('raw', {})
+    for filename, entry in manifest_raw.items():
+        if filename.startswith('.'):
             continue
-        if f.suffix.lower() not in RAW_EXTENSIONS:
-            continue
-        if f.name.startswith('.'):
-            continue
-        if f.stat().st_size < MIN_PHOTO_BYTES:
+        if entry.get('size_bytes', 0) < MIN_PHOTO_BYTES:
             continue
 
-        is_hidden = f.name in hidden
+        is_hidden = filename in hidden
         if is_hidden and not admin:
             continue
 
-        exif = {}
-        meta = metadata.get(f.name, {})
+        meta = metadata.get(filename, {})
+        exif = {k: v for k, v in entry.items()
+                if k not in ('size_bytes', 'mtime', '_exif_error')}
 
         photo = {
-            'filename': f.name,
-            'size_mb': round(f.stat().st_size / (1024 ** 2), 1),
-            'rotation': rotations.get(f.name, 0),
+            'filename': filename,
+            'size_mb': round(entry.get('size_bytes', 0) / (1024 ** 2), 1),
+            'rotation': rotations.get(filename, 0),
             'description': meta.get('description', ''),
             'location': meta.get('location', ''),
             'city': meta.get('city', ''),
             'country': meta.get('country', ''),
-            **exif
+            **exif,
         }
         if admin:
             photo['hidden'] = is_hidden
@@ -705,7 +990,7 @@ def raw_thumbnail(filename):
 
     try:
         size = int(request.args.get('size', 800))
-        size = max(200, min(size, 1600))
+        size = max(24, min(size, 1600))
     except (ValueError, TypeError):
         size = 800
 
@@ -719,41 +1004,22 @@ def raw_thumbnail(filename):
     except (ValueError, TypeError):
         rotation = 0
 
-    cache_path = THUMB_DIR / f"raw_{filename}_{size}_r{rotation}.jpg"
+    def load_raw():
+        with rawpy.imread(str(source)) as raw:
+            try:
+                thumb = raw.extract_thumb()
+                if thumb.format == rawpy.ThumbFormat.JPEG:
+                    return Image.open(io.BytesIO(thumb.data)).copy()
+            except Exception:
+                pass
+            rgb = raw.postprocess(use_camera_wb=True, half_size=True)
+            return Image.fromarray(rgb)
 
-    if not cache_path.exists():
-        try:
-            with rawpy.imread(str(source)) as raw:
-                try:
-                    thumb = raw.extract_thumb()
-                    if thumb.format == rawpy.ThumbFormat.JPEG:
-                        img = Image.open(io.BytesIO(thumb.data))
-                    else:
-                        rgb = raw.postprocess(use_camera_wb=True, half_size=True)
-                        img = Image.fromarray(rgb)
-                except:
-                    rgb = raw.postprocess(use_camera_wb=True, half_size=True)
-                    img = Image.fromarray(rgb)
-
-            img.thumbnail((size, size), Image.Resampling.LANCZOS)
-
-            if img.mode in ('RGBA', 'LA', 'P'):
-                bg = Image.new('RGB', img.size, (255, 255, 255))
-                if img.mode == 'P':
-                    img = img.convert('RGBA')
-                mask = img.split()[-1] if img.mode in ('RGBA', 'LA') else None
-                bg.paste(img, mask=mask)
-                img = bg
-            elif img.mode != 'RGB':
-                img = img.convert('RGB')
-
-            if rotation:
-                img = img.rotate(rotation, expand=True)
-
-            img.save(cache_path, 'JPEG', quality=88, optimize=True)
-        except Exception as e:
-            print(f"Error generating RAW thumbnail: {e}")
-            abort(500)
+    try:
+        cache_path = _ensure_thumb('raw_', filename, size, rotation, load_raw)
+    except Exception as e:
+        print(f"Error generating RAW thumbnail: {e}")
+        abort(500)
 
     response = send_file(cache_path, mimetype='image/jpeg')
     response.headers['Cache-Control'] = 'public, max-age=86400'

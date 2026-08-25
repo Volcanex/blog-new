@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "_note": "Maps city names (as they appear in metadata.json) to lat/lng so the photography map can drop a pin per location. Hand-edit when you visit somewhere new — the keys must match the 'city' field exactly (including any quirks of spelling, e.g. 'Phnom Pehn').",
+  "cities": {
+    "Saigon":          { "lat": 10.7769, "lng": 106.7009, "country": "Vietnam"        },
+    "Hanoi":           { "lat": 21.0285, "lng": 105.8542, "country": "Vietnam"        },
+    "Sapa":            { "lat": 22.3389, "lng": 103.8439, "country": "Vietnam"        },
+    "Vang Vieng":      { "lat": 18.9237, "lng": 102.4518, "country": "Laos"           },
+    "Nong Khiaw":      { "lat": 20.5667, "lng": 102.6167, "country": "Laos"           },
+    "Luang Prebang":   { "lat": 19.8845, "lng": 102.1349, "country": "Laos"           },
+    "Vientine":        { "lat": 17.9757, "lng": 102.6331, "country": "Laos"           },
+    "Vientiene":       { "lat": 17.9757, "lng": 102.6331, "country": "Laos"           },
+    "Phnom Pehn":      { "lat": 11.5564, "lng": 104.9282, "country": "Cambodia"       },
+    "Near Phnom Pehn": { "lat": 11.4900, "lng": 104.9700, "country": "Cambodia"       },
+    "Shanghai":        { "lat": 31.2304, "lng": 121.4737, "country": "China"          },
+    "Newcastle":       { "lat": 54.9783, "lng":  -1.6178, "country": "United Kingdom" },
+    "London":          { "lat": 51.5074, "lng":  -0.1278, "country": "England"        }
+  }
+}
